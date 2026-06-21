@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'motion.dart';
+
 class PageFrame extends StatelessWidget {
   const PageFrame({
     required this.title,
@@ -46,7 +48,7 @@ class PageFrame extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                       ],
-                      child,
+                      EntranceAnimation(child: child),
                     ],
                   ),
                 ),
@@ -68,14 +70,19 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 10),
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
       child: Row(
         children: [
           Expanded(
             child: Text(title, style: Theme.of(context).textTheme.titleLarge),
           ),
           if (action != null)
-            TextButton(onPressed: () {}, child: Text(action!)),
+            TextButton.icon(
+              onPressed: () {},
+              label: Text(action!),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+            ),
         ],
       ),
     );

@@ -1,4 +1,4 @@
-# 爪印健康
+# 毛健康
 
 一个离线优先的宠物健康履历与提醒 App，使用 Flutter、Material 3、Riverpod 和 go_router 构建。
 

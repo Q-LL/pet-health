@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/motion.dart';
+
 Future<void> showAddRecordSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     showDragHandle: true,
     isScrollControlled: true,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: AppMotion.medium,
+      reverseDuration: AppMotion.fast,
+    ),
     builder: (context) => const _AddRecordSheet(),
   );
 }
@@ -43,31 +49,36 @@ class _AddRecordSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: .9,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: records.length,
-              itemBuilder: (context, index) => InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => Navigator.pop(context),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(records[index].$1),
-                      const SizedBox(height: 8),
-                      Text(records[index].$2, textAlign: TextAlign.center),
-                    ],
+            LayoutBuilder(
+              builder: (context, constraints) => GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: constraints.maxWidth > 520 ? 4 : 2,
+                  mainAxisExtent: 92,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: records.length,
+                itemBuilder: (context, index) => PressableScale(
+                  child: Material(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Icon(records[index].$1),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(records[index].$2)),
+                            const Icon(Icons.chevron_right_rounded, size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -10,6 +10,7 @@ void main() {
     expect(find.text('日历'), findsOneWidget);
     expect(find.text('宠物'), findsOneWidget);
     expect(find.text('设置'), findsOneWidget);
-    expect(find.text('今日提醒'), findsOneWidget);
+    expect(find.text('毛健康'), findsAtLeastNWidgets(1));
+    expect(find.text('快速记录'), findsOneWidget);
   });
 }
