@@ -427,8 +427,8 @@ tools/
 
 ### 阶段 1：可运行骨架
 
-- [ ] 创建 Flutter 工程和 Material 3 主题
-- [ ] 配置 Riverpod、路由和四个底部页面
+- [x] 创建 Flutter 工程和 Material 3 主题
+- [x] 配置 Riverpod、路由和四个底部页面
 - [ ] 建立 `user.sqlite`、迁移机制和测试数据库
 - [ ] 建立空的 `knowledge.sqlite`、版本表和 Repository 接口
 
