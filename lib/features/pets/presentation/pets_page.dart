@@ -13,11 +13,7 @@ class PetsPage extends StatelessWidget {
       subtitle: '每只宠物都有独立、连续的健康履历。',
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colors.primaryContainer, colors.secondaryContainer],
-          ),
+          color: colors.tertiaryContainer,
           borderRadius: BorderRadius.circular(32),
         ),
         child: Padding(

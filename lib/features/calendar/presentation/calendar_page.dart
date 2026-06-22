@@ -50,9 +50,7 @@ class CalendarPage extends StatelessWidget {
           const SizedBox(height: 22),
           const SectionHeader('当天时间线'),
           Card(
-            color: Theme.of(
-              context,
-            ).colorScheme.secondaryContainer.withValues(alpha: .55),
+            color: Theme.of(context).colorScheme.secondaryContainer,
             child: const Padding(
               padding: EdgeInsets.all(24),
               child: Column(

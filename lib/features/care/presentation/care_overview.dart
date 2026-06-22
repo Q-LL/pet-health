@@ -213,14 +213,7 @@ class _WalkCard extends ConsumerWidget {
       curve: AppMotion.emphasized,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: isWalking
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [colors.primary, colors.tertiary],
-              )
-            : null,
-        color: isWalking ? null : colors.surfaceContainer,
+        color: isWalking ? colors.primary : colors.surfaceContainer,
         borderRadius: BorderRadius.circular(30),
       ),
       child: AnimatedSwitcher(

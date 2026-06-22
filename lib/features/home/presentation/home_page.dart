@@ -83,11 +83,7 @@ class _WelcomeHero extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.primaryContainer, colors.tertiaryContainer],
-        ),
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Stack(
@@ -222,8 +218,8 @@ class _QuickActions extends ConsumerWidget {
       (
         Icons.grid_view_rounded,
         '更多记录',
-        colors.errorContainer,
-        colors.onErrorContainer,
+        colors.surfaceContainerHigh,
+        colors.onSurface,
         () {},
       ),
     ];
@@ -412,7 +408,7 @@ class _InsightCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.secondaryContainer.withValues(alpha: .65),
+        color: colors.secondaryContainer,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Row(

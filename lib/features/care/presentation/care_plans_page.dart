@@ -98,11 +98,7 @@ class _ControlBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.primaryContainer, colors.tertiaryContainer],
-        ),
+        color: colors.secondaryContainer,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Row(
@@ -303,7 +299,7 @@ class _EnabledPlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Card(
-      color: colors.primaryContainer.withValues(alpha: .65),
+      color: colors.primaryContainer,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,

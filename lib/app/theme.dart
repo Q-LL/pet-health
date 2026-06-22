@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
-  static const _seed = Color(0xFF2F6B57);
+  static const _seed = Color(0xFF006A60);
 
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);
@@ -10,18 +10,14 @@ abstract final class AppTheme {
     final scheme = ColorScheme.fromSeed(
       seedColor: _seed,
       brightness: brightness,
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+      dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot,
     );
-
-    final isLight = brightness == Brightness.light;
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: isLight
-          ? const Color(0xFFF7F9F5)
-          : const Color(0xFF101512),
-      canvasColor: isLight ? const Color(0xFFF7F9F5) : const Color(0xFF101512),
+      scaffoldBackgroundColor: scheme.surface,
+      canvasColor: scheme.surface,
       splashFactory: InkSparkle.splashFactory,
       textTheme: ThemeData(brightness: brightness).textTheme.copyWith(
         displaySmall: const TextStyle(
@@ -55,17 +51,15 @@ abstract final class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 76,
-        backgroundColor: isLight
-            ? const Color(0xFFF0F4EF)
-            : scheme.surfaceContainer,
-        indicatorColor: scheme.secondaryContainer,
+        backgroundColor: scheme.surfaceContainer,
+        indicatorColor: scheme.primaryContainer,
         elevation: 0,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             size: states.contains(WidgetState.selected) ? 25 : 23,
             color: states.contains(WidgetState.selected)
-                ? scheme.onSecondaryContainer
+                ? scheme.onPrimaryContainer
                 : scheme.onSurfaceVariant,
           ),
         ),
@@ -102,8 +96,11 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         backgroundColor: scheme.surfaceContainerHigh,
       ),
-      dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: .65),
+      dividerTheme: DividerThemeData(color: scheme.outlineVariant),
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
