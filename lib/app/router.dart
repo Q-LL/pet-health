@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/calendar/presentation/calendar_page.dart';
+import '../features/care/presentation/care_plans_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
@@ -15,7 +16,18 @@ final appRouter = GoRouter(
           AppShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: '/home', builder: (_, _) => const HomePage())],
+          routes: [
+            GoRoute(
+              path: '/home',
+              builder: (_, _) => const HomePage(),
+              routes: [
+                GoRoute(
+                  path: 'care-plans',
+                  builder: (_, _) => const CarePlansPage(),
+                ),
+              ],
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [

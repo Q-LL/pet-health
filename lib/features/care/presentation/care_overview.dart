@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/motion.dart';
 import '../application/care_controller.dart';
+import '../application/care_plan_controller.dart';
 import '../domain/care_models.dart';
 import 'care_sheets.dart';
 
@@ -14,10 +16,87 @@ class CareOverview extends ConsumerWidget {
     final state = ref.watch(careControllerProvider);
     return Column(
       children: [
+        const _CarePlanPreview(),
+        const SizedBox(height: 14),
         _BathCard(record: state.lastBath),
         const SizedBox(height: 14),
         _WalkCard(state: state),
       ],
+    );
+  }
+}
+
+class _CarePlanPreview extends ConsumerWidget {
+  const _CarePlanPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final planState = ref.watch(carePlanControllerProvider);
+    final candidates = ref.watch(carePlanCandidatesProvider);
+    final pending = candidates
+        .where(
+          (candidate) =>
+              !planState.enabledPlans.containsKey(candidate.id) &&
+              !planState.dismissedCandidateIds.contains(candidate.id),
+        )
+        .length;
+    final colors = Theme.of(context).colorScheme;
+
+    return PressableScale(
+      child: Material(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(28),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => context.push('/home/care-plans'),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: .72),
+                    borderRadius: BorderRadius.circular(19),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '护理计划',
+                        style: TextStyle(
+                          color: colors.onPrimaryContainer,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        planState.enabledPlans.isEmpty
+                            ? '$pending 条候选建议，全部由你决定是否开启'
+                            : '已开启 ${planState.enabledPlans.length} 项 · 还有 $pending 条候选',
+                        style: TextStyle(color: colors.onPrimaryContainer),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  color: colors.onPrimaryContainer,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
