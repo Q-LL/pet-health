@@ -1,11 +1,32 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet_health/app/app.dart';
+import 'package:pet_health/core/database/app_database.dart';
+import 'package:pet_health/core/database/database_provider.dart';
 
 void main() {
+  late AppDatabase database;
+
+  setUp(() {
+    database = AppDatabase(NativeDatabase.memory());
+  });
+
+  tearDown(() => database.close());
+
+  Widget testApp() => ProviderScope(
+    overrides: [appDatabaseProvider.overrideWithValue(database)],
+    child: const PetHealthApp(),
+  );
+
+  Future<void> disposeTestApp(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 1));
+  }
+
   testWidgets('shows the four primary destinations', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: PetHealthApp()));
+    await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
     expect(find.text('首页'), findsOneWidget);
@@ -16,10 +37,11 @@ void main() {
     expect(find.text('快速记录'), findsOneWidget);
     expect(find.text('日常护理'), findsOneWidget);
     expect(find.text('一键开始遛狗'), findsOneWidget);
+    await disposeTestApp(tester);
   });
 
   testWidgets('starts an active walk from the care card', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: PetHealthApp()));
+    await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
     final startWalk = find.text('一键开始遛狗');
@@ -30,12 +52,13 @@ void main() {
 
     expect(find.text('正在遛狗'), findsOneWidget);
     expect(find.text('结束遛狗'), findsAtLeastNWidgets(1));
+    await disposeTestApp(tester);
   });
 
   testWidgets('opens a care suggestion and enables it explicitly', (
     tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: PetHealthApp()));
+    await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
     final carePlans = find.text('护理计划');
@@ -64,5 +87,28 @@ void main() {
     await tester.tap(find.text('确认开启'));
     await tester.pumpAndSettle();
     expect(find.text('已开启 1'), findsOneWidget);
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('creates the first local pet profile', (tester) async {
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('宠物'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('创建宠物档案'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, '名字 *'), '团子');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, '物种，例如：猫、狗'),
+      '猫',
+    );
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('团子'), findsOneWidget);
+    expect(find.text('当前'), findsOneWidget);
+    await disposeTestApp(tester);
   });
 }

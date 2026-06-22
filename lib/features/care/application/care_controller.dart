@@ -1,10 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/care_repository.dart';
 import '../domain/care_models.dart';
+import '../../pets/data/pet_repository.dart';
 
 final careControllerProvider = NotifierProvider<CareController, CareState>(
   CareController.new,
 );
+
+final persistedCareStateProvider = StreamProvider<CareState>((ref) async* {
+  final repository = ref.watch(careRepositoryProvider);
+  final petId = ref.watch(selectedPetIdProvider).value;
+  if (petId == null) {
+    yield const CareState();
+    return;
+  }
+  yield* repository.watchState(petId);
+});
 
 final walkElapsedProvider = StreamProvider.autoDispose<Duration>((ref) async* {
   final startedAt = ref.watch(
@@ -25,33 +37,41 @@ final walkElapsedProvider = StreamProvider.autoDispose<Duration>((ref) async* {
 
 class CareController extends Notifier<CareState> {
   @override
-  CareState build() => const CareState();
-
-  void recordBath({required DateTime occurredAt, required String place}) {
-    state = state.copyWith(
-      lastBath: BathRecord(occurredAt: occurredAt, place: place.trim()),
-    );
+  CareState build() {
+    return ref.watch(persistedCareStateProvider).value ?? const CareState();
   }
 
-  void startWalk({DateTime? at}) {
+  Future<void> recordBath({
+    required DateTime occurredAt,
+    required String place,
+  }) async {
+    final repository = ref.read(careRepositoryProvider);
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final record = await repository.recordBath(
+      petId: petId,
+      occurredAt: occurredAt,
+      place: place,
+    );
+    state = state.copyWith(lastBath: record);
+  }
+
+  Future<void> startWalk({DateTime? at}) async {
     if (state.activeWalkStartedAt != null) return;
-    state = state.copyWith(activeWalkStartedAt: at ?? DateTime.now());
+    final repository = ref.read(careRepositoryProvider);
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final startedAt = await repository.startWalk(petId: petId, at: at);
+    state = state.copyWith(activeWalkStartedAt: startedAt);
   }
 
-  WalkRecord? finishWalk({required String place, DateTime? at}) {
-    final startedAt = state.activeWalkStartedAt;
-    if (startedAt == null) return null;
-
-    final endedAt = at ?? DateTime.now();
-    final duration = endedAt.isBefore(startedAt)
-        ? Duration.zero
-        : endedAt.difference(startedAt);
-    final record = WalkRecord(
-      startedAt: startedAt,
-      endedAt: endedAt,
-      duration: duration,
-      place: place.trim(),
+  Future<WalkRecord?> finishWalk({required String place, DateTime? at}) async {
+    final repository = ref.read(careRepositoryProvider);
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final record = await repository.finishWalk(
+      petId: petId,
+      place: place,
+      at: at,
     );
+    if (record == null) return null;
 
     state = state.copyWith(
       clearActiveWalk: true,

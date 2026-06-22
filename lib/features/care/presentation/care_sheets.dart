@@ -57,11 +57,11 @@ class _BathRecordSheetState extends ConsumerState<_BathRecordSheet> {
     if (result != null && mounted) setState(() => _date = result);
   }
 
-  void _save() {
-    ref
+  Future<void> _save() async {
+    await ref
         .read(careControllerProvider.notifier)
         .recordBath(occurredAt: _date, place: _placeController.text);
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -115,11 +115,11 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
     super.dispose();
   }
 
-  void _finish() {
-    ref
+  Future<void> _finish() async {
+    await ref
         .read(careControllerProvider.notifier)
         .finishWalk(place: _placeController.text);
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override

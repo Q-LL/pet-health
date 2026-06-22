@@ -4,6 +4,8 @@
 
 当前处于阶段 1：可运行 UI 骨架。产品范围与技术决策见 [PROJECT_BLUEPRINT.md](PROJECT_BLUEPRINT.md)。
 
+本地 Repository 接口、前端接入示例与测试方法见 [docs/LOCAL_DATA_API.md](docs/LOCAL_DATA_API.md)。
+
 ## 本地运行
 
 ```bash
