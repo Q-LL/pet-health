@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
+import '../../care/application/care_controller.dart';
+import '../../care/presentation/care_overview.dart';
+import '../../care/presentation/care_sheets.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -35,24 +39,33 @@ class HomePage extends StatelessWidget {
           SizedBox(height: 28),
           EntranceAnimation(
             delay: Duration(milliseconds: 140),
-            child: SectionHeader('今天', action: '全部提醒'),
+            child: SectionHeader('日常护理'),
           ),
           EntranceAnimation(
             delay: Duration(milliseconds: 170),
-            child: _TodayCard(),
+            child: CareOverview(),
           ),
           SizedBox(height: 28),
           EntranceAnimation(
             delay: Duration(milliseconds: 210),
-            child: SectionHeader('健康动态', action: '查看时间线'),
+            child: SectionHeader('今天', action: '全部提醒'),
           ),
           EntranceAnimation(
             delay: Duration(milliseconds: 240),
+            child: _TodayCard(),
+          ),
+          SizedBox(height: 28),
+          EntranceAnimation(
+            delay: Duration(milliseconds: 280),
+            child: SectionHeader('健康动态', action: '查看时间线'),
+          ),
+          EntranceAnimation(
+            delay: Duration(milliseconds: 310),
             child: _ActivityCard(),
           ),
           SizedBox(height: 16),
           EntranceAnimation(
-            delay: Duration(milliseconds: 280),
+            delay: Duration(milliseconds: 340),
             child: _InsightCard(),
           ),
         ],
@@ -112,7 +125,7 @@ class _WelcomeHero extends StatelessWidget {
                     const Spacer(),
                     Chip(
                       avatar: const Icon(Icons.lock_outline_rounded, size: 16),
-                      label: const Text('仅存本机'),
+                      label: const Text('本机'),
                       backgroundColor: colors.surface.withValues(alpha: .7),
                     ),
                   ],
@@ -167,36 +180,51 @@ class _SoftCircle extends StatelessWidget {
   );
 }
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends ConsumerWidget {
   const _QuickActions();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final isWalking = ref.watch(
+      careControllerProvider.select(
+        (state) => state.activeWalkStartedAt != null,
+      ),
+    );
     final actions = [
       (
         Icons.monitor_weight_outlined,
         '体重',
         colors.primaryContainer,
         colors.onPrimaryContainer,
+        () {},
       ),
       (
-        Icons.restaurant_rounded,
-        '饮食',
+        Icons.bathtub_outlined,
+        '洗澡',
         colors.secondaryContainer,
         colors.onSecondaryContainer,
+        () => showBathRecordSheet(context),
       ),
       (
-        Icons.medication_outlined,
-        '用药',
+        Icons.directions_walk_rounded,
+        isWalking ? '结束遛狗' : '遛狗',
         colors.tertiaryContainer,
         colors.onTertiaryContainer,
+        () {
+          if (isWalking) {
+            showFinishWalkSheet(context);
+          } else {
+            ref.read(careControllerProvider.notifier).startWalk();
+          }
+        },
       ),
       (
-        Icons.healing_outlined,
-        '症状',
+        Icons.grid_view_rounded,
+        '更多记录',
         colors.errorContainer,
         colors.onErrorContainer,
+        () {},
       ),
     ];
 
@@ -221,7 +249,7 @@ class _QuickActions extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
-                  onTap: () {},
+                  onTap: action.$5,
                   child: Padding(
                     padding: const EdgeInsets.all(15),
                     child: Column(

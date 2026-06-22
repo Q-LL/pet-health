@@ -30,6 +30,8 @@ class _AddRecordSheet extends StatelessWidget {
       (Icons.vaccines_outlined, '疫苗'),
       (Icons.bug_report_outlined, '驱虫'),
       (Icons.local_hospital_outlined, '就诊 / 复诊'),
+      (Icons.bathtub_outlined, '洗澡护理'),
+      (Icons.directions_walk_rounded, '遛狗'),
     ];
 
     return ConstrainedBox(
