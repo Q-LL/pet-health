@@ -83,7 +83,7 @@ class _BathRecordSheetState extends ConsumerState<_BathRecordSheet> {
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(
               labelText: '洗澡地点（可选）',
-              hintText: '例如：家里、暖爪宠物店',
+              hintText: '例如：家里、暖爪护理店',
               prefixIcon: Icon(Icons.location_on_outlined),
             ),
           ),

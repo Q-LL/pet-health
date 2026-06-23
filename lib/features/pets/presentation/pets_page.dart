@@ -18,11 +18,11 @@ class PetsPage extends ConsumerWidget {
     final pets = ref.watch(petsProvider);
     final selectedPetId = ref.watch(selectedPetIdProvider).value;
     return PageFrame(
-      title: '宠物',
-      subtitle: '每只宠物都有独立、连续的健康履历。',
+      title: '狗狗',
+      subtitle: '每只狗狗都有独立、连续的健康履历。',
       actions: [
         IconButton.filledTonal(
-          tooltip: '创建宠物档案',
+          tooltip: '创建狗狗档案',
           onPressed: () => _editPet(context, ref),
           icon: const Icon(Icons.add_rounded),
         ),
@@ -107,7 +107,7 @@ class PetsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('删除 ${pet.name}？'),
-        content: const Text('该宠物的健康记录和护理记录也会从本机删除，此操作无法撤销。'),
+        content: const Text('这只狗狗的健康记录和护理记录也会从本机删除，此操作无法撤销。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -158,7 +158,7 @@ class _EmptyPets extends StatelessWidget {
           FilledButton.icon(
             onPressed: onCreate,
             icon: const Icon(Icons.add_rounded),
-            label: const Text('创建宠物档案'),
+            label: const Text('创建狗狗档案'),
           ),
         ],
       ),
@@ -331,7 +331,7 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.pet == null ? '创建宠物档案' : '编辑宠物档案'),
+    title: Text(widget.pet == null ? '创建狗狗档案' : '编辑狗狗档案'),
     content: SizedBox(
       width: 480,
       child: Form(
@@ -351,12 +351,15 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
                 autofocus: true,
                 decoration: const InputDecoration(labelText: '名字 *'),
                 validator: (value) =>
-                    value == null || value.trim().isEmpty ? '请填写宠物名字' : null,
+                    value == null || value.trim().isEmpty ? '请填写狗狗名字' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _species,
-                decoration: const InputDecoration(labelText: '物种，例如：猫、狗'),
+                decoration: const InputDecoration(
+                  labelText: '类型',
+                  hintText: '默认狗狗，可补充小型犬 / 中型犬 / 大型犬等',
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(

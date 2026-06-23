@@ -1,28 +1,30 @@
 # 毛健康本地数据接口文档
 
-> 版本：0.4  
+> 版本：0.5
 > 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
+
+当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录和护理活动。提醒、就诊、处方、通用附件、护理计划持久化、导出、备份恢复、本地知识库和 OCR 尚未进入本接口文档。
 
 ## 1. 前端接入原则
 
 - 页面只调用 Repository 或 Riverpod Provider，不直接操作 Drift 表。
-- 所有实体 ID 为 UUID 字符串；第一个占位宠物可能保留 `local-default-pet`。
+- 所有实体 ID 为 UUID 字符串；第一个占位狗狗可能保留 `local-default-pet`。
 - Repository 输入输出的时间统一为 UTC，页面展示时调用 `toLocal()`。
 - `watch...` 返回实时 `Stream`，数据库变化后页面会自动收到新数据。
-- 删除宠物会通过 SQLite 外键级联删除其健康与护理记录。
+- 删除狗狗会通过 SQLite 外键级联删除其健康与护理记录。
 
 ## 2. Riverpod 入口
 
 | Provider | 返回值 | 用途 |
 |---|---|---|
-| `petRepositoryProvider` | `PetRepository` | 宠物档案写操作与单次查询 |
-| `petsProvider` | `AsyncValue<List<PetProfile>>` | 实时宠物列表 |
-| `selectedPetIdProvider` | `AsyncValue<String>` | 当前宠物 ID |
-| `petPhotoRepositoryProvider` | `PetPhotoRepository` | 宠物照片、头像和本地文件管理 |
+| `petRepositoryProvider` | `PetRepository` | 狗狗档案写操作与单次查询 |
+| `petsProvider` | `AsyncValue<List<PetProfile>>` | 实时狗狗列表 |
+| `selectedPetIdProvider` | `AsyncValue<String>` | 当前狗狗 ID |
+| `petPhotoRepositoryProvider` | `PetPhotoRepository` | 狗狗照片、头像和本地文件管理 |
 | `healthRecordRepositoryProvider` | `HealthRecordRepository` | 健康记录读写 |
 | `careRepositoryProvider` | `CareRepository` | 洗澡、遛狗等护理活动 |
-| `careControllerProvider` | `CareState` | 当前宠物的护理页面状态 |
+| `careControllerProvider` | `CareState` | 当前狗狗的护理页面状态 |
 
 前端读取示例：
 
@@ -31,7 +33,7 @@ final pets = ref.watch(petsProvider);
 final selectedPetId = ref.watch(selectedPetIdProvider).value;
 ```
 
-## 3. 宠物档案接口
+## 3. 狗狗档案接口
 
 源文件：`lib/features/pets/data/pet_repository.dart`
 
@@ -58,7 +60,7 @@ Future<List<PetProfile>> findPets({
 - `watchPets` 实时返回列表，数据变化后自动更新页面。
 - `findPets` 只读取一次，适合搜索和分页。
 - `keyword` 匹配名字、品种、过敏信息和慢性病信息。
-- `species` 精确筛选物种。
+- `species` 字段当前用于存放狗狗类型、犬种或体型等筛选值。
 - 前端业务列表通常传 `includePlaceholder: false`。
 - 分页要求 `limit > 0`、`offset >= 0`，且非零 `offset` 必须与 `limit` 同时使用。
 
@@ -71,10 +73,10 @@ Future<PetProfile> update(String id, PetDraft draft)
 Future<PetProfile> savePet(PetDraft draft, {String? id})
 ```
 
-- `create`：创建宠物；若只有占位档案，则升级占位档案并保留已有记录。
-- `update`：只修改已有宠物，ID 不存在时抛出 `StateError`。
+- `create`：创建狗狗；若只有占位档案，则升级占位档案并保留已有记录。
+- `update`：只修改已有狗狗，ID 不存在时抛出 `StateError`。
 - `savePet`：兼容性 upsert；新前端代码优先使用 `create/update`。
-- 创建或修改成功后自动设为当前宠物。
+- 创建或修改成功后自动设为当前狗狗。
 - `name` 必填，空名字抛出 `FormatException`。
 - `avatarPath` 是兼容字段，前端不要直接修改；头像统一使用照片接口。
 
@@ -82,14 +84,14 @@ Future<PetProfile> savePet(PetDraft draft, {String? id})
 final pet = await ref.read(petRepositoryProvider).create(
   const PetDraft(
     name: '团子',
-    species: '猫',
-    breed: '英国短毛猫',
+    species: '小型犬',
+    breed: '贵宾犬',
     allergies: '无已知过敏',
   ),
 );
 ```
 
-### 当前宠物与删除
+### 当前狗狗与删除
 
 ```dart
 Stream<String> watchSelectedPetId()
@@ -100,11 +102,11 @@ Future<bool> deletePet(String id)
 ```
 
 - 当前选择保存在本地 `app_settings` 表。
-- 删除返回是否实际删除到宠物。
-- 删除宠物会级联删除健康记录、护理记录和照片数据库行，并删除 App 私有目录中的照片文件。
-- 删除当前宠物后自动选择剩余宠物；没有宠物时重新创建占位档案。
+- 删除返回是否实际删除到狗狗。
+- 删除狗狗会级联删除健康记录、护理记录和照片数据库行，并删除 App 私有目录中的照片文件。
+- 删除当前狗狗后自动选择剩余狗狗；没有狗狗时重新创建占位档案。
 
-## 4. 宠物照片接口
+## 4. 狗狗照片接口
 
 源文件：`lib/features/pets/data/pet_photo_repository.dart`
 
@@ -180,10 +182,10 @@ Future<void> deleteAllForPet(String petId)
 ```
 
 - `updateMetadata` 修改说明与拍摄时间，不重新写图片文件。
-- `setAvatar` 保证每只宠物最多一张头像。
-- 删除当前头像后，自动选取该宠物最新的剩余照片作为头像。
+- `setAvatar` 保证每只狗狗最多一张头像。
+- 删除当前头像后，自动选取该狗狗最新的剩余照片作为头像。
 - `delete` 同时删除数据库记录与本地文件，重复删除返回 `false`。
-- `deleteAllForPet` 主要供删除宠物和完整数据清理使用，普通页面不要直接调用。
+- `deleteAllForPet` 主要供删除狗狗和完整数据清理使用，普通页面不要直接调用。
 
 ## 5. 健康记录接口
 
@@ -221,7 +223,7 @@ Stream<List<HealthRecord>> watchForPet(
 - `from` 包含边界，`to` 不包含边界，时间区间为 `[from, to)`。
 - `keyword` 同时匹配标题和备注。
 - `limit` 必须大于 0；`offset` 必须非负且只能与 `limit` 同时使用。
-- 不传筛选条件时返回该宠物的全部健康记录。
+- 不传筛选条件时返回该狗狗的全部健康记录。
 
 ### `findForPet()`
 
@@ -380,7 +382,7 @@ Future<DateTime> startWalk(...)
 Future<WalkRecord?> finishWalk(...)
 ```
 
-开始遛狗时立即写入数据库，`endedAt == null` 代表进行中；结束时更新同一条记录。数据库限制同一只宠物最多存在一条进行中的遛狗记录。
+开始遛狗时立即写入数据库，`endedAt == null` 代表进行中；结束时更新同一条记录。数据库限制同一只狗狗最多存在一条进行中的遛狗记录。
 
 页面通常直接使用 `careControllerProvider`，不需要自行组合这些方法。
 
@@ -390,7 +392,7 @@ Future<WalkRecord?> finishWalk(...)
 |---|---|---|
 | `FormatException` | 类型、时间范围、分页或必填字段不合法 | 显示字段错误，不关闭编辑表单 |
 | `StateError` | 更新的记录不存在 | 刷新列表并提示记录可能已被删除 |
-| SQLite 外键错误 | `petId` 不存在 | 刷新当前宠物，阻止保存 |
+| SQLite 外键错误 | `petId` 不存在 | 刷新当前狗狗，阻止保存 |
 | `UnsupportedError` | 当前平台不支持本地照片存储 | 禁用照片入口并保留其他档案功能 |
 
 所有写操作返回的 `Future` 必须等待完成后再关闭表单。数据库写入失败时不要先在 UI 中显示“保存成功”。
@@ -426,11 +428,11 @@ flutter test test/features/care/care_repository_test.dart
 ## 9. 手工验收
 
 1. 执行 `flutter run -d chrome` 或连接手机运行。
-2. 打开“宠物”，创建第一只宠物；确认占位页面变成宠物卡片。
-3. 再创建第二只宠物，点击卡片切换“当前”标记。
-4. 回到首页，为当前宠物记录洗澡并开始遛狗。
-5. 完全关闭并重新打开 App，确认当前宠物、洗澡记录和进行中的遛狗仍存在。
+2. 打开“狗狗”，创建第一只狗狗；确认占位页面变成狗狗卡片。
+3. 再创建第二只狗狗，点击卡片切换“当前”标记。
+4. 回到首页，为当前狗狗记录洗澡并开始遛狗。
+5. 完全关闭并重新打开 App，确认当前狗狗、洗澡记录和进行中的遛狗仍存在。
 6. 结束遛狗，再次重启，确认时长和地点仍存在。
-7. 删除宠物前确认警告文案；删除后确认自动选择剩余宠物。
+7. 删除狗狗前确认警告文案；删除后确认自动选择剩余狗狗。
 
 开发调试需要清空全部本地数据时，应卸载 App 或清除站点存储。不要在正式功能中直接删除 SQLite 文件。

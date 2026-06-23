@@ -537,7 +537,7 @@ String _sourceLabel(CareSuggestionSource source) => switch (source) {
   CareSuggestionSource.profile => '档案驱动',
   CareSuggestionSource.history => '历史驱动',
   CareSuggestionSource.event => '事件驱动',
-  CareSuggestionSource.general => '通用候选',
+  CareSuggestionSource.general => '基础候选',
 };
 
 IconData _icon(String key) => switch (key) {

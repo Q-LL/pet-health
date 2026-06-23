@@ -10,7 +10,7 @@ class _UnsupportedPhotoStorage implements LocalPhotoStorage {
 
   @override
   Future<Uint8List> read({String? filePath, Uint8List? bytes}) {
-    throw UnsupportedError('当前平台不支持宠物照片存储');
+    throw UnsupportedError('当前平台不支持狗狗照片存储');
   }
 
   @override
@@ -20,6 +20,6 @@ class _UnsupportedPhotoStorage implements LocalPhotoStorage {
     required String originalName,
     required Uint8List bytes,
   }) {
-    throw UnsupportedError('当前平台不支持宠物照片存储');
+    throw UnsupportedError('当前平台不支持狗狗照片存储');
   }
 }

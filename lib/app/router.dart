@@ -92,7 +92,7 @@ class AppShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.pets_outlined),
             selectedIcon: Icon(Icons.pets_rounded),
-            label: '宠物',
+            label: '狗狗',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

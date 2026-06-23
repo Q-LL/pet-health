@@ -26,11 +26,11 @@ void main() {
 
     await container
         .read(careControllerProvider.notifier)
-        .recordBath(occurredAt: occurredAt, place: '暖爪宠物店');
+        .recordBath(occurredAt: occurredAt, place: '暖爪护理店');
 
     final bath = container.read(careControllerProvider).lastBath;
     expect(bath?.occurredAt, occurredAt);
-    expect(bath?.place, '暖爪宠物店');
+    expect(bath?.place, '暖爪护理店');
   });
 
   test('calculates walk duration from start and end timestamps', () async {

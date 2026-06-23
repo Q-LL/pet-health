@@ -148,7 +148,7 @@ class PetPhotoRepository {
     required String caption,
     DateTime? capturedAt,
   }) async {
-    if (await getById(id) == null) throw StateError('宠物照片不存在：$id');
+    if (await getById(id) == null) throw StateError('狗狗照片不存在：$id');
     await (_database.update(
       _database.petPhotos,
     )..where((photo) => photo.id.equals(id))).write(
@@ -163,7 +163,7 @@ class PetPhotoRepository {
 
   Future<PetPhoto> setAvatar(String id) async {
     final photo = await getById(id);
-    if (photo == null) throw StateError('宠物照片不存在：$id');
+    if (photo == null) throw StateError('狗狗照片不存在：$id');
     final now = DateTime.now().toUtc();
     await _database.transaction(() async {
       await (_database.update(_database.petPhotos)
@@ -184,7 +184,7 @@ class PetPhotoRepository {
 
   Future<Uint8List> readBytes(String id) async {
     final photo = await getById(id);
-    if (photo == null) throw StateError('宠物照片不存在：$id');
+    if (photo == null) throw StateError('狗狗照片不存在：$id');
     return _storage.read(filePath: photo.filePath, bytes: photo.bytes);
   }
 
@@ -264,7 +264,7 @@ class PetPhotoRepository {
     final pet = await (_database.select(
       _database.pets,
     )..where((row) => row.id.equals(petId))).getSingleOrNull();
-    if (pet == null) throw StateError('宠物档案不存在：$petId');
+    if (pet == null) throw StateError('狗狗档案不存在：$petId');
     if (bytes.isEmpty) throw const FormatException('照片内容不能为空');
     if (bytes.length > maxPetPhotoBytes) {
       throw const FormatException('单张照片不能超过 20 MB');

@@ -29,7 +29,7 @@ void main() {
       );
 
       final pet = await pets.savePet(
-        const PetDraft(name: '团子', species: '猫', breed: '英国短毛猫'),
+        const PetDraft(name: '团子', species: '狗', breed: '贵宾犬'),
       );
       final careState = await care.watchState(pet.id).first;
 
@@ -62,7 +62,7 @@ void main() {
 
   test('supports explicit CRUD, keyword search and pagination', () async {
     final first = await pets.create(
-      const PetDraft(name: '团子', species: '猫', breed: '英国短毛猫'),
+      const PetDraft(name: '团子', species: '狗', breed: '贵宾犬'),
     );
     await pets.create(
       const PetDraft(name: '旺财', species: '狗', chronicConditions: '关注关节'),
@@ -70,15 +70,15 @@ void main() {
 
     final updated = await pets.update(
       first.id,
-      const PetDraft(name: '团团', species: '猫', breed: '英国短毛猫'),
+      const PetDraft(name: '团团', species: '狗', breed: '贵宾犬'),
     );
-    final cats = await pets.findPets(species: '猫');
+    final dogs = await pets.findPets(species: '狗');
     final joint = await pets.findPets(keyword: '关节');
     final page = await pets.findPets(limit: 1, offset: 1);
 
     expect(updated.name, '团团');
     expect((await pets.getById(first.id))?.name, '团团');
-    expect(cats.single.name, '团团');
+    expect(dogs, hasLength(2));
     expect(joint.single.name, '旺财');
     expect(page, hasLength(1));
     expect(await pets.delete(first.id), isTrue);

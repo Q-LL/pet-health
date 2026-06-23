@@ -30,7 +30,7 @@ class CareRepository {
         .insert(
           db.PetsCompanion.insert(
             id: defaultLocalPetId,
-            name: '我的宠物',
+            name: '我的狗狗',
             isPlaceholder: const Value(true),
             createdAt: now,
             updatedAt: now,

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
 
 const _petPhotoTypes = XTypeGroup(
-  label: '宠物照片',
+  label: '狗狗照片',
   extensions: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
   mimeTypes: [
     'image/jpeg',

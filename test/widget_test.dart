@@ -31,7 +31,7 @@ void main() {
 
     expect(find.text('首页'), findsOneWidget);
     expect(find.text('日历'), findsOneWidget);
-    expect(find.text('宠物'), findsOneWidget);
+    expect(find.text('狗狗'), findsOneWidget);
     expect(find.text('设置'), findsOneWidget);
     expect(find.text('毛健康'), findsAtLeastNWidgets(1));
     expect(find.text('快速记录'), findsOneWidget);
@@ -94,16 +94,13 @@ void main() {
     await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('宠物'));
+    await tester.tap(find.text('狗狗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('创建宠物档案'));
+    await tester.tap(find.text('创建狗狗档案'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextFormField, '名字 *'), '团子');
-    await tester.enterText(
-      find.widgetWithText(TextFormField, '物种，例如：猫、狗'),
-      '猫',
-    );
+    await tester.enterText(find.widgetWithText(TextFormField, '类型'), '小型犬');
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
 

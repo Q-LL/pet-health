@@ -116,13 +116,13 @@ class PetRepository {
   Future<PetProfile> create(PetDraft draft) => savePet(draft);
 
   Future<PetProfile> update(String id, PetDraft draft) async {
-    if (await getById(id) == null) throw StateError('宠物档案不存在：$id');
+    if (await getById(id) == null) throw StateError('狗狗档案不存在：$id');
     return savePet(draft, id: id);
   }
 
   Future<PetProfile> savePet(PetDraft draft, {String? id}) async {
     final name = draft.name.trim();
-    if (name.isEmpty) throw const FormatException('宠物名字不能为空');
+    if (name.isEmpty) throw const FormatException('狗狗名字不能为空');
 
     final now = DateTime.now().toUtc();
     final placeholder = id == null
@@ -174,7 +174,7 @@ class PetRepository {
     final exists = await (_database.select(
       _database.pets,
     )..where((pet) => pet.id.equals(id))).getSingleOrNull();
-    if (exists == null) throw StateError('宠物档案不存在：$id');
+    if (exists == null) throw StateError('狗狗档案不存在：$id');
 
     await _database
         .into(_database.appSettings)
@@ -212,7 +212,7 @@ class PetRepository {
         .insert(
           db.PetsCompanion.insert(
             id: defaultLocalPetId,
-            name: '我的宠物',
+            name: '我的狗狗',
             isPlaceholder: const Value(true),
             createdAt: now,
             updatedAt: now,

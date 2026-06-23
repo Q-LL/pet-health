@@ -1,5 +1,5 @@
 name: pet_health
-description: "离线优先的宠物健康履历、提醒与兽医协作工具。"
+description: "离线优先的狗狗健康履历、提醒与兽医协作工具。"
 publish_to: 'none'
 version: 0.1.0+1
 

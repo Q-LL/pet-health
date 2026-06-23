@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PageFrame(
       title: '毛健康',
-      subtitle: '把每一天的小变化，留成安心的健康履历。',
+      subtitle: '专为狗狗记录每一天的小变化。',
       actions: [
         IconButton.filledTonal(
           tooltip: '通知',
@@ -151,8 +151,8 @@ class _WelcomeHero extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         hasProfile
-                            ? '健康和护理记录都只保存在本机，慢慢积累成属于它的长期履历。'
-                            : '创建第一份宠物档案，体重、护理和每次观察都会有迹可循。',
+                            ? '健康和护理记录都只保存在本机，慢慢积累成属于它的狗狗履历。'
+                            : '创建第一份狗狗档案，体重、护理和每次观察都会有迹可循。',
                         style: Theme.of(
                           context,
                         ).textTheme.bodyLarge?.copyWith(height: 1.5),
@@ -461,7 +461,7 @@ class _InsightCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '毛健康只和宠物自己的历史比较，并清楚说明每条提示为什么出现。',
+                  '毛健康只和狗狗自己的历史比较，并清楚说明每条提示为什么出现。',
                   style: TextStyle(
                     color: colors.onSecondaryContainer,
                     height: 1.45,

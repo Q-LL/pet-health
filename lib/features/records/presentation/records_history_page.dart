@@ -48,7 +48,7 @@ class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
 
     return PageFrame(
       title: '历史记录',
-      subtitle: '按日期向下浏览当前宠物的全部健康和护理记录。',
+      subtitle: '按日期向下浏览当前狗狗的全部健康和护理记录。',
       actions: [
         IconButton.filledTonal(
           tooltip: '返回日历',

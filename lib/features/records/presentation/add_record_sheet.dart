@@ -141,7 +141,7 @@ class _AddRecordSheet extends ConsumerWidget {
               Text('新增记录', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 6),
               Text(
-                '健康与日常护理都会保存到当前宠物的本地档案',
+                '健康与日常护理都会保存到当前狗狗的本地档案',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -696,7 +696,7 @@ class _RecordSheetFrame extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 6),
           Text(
-            subtitle ?? '记录会保存在当前宠物的本地档案中。',
+            subtitle ?? '记录会保存在当前狗狗的本地档案中。',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

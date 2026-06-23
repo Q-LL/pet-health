@@ -22,12 +22,12 @@ void main() {
     await repository.recordBath(
       petId: petId,
       occurredAt: occurredAt,
-      place: ' 暖爪宠物店 ',
+      place: ' 暖爪护理店 ',
     );
 
     final state = await repository.watchState(petId).first;
     expect(state.lastBath?.occurredAt, occurredAt);
-    expect(state.lastBath?.place, '暖爪宠物店');
+    expect(state.lastBath?.place, '暖爪护理店');
   });
 
   test('active walk survives reload and is completed in place', () async {
