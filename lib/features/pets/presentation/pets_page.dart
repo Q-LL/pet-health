@@ -65,7 +65,12 @@ class PetsPage extends ConsumerWidget {
     );
     if (draft == null || !context.mounted) return;
     try {
-      await ref.read(petRepositoryProvider).savePet(draft, id: pet?.id);
+      final repository = ref.read(petRepositoryProvider);
+      if (pet == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(pet.id, draft);
+      }
     } on Object catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -231,6 +236,9 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
   late final TextEditingController _breed;
   late final TextEditingController _allergies;
   late final TextEditingController _conditions;
+  String? _sex;
+  bool? _neutered;
+  DateTime? _birthday;
 
   @override
   void initState() {
@@ -241,6 +249,9 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
     _breed = TextEditingController(text: pet?.breed);
     _allergies = TextEditingController(text: pet?.allergies);
     _conditions = TextEditingController(text: pet?.chronicConditions);
+    _sex = pet?.sex;
+    _neutered = pet?.neutered;
+    _birthday = pet?.birthday?.toLocal();
   }
 
   @override
@@ -282,6 +293,47 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
                 decoration: const InputDecoration(labelText: '品种'),
               ),
               const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                initialValue: _sex,
+                decoration: const InputDecoration(labelText: '性别'),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('未填写')),
+                  DropdownMenuItem(value: 'male', child: Text('公')),
+                  DropdownMenuItem(value: 'female', child: Text('母')),
+                  DropdownMenuItem(value: 'unknown', child: Text('未知 / 其他')),
+                ],
+                onChanged: (value) => setState(() => _sex = value),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final value = await showDatePicker(
+                    context: context,
+                    initialDate: _birthday ?? DateTime.now(),
+                    firstDate: DateTime(1990),
+                    lastDate: DateTime.now(),
+                  );
+                  if (value != null) setState(() => _birthday = value);
+                },
+                icon: const Icon(Icons.cake_outlined),
+                label: Text(
+                  _birthday == null
+                      ? '出生日期（未填写）'
+                      : '出生日期：${_birthday!.year}-${_birthday!.month.toString().padLeft(2, '0')}-${_birthday!.day.toString().padLeft(2, '0')}',
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<bool?>(
+                initialValue: _neutered,
+                decoration: const InputDecoration(labelText: '绝育状态'),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('未填写')),
+                  DropdownMenuItem(value: true, child: Text('已绝育')),
+                  DropdownMenuItem(value: false, child: Text('未绝育')),
+                ],
+                onChanged: (value) => setState(() => _neutered = value),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _allergies,
                 decoration: const InputDecoration(labelText: '过敏信息'),
@@ -311,6 +363,9 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
               name: _name.text,
               species: _species.text,
               breed: _breed.text,
+              sex: _sex,
+              birthday: _birthday,
+              neutered: _neutered,
               allergies: _allergies.text,
               chronicConditions: _conditions.text,
             ),

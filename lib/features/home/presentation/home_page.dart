@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../../care/application/care_controller.dart';
 import '../../care/presentation/care_overview.dart';
 import '../../care/presentation/care_sheets.dart';
+import '../../pets/data/pet_repository.dart';
+import '../../records/presentation/add_record_sheet.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -74,12 +77,16 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _WelcomeHero extends StatelessWidget {
+class _WelcomeHero extends ConsumerWidget {
   const _WelcomeHero();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final pets = ref.watch(petsProvider).value ?? const [];
+    final selectedId = ref.watch(selectedPetIdProvider).value;
+    final selectedPet = pets.where((pet) => pet.id == selectedId).firstOrNull;
+    final hasProfile = selectedPet != null && !selectedPet.isPlaceholder;
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -128,27 +135,27 @@ class _WelcomeHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  '从认识毛孩子开始',
+                  hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '创建第一份宠物档案，体重、提醒和每次就诊都会有迹可循。',
+                  hasProfile
+                      ? '健康和护理记录都只保存在本机，慢慢积累成属于它的长期履历。'
+                      : '创建第一份宠物档案，体重、护理和每次观察都会有迹可循。',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyLarge?.copyWith(height: 1.5),
                 ),
                 const SizedBox(height: 22),
-                Row(
-                  children: [
-                    FilledButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('创建档案'),
-                    ),
-                    const SizedBox(width: 10),
-                    TextButton(onPressed: () {}, child: const Text('稍后再说')),
-                  ],
+                FilledButton.icon(
+                  onPressed: () => hasProfile
+                      ? showAddRecordSheet(context)
+                      : context.go('/pets'),
+                  icon: Icon(
+                    hasProfile ? Icons.add_rounded : Icons.pets_rounded,
+                  ),
+                  label: Text(hasProfile ? '新增一条记录' : '创建档案'),
                 ),
               ],
             ),
@@ -193,7 +200,7 @@ class _QuickActions extends ConsumerWidget {
         '体重',
         colors.primaryContainer,
         colors.onPrimaryContainer,
-        () {},
+        () => showHealthRecordSheet(context, type: 'weight'),
       ),
       (
         Icons.bathtub_outlined,
@@ -220,7 +227,7 @@ class _QuickActions extends ConsumerWidget {
         '更多记录',
         colors.surfaceContainerHigh,
         colors.onSurface,
-        () {},
+        () => showAddRecordSheet(context),
       ),
     ];
 
