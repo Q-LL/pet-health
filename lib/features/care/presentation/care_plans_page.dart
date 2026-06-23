@@ -5,8 +5,8 @@ import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
+import '../domain/care_models.dart';
 import '../domain/care_plan_models.dart';
-import 'care_sheets.dart';
 
 class CarePlansPage extends ConsumerStatefulWidget {
   const CarePlansPage({super.key});
@@ -340,7 +340,7 @@ class _CareHistory extends ConsumerWidget {
       items.add(
         _HistoryTile(
           icon: Icons.directions_walk_rounded,
-          title: '遛狗 · ${formatDuration(walk.duration)}',
+          title: '遛狗 · ${_formatWalkWindow(walk)}',
           subtitle: walk.place.isEmpty ? '未填写场所' : walk.place,
         ),
       );
@@ -354,6 +354,15 @@ class _CareHistory extends ConsumerWidget {
     }
     return Card(child: Column(children: items));
   }
+}
+
+String _formatWalkWindow(WalkRecord walk) {
+  return '${_formatClock(walk.startedAt)}-${_formatClock(walk.endedAt)}（${walk.duration.inMinutes} 分钟）';
+}
+
+String _formatClock(DateTime date) {
+  final local = date.toLocal();
+  return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }
 
 class _HistoryTile extends StatelessWidget {

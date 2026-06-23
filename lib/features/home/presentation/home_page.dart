@@ -8,6 +8,7 @@ import '../../care/application/care_controller.dart';
 import '../../care/presentation/care_overview.dart';
 import '../../care/presentation/care_sheets.dart';
 import '../../pets/data/pet_repository.dart';
+import '../../pets/presentation/pet_avatar.dart';
 import '../../records/presentation/add_record_sheet.dart';
 
 class HomePage extends StatelessWidget {
@@ -107,56 +108,77 @@ class _WelcomeHero extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: colors.surface.withValues(alpha: .75),
-                        shape: BoxShape.circle,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: colors.surface.withValues(alpha: .75),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.pets_rounded,
+                              color: colors.primary,
+                              size: 28,
+                            ),
+                          ),
+                          const Spacer(),
+                          Chip(
+                            avatar: const Icon(
+                              Icons.lock_outline_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('本机'),
+                            backgroundColor: colors.surface.withValues(
+                              alpha: .7,
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Icon(
-                        Icons.pets_rounded,
-                        color: colors.primary,
-                        size: 28,
+                      const SizedBox(height: 30),
+                      Text(
+                        hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                    ),
-                    const Spacer(),
-                    Chip(
-                      avatar: const Icon(Icons.lock_outline_rounded, size: 16),
-                      label: const Text('本机'),
-                      backgroundColor: colors.surface.withValues(alpha: .7),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                Text(
-                  hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  hasProfile
-                      ? '健康和护理记录都只保存在本机，慢慢积累成属于它的长期履历。'
-                      : '创建第一份宠物档案，体重、护理和每次观察都会有迹可循。',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(height: 1.5),
-                ),
-                const SizedBox(height: 22),
-                FilledButton.icon(
-                  onPressed: () => hasProfile
-                      ? showAddRecordSheet(context)
-                      : context.go('/pets'),
-                  icon: Icon(
-                    hasProfile ? Icons.add_rounded : Icons.pets_rounded,
+                      const SizedBox(height: 8),
+                      Text(
+                        hasProfile
+                            ? '健康和护理记录都只保存在本机，慢慢积累成属于它的长期履历。'
+                            : '创建第一份宠物档案，体重、护理和每次观察都会有迹可循。',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(height: 1.5),
+                      ),
+                      const SizedBox(height: 22),
+                      FilledButton.icon(
+                        onPressed: () => hasProfile
+                            ? showAddRecordSheet(context)
+                            : context.go('/pets'),
+                        icon: Icon(
+                          hasProfile ? Icons.add_rounded : Icons.pets_rounded,
+                        ),
+                        label: Text(hasProfile ? '新增一条记录' : '创建档案'),
+                      ),
+                    ],
                   ),
-                  label: Text(hasProfile ? '新增一条记录' : '创建档案'),
                 ),
+                if (hasProfile) ...[
+                  const SizedBox(width: 20),
+                  PetPortrait(
+                    pet: selectedPet,
+                    width: 108,
+                    height: 144,
+                    borderRadius: 28,
+                  ),
+                ],
               ],
             ),
           ),
@@ -211,7 +233,7 @@ class _QuickActions extends ConsumerWidget {
       ),
       (
         Icons.directions_walk_rounded,
-        isWalking ? '结束遛狗' : '遛狗',
+        isWalking ? '结束遛狗' : '快速遛狗',
         colors.tertiaryContainer,
         colors.onTertiaryContainer,
         () {

@@ -241,7 +241,7 @@ class _IdleWalk extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final detail = lastWalk == null
         ? '出门时点一下，回来后自动算好时长'
-        : '上次 ${formatDuration(lastWalk!.duration)}${lastWalk!.place.isEmpty ? '' : ' · ${lastWalk!.place}'}';
+        : '上次 ${_formatWalkWindow(lastWalk!)}${lastWalk!.place.isEmpty ? '' : ' · ${lastWalk!.place}'}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -371,4 +371,13 @@ class _ActiveWalk extends StatelessWidget {
       ],
     );
   }
+}
+
+String _formatWalkWindow(WalkRecord walk) {
+  return '${_formatClock(walk.startedAt)}-${_formatClock(walk.endedAt)}（${walk.duration.inMinutes} 分钟）';
+}
+
+String _formatClock(DateTime date) {
+  final local = date.toLocal();
+  return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }

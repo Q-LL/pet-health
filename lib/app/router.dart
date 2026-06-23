@@ -6,6 +6,7 @@ import '../features/care/presentation/care_plans_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
+import '../features/records/presentation/records_history_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 
 final appRouter = GoRouter(
@@ -31,7 +32,16 @@ final appRouter = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/calendar', builder: (_, _) => const CalendarPage()),
+            GoRoute(
+              path: '/calendar',
+              builder: (_, _) => const CalendarPage(),
+              routes: [
+                GoRoute(
+                  path: 'records',
+                  builder: (_, _) => const RecordsHistoryPage(),
+                ),
+              ],
+            ),
           ],
         ),
         StatefulShellBranch(

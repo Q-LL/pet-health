@@ -51,24 +51,40 @@ Future<void> showAddRecordSheet(BuildContext context) {
 Future<void> showHealthRecordSheet(
   BuildContext context, {
   String type = 'custom',
+  HealthRecord? record,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (_) => _HealthRecordSheet(initialType: type),
+    builder: (_) => _HealthRecordSheet(initialType: type, record: record),
   );
 }
 
 Future<void> showCareActivitySheet(
   BuildContext context, {
   String type = 'custom',
+  CareActivity? activity,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (_) => _CareActivitySheet(initialType: type),
+    builder: (_) => _CareActivitySheet(initialType: type, activity: activity),
+  );
+}
+
+Future<void> showWalkRecordSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: AppMotion.medium,
+      reverseDuration: AppMotion.fast,
+    ),
+    builder: (_) => const _WalkRecordChoiceSheet(),
   );
 }
 
@@ -104,7 +120,7 @@ class _AddRecordSheet extends ConsumerWidget {
               if (isWalking) {
                 showFinishWalkSheet(context);
               } else {
-                ref.read(careControllerProvider.notifier).startWalk();
+                showWalkRecordSheet(context);
               }
             } else {
               showCareActivitySheet(context, type: entry.key);
@@ -170,10 +186,124 @@ class _AddRecordSheet extends ConsumerWidget {
   }
 }
 
+class _WalkRecordChoiceSheet extends ConsumerWidget {
+  const _WalkRecordChoiceSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWalking = ref.watch(
+      careControllerProvider.select(
+        (state) => state.activeWalkStartedAt != null,
+      ),
+    );
+    final colors = Theme.of(context).colorScheme;
+    return _RecordSheetFrame(
+      title: isWalking ? '正在遛狗' : '添加遛狗记录',
+      subtitle: isWalking
+          ? '当前有一段正在计时的遛狗，可以直接结束并保存。'
+          : '手动补录适合刚才忘记打开计时；快速开始会从现在起计时。',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isWalking)
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                showFinishWalkSheet(context);
+              },
+              icon: const Icon(Icons.flag_rounded),
+              label: const Text('结束当前遛狗'),
+            )
+          else ...[
+            _ChoiceTile(
+              icon: Icons.edit_calendar_outlined,
+              title: '手动添加',
+              subtitle: '填写开始时间、结束时间和地点',
+              color: colors.primaryContainer,
+              onTap: () {
+                Navigator.pop(context);
+                showCareActivitySheet(context, type: 'walk');
+              },
+            ),
+            const SizedBox(height: 12),
+            _ChoiceTile(
+              icon: Icons.timer_outlined,
+              title: '开始计时',
+              subtitle: '从现在开始记录这次遛狗',
+              color: colors.tertiaryContainer,
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(careControllerProvider.notifier).startWalk();
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ChoiceTile extends StatelessWidget {
+  const _ChoiceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surface.withValues(alpha: .7),
+                child: Icon(icon),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(subtitle),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HealthRecordSheet extends ConsumerStatefulWidget {
-  const _HealthRecordSheet({required this.initialType});
+  const _HealthRecordSheet({required this.initialType, this.record});
 
   final String initialType;
+  final HealthRecord? record;
 
   @override
   ConsumerState<_HealthRecordSheet> createState() => _HealthRecordSheetState();
@@ -192,8 +322,13 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
   @override
   void initState() {
     super.initState();
-    _type = widget.initialType;
-    _title.text = healthRecordLabels[_type] ?? '健康记录';
+    final record = widget.record;
+    _type = record?.type ?? widget.initialType;
+    _title.text = record?.title ?? healthRecordLabels[_type] ?? '健康记录';
+    _note.text = record?.note ?? '';
+    _value.text = record?.numericValue?.toString() ?? '';
+    _occurredAt = record?.occurredAt.toLocal() ?? DateTime.now();
+    _severity = record?.severity;
   }
 
   @override
@@ -209,22 +344,24 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
     setState(() => _saving = true);
     try {
       final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
-      await ref
-          .read(healthRecordRepositoryProvider)
-          .create(
-            HealthRecordDraft(
-              petId: petId,
-              type: _type,
-              occurredAt: _occurredAt,
-              title: _title.text,
-              note: _note.text,
-              numericValue: _type == 'weight'
-                  ? double.tryParse(_value.text.trim())
-                  : null,
-              unit: _type == 'weight' ? 'kg' : null,
-              severity: _type == 'symptom' ? _severity : null,
-            ),
-          );
+      final draft = HealthRecordDraft(
+        petId: widget.record?.petId ?? petId,
+        type: _type,
+        occurredAt: _occurredAt,
+        title: _title.text,
+        note: _note.text,
+        numericValue: _type == 'weight'
+            ? double.tryParse(_value.text.trim())
+            : null,
+        unit: _type == 'weight' ? 'kg' : null,
+        severity: _type == 'symptom' ? _severity : null,
+      );
+      final repository = ref.read(healthRecordRepositoryProvider);
+      if (widget.record == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(widget.record!.id, draft);
+      }
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
@@ -239,7 +376,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
   @override
   Widget build(BuildContext context) {
     return _RecordSheetFrame(
-      title: '新增健康记录',
+      title: widget.record == null ? '新增健康记录' : '编辑健康记录',
       child: Form(
         key: _formKey,
         child: Column(
@@ -322,7 +459,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.check_rounded),
-              label: const Text('保存健康记录'),
+              label: Text(widget.record == null ? '保存健康记录' : '保存修改'),
             ),
           ],
         ),
@@ -332,25 +469,37 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
 }
 
 class _CareActivitySheet extends ConsumerStatefulWidget {
-  const _CareActivitySheet({required this.initialType});
+  const _CareActivitySheet({required this.initialType, this.activity});
 
   final String initialType;
+  final CareActivity? activity;
 
   @override
   ConsumerState<_CareActivitySheet> createState() => _CareActivitySheetState();
 }
 
 class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
+  final _formKey = GlobalKey<FormState>();
   final _place = TextEditingController();
   final _note = TextEditingController();
   late String _type;
   var _occurredAt = DateTime.now();
+  late DateTime _startedAt;
+  late DateTime _endedAt;
   var _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _type = widget.initialType;
+    final activity = widget.activity;
+    _type = activity?.type ?? widget.initialType;
+    _occurredAt = activity?.occurredAt.toLocal() ?? DateTime.now();
+    _startedAt =
+        activity?.startedAt?.toLocal() ??
+        DateTime.now().subtract(const Duration(minutes: 30));
+    _endedAt = activity?.endedAt?.toLocal() ?? DateTime.now();
+    _place.text = activity?.place ?? '';
+    _note.text = activity?.note ?? '';
   }
 
   @override
@@ -361,21 +510,27 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   }
 
   Future<void> _save() async {
-    if (_saving) return;
+    if (!_formKey.currentState!.validate() || _saving) return;
     setState(() => _saving = true);
     try {
       final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
-      await ref
-          .read(careRepositoryProvider)
-          .create(
-            CareActivityDraft(
-              petId: petId,
-              type: _type,
-              occurredAt: _occurredAt,
-              place: _place.text,
-              note: _note.text,
-            ),
-          );
+      final isWalk = _type == 'walk';
+      final draft = CareActivityDraft(
+        petId: widget.activity?.petId ?? petId,
+        type: _type,
+        occurredAt: isWalk ? _startedAt : _occurredAt,
+        startedAt: isWalk ? _startedAt : null,
+        endedAt: isWalk ? _endedAt : null,
+        place: _place.text,
+        note: _note.text,
+        routeFilePath: widget.activity?.routeFilePath,
+      );
+      final repository = ref.read(careRepositoryProvider);
+      if (widget.activity == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(widget.activity!.id, draft);
+      }
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
@@ -389,66 +544,106 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final showWalkFields = _type == 'walk';
+    final typeEntries = careActivityLabels.entries.where(
+      (entry) => entry.key != 'walk' || widget.initialType == 'walk',
+    );
     return _RecordSheetFrame(
-      title: '新增护理记录',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DropdownButtonFormField<String>(
-            initialValue: _type,
-            decoration: const InputDecoration(labelText: '护理类型'),
-            items: careActivityLabels.entries
-                .where((entry) => entry.key != 'walk')
-                .map(
-                  (entry) => DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) => setState(() => _type = value!),
-          ),
-          const SizedBox(height: 12),
-          _DateTimeField(
-            value: _occurredAt,
-            onChanged: (value) => setState(() => _occurredAt = value),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _place,
-            decoration: const InputDecoration(
-              labelText: '地点（可选）',
-              prefixIcon: Icon(Icons.location_on_outlined),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _note,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: '护理情况（可选）'),
-          ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: _saving ? null : _save,
-            icon: _saving
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+      title: widget.activity == null ? '新增护理记录' : '编辑护理记录',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: _type,
+              decoration: const InputDecoration(labelText: '护理类型'),
+              items: typeEntries
+                  .map(
+                    (entry) => DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    ),
                   )
-                : const Icon(Icons.check_rounded),
-            label: const Text('保存护理记录'),
-          ),
-        ],
+                  .toList(),
+              onChanged: (value) => setState(() => _type = value!),
+            ),
+            const SizedBox(height: 12),
+            if (showWalkFields) ...[
+              _DateTimeField(
+                label: '开始时间',
+                value: _startedAt,
+                onChanged: (value) => setState(() => _startedAt = value),
+              ),
+              const SizedBox(height: 12),
+              _DateTimeField(
+                label: '结束时间',
+                value: _endedAt,
+                onChanged: (value) => setState(() => _endedAt = value),
+              ),
+              if (_endedAt.isBefore(_startedAt)) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '结束时间不能早于开始时间',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ] else
+              _DateTimeField(
+                value: _occurredAt,
+                onChanged: (value) => setState(() => _occurredAt = value),
+              ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _place,
+              decoration: InputDecoration(
+                labelText: showWalkFields ? '遛狗地点（可选）' : '地点（可选）',
+                prefixIcon: Icon(
+                  showWalkFields
+                      ? Icons.park_outlined
+                      : Icons.location_on_outlined,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _note,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: showWalkFields ? '遛狗情况（可选）' : '护理情况（可选）',
+              ),
+              validator: (_) => _type == 'walk' && _endedAt.isBefore(_startedAt)
+                  ? '结束时间不能早于开始时间'
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_rounded),
+              label: Text(widget.activity == null ? '保存护理记录' : '保存修改'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _DateTimeField extends StatelessWidget {
-  const _DateTimeField({required this.value, required this.onChanged});
+  const _DateTimeField({
+    required this.value,
+    required this.onChanged,
+    this.label = '发生时间',
+  });
 
   final DateTime value;
   final ValueChanged<DateTime> onChanged;
+  final String label;
 
   @override
   Widget build(BuildContext context) => OutlinedButton.icon(
@@ -470,15 +665,20 @@ class _DateTimeField extends StatelessWidget {
       );
     },
     icon: const Icon(Icons.schedule_rounded),
-    label: Text(_formatDateTime(value)),
+    label: Text('$label：${_formatDateTime(value)}'),
   );
 }
 
 class _RecordSheetFrame extends StatelessWidget {
-  const _RecordSheetFrame({required this.title, required this.child});
+  const _RecordSheetFrame({
+    required this.title,
+    required this.child,
+    this.subtitle,
+  });
 
   final String title;
   final Widget child;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
@@ -496,7 +696,7 @@ class _RecordSheetFrame extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 6),
           Text(
-            '记录会保存在当前宠物的本地档案中。',
+            subtitle ?? '记录会保存在当前宠物的本地档案中。',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

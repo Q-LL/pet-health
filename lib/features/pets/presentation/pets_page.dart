@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/files/image_file_picker.dart';
 import '../../../core/widgets/page_frame.dart';
+import '../data/pet_photo_repository.dart';
 import '../data/pet_repository.dart';
 import '../domain/pet_profile.dart';
+import 'pet_avatar.dart';
 
 class PetsPage extends ConsumerWidget {
   const PetsPage({super.key});
@@ -59,17 +64,30 @@ class PetsPage extends ConsumerWidget {
     WidgetRef ref, {
     PetProfile? pet,
   }) async {
-    final draft = await showDialog<PetDraft>(
+    final result = await showDialog<_PetEditorResult>(
       context: context,
       builder: (_) => _PetEditorDialog(pet: pet),
     );
-    if (draft == null || !context.mounted) return;
+    if (result == null || !context.mounted) return;
     try {
       final repository = ref.read(petRepositoryProvider);
+      late final PetProfile savedPet;
       if (pet == null) {
-        await repository.create(draft);
+        savedPet = await repository.create(result.draft);
       } else {
-        await repository.update(pet.id, draft);
+        savedPet = await repository.update(pet.id, result.draft);
+      }
+      final photo = result.photo;
+      if (photo != null) {
+        await ref
+            .read(petPhotoRepositoryProvider)
+            .add(
+              petId: savedPet.id,
+              bytes: photo.bytes,
+              originalName: photo.name,
+              mediaType: photo.mediaType,
+              setAsAvatar: true,
+            );
       }
     } on Object catch (error) {
       if (context.mounted) {
@@ -176,11 +194,7 @@ class _PetCard extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: colors.surface,
-                child: const Icon(Icons.pets_rounded),
-              ),
+              PetPortrait(pet: pet, width: 72, height: 96, borderRadius: 20),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -202,6 +216,28 @@ class _PetCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(details.isEmpty ? '档案信息待补充' : details),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (pet.birthday != null)
+                          _MiniInfoChip(
+                            icon: Icons.cake_outlined,
+                            label: _formatDate(pet.birthday!.toLocal()),
+                          ),
+                        if (pet.sex != null)
+                          _MiniInfoChip(
+                            icon: Icons.wc_outlined,
+                            label: _sexLabel(pet.sex),
+                          ),
+                        if (pet.neutered != null)
+                          _MiniInfoChip(
+                            icon: Icons.verified_outlined,
+                            label: pet.neutered! ? '已绝育' : '未绝育',
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -229,6 +265,33 @@ class _PetEditorDialog extends StatefulWidget {
   State<_PetEditorDialog> createState() => _PetEditorDialogState();
 }
 
+class _MiniInfoChip extends StatelessWidget {
+  const _MiniInfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: colors.surface.withValues(alpha: .58),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
+  }
+}
+
 class _PetEditorDialogState extends State<_PetEditorDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
@@ -239,6 +302,8 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
   String? _sex;
   bool? _neutered;
   DateTime? _birthday;
+  PickedImageFile? _pickedPhoto;
+  Uint8List? _previewBytes;
 
   @override
   void initState() {
@@ -275,6 +340,12 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _PhotoPickerPreview(
+                pet: widget.pet,
+                bytes: _previewBytes,
+                onPick: _pickPhoto,
+              ),
+              const SizedBox(height: 18),
               TextFormField(
                 controller: _name,
                 autofocus: true,
@@ -359,15 +430,18 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
           if (!_formKey.currentState!.validate()) return;
           Navigator.pop(
             context,
-            PetDraft(
-              name: _name.text,
-              species: _species.text,
-              breed: _breed.text,
-              sex: _sex,
-              birthday: _birthday,
-              neutered: _neutered,
-              allergies: _allergies.text,
-              chronicConditions: _conditions.text,
+            _PetEditorResult(
+              draft: PetDraft(
+                name: _name.text,
+                species: _species.text,
+                breed: _breed.text,
+                sex: _sex,
+                birthday: _birthday,
+                neutered: _neutered,
+                allergies: _allergies.text,
+                chronicConditions: _conditions.text,
+              ),
+              photo: _pickedPhoto,
             ),
           );
         },
@@ -375,6 +449,95 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
       ),
     ],
   );
+
+  Future<void> _pickPhoto() async {
+    try {
+      final photo = await pickPetPhotoFile();
+      if (photo == null || !mounted) return;
+      setState(() {
+        _pickedPhoto = photo;
+        _previewBytes = photo.bytes;
+      });
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择照片失败：$error')));
+    }
+  }
+}
+
+class _PetEditorResult {
+  const _PetEditorResult({required this.draft, this.photo});
+
+  final PetDraft draft;
+  final PickedImageFile? photo;
+}
+
+class _PhotoPickerPreview extends StatelessWidget {
+  const _PhotoPickerPreview({
+    required this.pet,
+    required this.bytes,
+    required this.onPick,
+  });
+
+  final PetProfile? pet;
+  final Uint8List? bytes;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            width: 120,
+            height: 160,
+            color: colors.surfaceContainerHighest,
+            child: bytes == null
+                ? pet == null
+                      ? Icon(
+                          Icons.add_photo_alternate_outlined,
+                          size: 38,
+                          color: colors.onSurfaceVariant,
+                        )
+                      : PetPortrait(
+                          pet: pet!,
+                          width: 120,
+                          height: 160,
+                          borderRadius: 0,
+                          showBadge: true,
+                        )
+                : Image.memory(bytes!, fit: BoxFit.cover),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('档案照片', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Text(
+                '上传后会按 3:4 竖屏比例预览裁切，并作为首页和档案头像显示。',
+                style: TextStyle(color: colors.onSurfaceVariant, height: 1.35),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: onPick,
+                icon: const Icon(Icons.upload_rounded),
+                label: Text(bytes == null ? '上传照片' : '更换照片'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _ErrorCard extends StatelessWidget {
@@ -390,3 +553,13 @@ class _ErrorCard extends StatelessWidget {
     ),
   );
 }
+
+String _formatDate(DateTime date) =>
+    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+String _sexLabel(String? value) => switch (value) {
+  'male' => '公',
+  'female' => '母',
+  'unknown' => '未知',
+  _ => '未填写',
+};

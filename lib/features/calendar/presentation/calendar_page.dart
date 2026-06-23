@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
@@ -57,17 +60,27 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
     return PageFrame(
       title: '日历',
-      subtitle: '按日期回顾健康与护理记录。',
+      subtitle: '选择某一天，快速回看当天发生过什么。',
+      actions: [
+        IconButton.filledTonal(
+          tooltip: '全部记录',
+          onPressed: () => context.go('/calendar/records'),
+          icon: const Icon(Icons.list_alt_rounded),
+        ),
+        const SizedBox(width: 12),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _RecordsEntryCard(onTap: () => context.go('/calendar/records')),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: _SummaryChip(
                   icon: Icons.favorite_outline_rounded,
                   value: '${health.value?.length ?? 0}',
-                  label: '健康记录',
+                  label: '健康',
                 ),
               ),
               const SizedBox(width: 12),
@@ -75,7 +88,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                 child: _SummaryChip(
                   icon: Icons.spa_outlined,
                   value: '${care.value?.length ?? 0}',
-                  label: '护理记录',
+                  label: '护理',
                 ),
               ),
             ],
@@ -97,15 +110,60 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
           ),
           const SizedBox(height: 22),
           SectionHeader('${_selectedDay.month} 月 ${_selectedDay.day} 日时间线'),
-          _Timeline(health: health, care: care),
+          _DayTimeline(health: health, care: care),
         ],
       ),
     );
   }
 }
 
-class _Timeline extends StatelessWidget {
-  const _Timeline({required this.health, required this.care});
+class _RecordsEntryCard extends StatelessWidget {
+  const _RecordsEntryCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.primaryContainer,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: colors.surface.withValues(alpha: .72),
+                child: const Icon(Icons.list_alt_rounded),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '查看全部历史记录',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    SizedBox(height: 3),
+                    Text('按日期向下浏览，可在详情里编辑或删除'),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayTimeline extends StatelessWidget {
+  const _DayTimeline({required this.health, required this.care});
 
   final AsyncValue<List<HealthRecord>> health;
   final AsyncValue<List<CareActivity>> care;
@@ -128,9 +186,10 @@ class _Timeline extends StatelessWidget {
         ),
       );
     }
-    final entries = <_TimelineEntry>[
+
+    final entries = <_DayEntry>[
       for (final record in health.value ?? const <HealthRecord>[])
-        _TimelineEntry(
+        _DayEntry(
           occurredAt: record.occurredAt,
           icon: _healthIcon(record.type),
           title: record.title,
@@ -142,15 +201,17 @@ class _Timeline extends StatelessWidget {
           ].whereType<String>().join(' · '),
         ),
       for (final activity in care.value ?? const <CareActivity>[])
-        _TimelineEntry(
-          occurredAt: activity.occurredAt,
+        _DayEntry(
+          occurredAt: activity.startedAt ?? activity.occurredAt,
           icon: _careIcon(activity.type),
-          title: careActivityLabels[activity.type] ?? '护理记录',
+          title: activity.type == 'walk'
+              ? _formatWalkWindow(activity)
+              : careActivityLabels[activity.type] ?? '护理记录',
           subtitle: [
-            if (activity.duration != null) _formatDuration(activity.duration!),
+            if (activity.type != 'walk') careActivityLabels[activity.type],
             if (activity.place.isNotEmpty) activity.place,
             if (activity.note.isNotEmpty) activity.note,
-          ].join(' · '),
+          ].whereType<String>().join(' · '),
         ),
     ]..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
 
@@ -179,7 +240,18 @@ class _Timeline extends StatelessWidget {
       child: Column(
         children: [
           for (var index = 0; index < entries.length; index++) ...[
-            _TimelineTile(entry: entries[index]),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 6,
+              ),
+              leading: CircleAvatar(child: Icon(entries[index].icon, size: 20)),
+              title: Text(entries[index].title),
+              subtitle: entries[index].subtitle.isEmpty
+                  ? null
+                  : Text(entries[index].subtitle),
+              trailing: Text(_formatTime(entries[index].occurredAt)),
+            ),
             if (index < entries.length - 1) const Divider(height: 1),
           ],
         ],
@@ -188,8 +260,8 @@ class _Timeline extends StatelessWidget {
   }
 }
 
-class _TimelineEntry {
-  const _TimelineEntry({
+class _DayEntry {
+  const _DayEntry({
     required this.occurredAt,
     required this.icon,
     required this.title,
@@ -200,26 +272,6 @@ class _TimelineEntry {
   final IconData icon;
   final String title;
   final String subtitle;
-}
-
-class _TimelineTile extends StatelessWidget {
-  const _TimelineTile({required this.entry});
-
-  final _TimelineEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final local = entry.occurredAt.toLocal();
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-      leading: CircleAvatar(child: Icon(entry.icon, size: 20)),
-      title: Text(entry.title),
-      subtitle: entry.subtitle.isEmpty ? null : Text(entry.subtitle),
-      trailing: Text(
-        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}',
-      ),
-    );
-  }
 }
 
 class _SummaryChip extends StatelessWidget {
@@ -258,6 +310,21 @@ class _SummaryChip extends StatelessWidget {
 DateTime _startOfDay(DateTime date) =>
     DateTime(date.year, date.month, date.day);
 
+String _formatTime(DateTime date) {
+  final local = date.toLocal();
+  return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+}
+
+String _formatWalkWindow(CareActivity activity) {
+  final startedAt = activity.startedAt?.toLocal();
+  if (startedAt == null) return _formatTime(activity.occurredAt);
+  final endedAt = activity.endedAt?.toLocal();
+  if (endedAt == null) return '${_formatTime(startedAt)}-进行中';
+  final duration = activity.duration ?? endedAt.difference(startedAt);
+  final minutes = math.max(0, duration.inMinutes);
+  return '${_formatTime(startedAt)}-${_formatTime(endedAt)}（$minutes 分钟）';
+}
+
 IconData _healthIcon(String type) => switch (type) {
   'weight' => Icons.monitor_weight_outlined,
   'food_water' => Icons.restaurant_outlined,
@@ -266,7 +333,7 @@ IconData _healthIcon(String type) => switch (type) {
   'medication' => Icons.medication_outlined,
   'vaccine' => Icons.vaccines_outlined,
   'deworming' => Icons.bug_report_outlined,
-  _ => Icons.note_outlined,
+  _ => Icons.note_add_outlined,
 };
 
 IconData _careIcon(String type) => switch (type) {
@@ -274,12 +341,10 @@ IconData _careIcon(String type) => switch (type) {
   'walk' => Icons.directions_walk_rounded,
   'oral' => Icons.medical_services_outlined,
   'grooming' => Icons.content_cut_rounded,
+  'nail' => Icons.back_hand_outlined,
+  'ear' => Icons.hearing_outlined,
+  'eye' => Icons.visibility_outlined,
+  'paw' => Icons.pets_outlined,
   'environment' => Icons.cleaning_services_outlined,
-  _ => Icons.spa_outlined,
+  _ => Icons.note_add_outlined,
 };
-
-String _formatDuration(Duration duration) {
-  final hours = duration.inHours;
-  final minutes = duration.inMinutes.remainder(60);
-  return hours > 0 ? '$hours 小时 $minutes 分钟' : '$minutes 分钟';
-}
