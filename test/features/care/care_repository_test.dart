@@ -72,7 +72,7 @@ void main() {
     final created = await repository.create(
       CareActivityDraft(
         petId: petId,
-        type: 'grooming',
+        type: 'combing',
         occurredAt: DateTime.utc(2026, 6, 22),
         place: '家里',
         note: '梳毛十分钟',
@@ -84,7 +84,7 @@ void main() {
       created.id,
       CareActivityDraft(
         petId: petId,
-        type: 'grooming',
+        type: 'combing',
         occurredAt: created.occurredAt,
         place: '阳台',
         note: '梳毛十五分钟',
@@ -110,7 +110,7 @@ void main() {
     await repository.create(
       CareActivityDraft(
         petId: petId,
-        type: 'grooming',
+        type: 'combing',
         occurredAt: DateTime.utc(2026, 6, 21),
         place: '客厅',
         note: '日常梳毛',
@@ -137,6 +137,46 @@ void main() {
 
     expect(rainyPaw, hasLength(2));
     expect(secondPage.single.occurredAt, DateTime.utc(2026, 6, 21));
+  });
+
+  test('count returns total and respects filters', () async {
+    final petId = await repository.ensureDefaultPet();
+    await repository.create(
+      CareActivityDraft(
+        petId: petId,
+        type: 'bath',
+        occurredAt: DateTime.utc(2026, 6, 20),
+        place: '家里',
+      ),
+    );
+    await repository.create(
+      CareActivityDraft(
+        petId: petId,
+        type: 'combing',
+        occurredAt: DateTime.utc(2026, 6, 21),
+        note: '梳毛十分钟',
+      ),
+    );
+    await repository.create(
+      CareActivityDraft(
+        petId: petId,
+        type: 'bath',
+        occurredAt: DateTime.utc(2026, 6, 22),
+        place: '狗狗护理店',
+      ),
+    );
+
+    expect(await repository.count(petId), 3);
+    expect(await repository.count(petId, type: 'bath'), 2);
+    expect(await repository.count(petId, keyword: '梳毛'), 1);
+    expect(
+      await repository.count(
+        petId,
+        from: DateTime.utc(2026, 6, 21),
+        to: DateTime.utc(2026, 6, 23),
+      ),
+      2,
+    );
   });
 
   test('deletes care activity and rejects invalid updates', () async {

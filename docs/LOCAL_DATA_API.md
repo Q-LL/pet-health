@@ -1,6 +1,6 @@
 # 毛健康本地数据接口文档
 
-> 版本：0.5
+> 版本：0.7
 > 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
 
@@ -16,22 +16,93 @@
 
 ## 2. Riverpod 入口
 
+### 基础 Provider
+
 | Provider | 返回值 | 用途 |
 |---|---|---|
 | `petRepositoryProvider` | `PetRepository` | 狗狗档案写操作与单次查询 |
-| `petsProvider` | `AsyncValue<List<PetProfile>>` | 实时狗狗列表 |
+| `petsProvider` | `AsyncValue<List<PetProfile>>` | 实时狗狗列表（不含筛选） |
 | `selectedPetIdProvider` | `AsyncValue<String>` | 当前狗狗 ID |
 | `petPhotoRepositoryProvider` | `PetPhotoRepository` | 狗狗照片、头像和本地文件管理 |
 | `healthRecordRepositoryProvider` | `HealthRecordRepository` | 健康记录读写 |
 | `careRepositoryProvider` | `CareRepository` | 洗澡、遛狗等护理活动 |
 | `careControllerProvider` | `CareState` | 当前狗狗的护理页面状态 |
 
+### 筛选 Provider
+
+以下 Provider 均为 `StreamProvider.autoDispose.family`，接受一个筛选参数对象作为 key，返回实时 `AsyncValue<List<...>>`。筛选参数对象实现了 `==` 和 `hashCode`，相同参数会复用缓存。
+
+| Provider | 筛选参数类型 | 返回值 | 用途 |
+|---|---|---|---|
+| `filteredPetsProvider` | `PetFilter` | `AsyncValue<List<PetProfile>>` | 按关键词和狗狗类型/体型筛选狗狗（UI 已移除类型筛选下拉框，API 仍可用） |
+| `filteredHealthRecordsProvider` | `HealthRecordFilter` | `AsyncValue<List<HealthRecord>>` | 按类型、日期、关键词筛选健康记录 |
+| `filteredCareActivitiesProvider` | `CareActivityFilter` | `AsyncValue<List<CareActivity>>` | 按类型、日期、关键词筛选护理记录 |
+| `filteredPetPhotosProvider` | `PetPhotoFilter` | `AsyncValue<List<PetPhoto>>` | 按关键词筛选狗狗照片 |
+
 前端读取示例：
 
 ```dart
+// 基础列表
 final pets = ref.watch(petsProvider);
 final selectedPetId = ref.watch(selectedPetIdProvider).value;
+
+// 带筛选的列表
+final filtered = ref.watch(filteredPetsProvider(
+  const PetFilter(keyword: '团', species: '小型犬'),
+));
+final records = ref.watch(filteredHealthRecordsProvider(
+  HealthRecordFilter(petId: petId, type: 'weight', limit: 20),
+));
 ```
+
+### 筛选参数对象
+
+#### PetFilter
+
+源文件：`lib/features/pets/domain/pet_filter.dart`
+
+| 字段 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `keyword` | `String?` | `null` | 匹配名字、品种、过敏信息和慢性病信息 |
+| `species` | `String?` | `null` | 精确筛选狗狗类型、犬种或体型 |
+| `includePlaceholder` | `bool` | `false` | 是否包含占位档案 |
+| `limit` | `int?` | `null` | 每页条数 |
+| `offset` | `int` | `0` | 偏移量 |
+
+`withoutPaging()` 返回不带 `limit` 和 `offset` 的副本，适合传入 `count()`。
+
+#### HealthRecordFilter
+
+源文件：`lib/features/records/domain/health_record_filter.dart`
+
+| 字段 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `petId` | `String` | 必填 | 目标狗狗 ID |
+| `type` | `String?` | `null` | 记录类型筛选 |
+| `from` | `DateTime?` | `null` | 发生时间下界（包含） |
+| `to` | `DateTime?` | `null` | 发生时间上界（不包含） |
+| `keyword` | `String?` | `null` | 同时匹配标题和备注 |
+| `limit` | `int?` | `null` | 每页条数 |
+| `offset` | `int` | `0` | 偏移量 |
+
+`withoutPaging()` 返回不带分页参数的副本。
+
+#### CareActivityFilter
+
+源文件：`lib/features/care/domain/care_activity_filter.dart`
+
+字段与 `HealthRecordFilter` 一致，`keyword` 匹配地点和备注。
+
+#### PetPhotoFilter
+
+源文件：`lib/features/pets/domain/pet_photo_filter.dart`
+
+| 字段 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `petId` | `String` | 必填 | 目标狗狗 ID |
+| `keyword` | `String?` | `null` | 匹配原文件名和照片说明 |
+| `limit` | `int?` | `null` | 每页条数 |
+| `offset` | `int` | `0` | 偏移量 |
 
 ## 3. 狗狗档案接口
 
@@ -63,6 +134,18 @@ Future<List<PetProfile>> findPets({
 - `species` 字段当前用于存放狗狗类型、犬种或体型等筛选值。
 - 前端业务列表通常传 `includePlaceholder: false`。
 - 分页要求 `limit > 0`、`offset >= 0`，且非零 `offset` 必须与 `limit` 同时使用。
+
+### 总数查询
+
+```dart
+Future<int> count({
+  String? keyword,
+  String? species,
+  bool includePlaceholder = false,
+})
+```
+
+返回符合筛选条件的狗狗总数，不受 `limit` 和 `offset` 影响，适合分页 UI 计算总页数。
 
 ### 单条读取、创建、修改
 
@@ -187,6 +270,14 @@ Future<void> deleteAllForPet(String petId)
 - `delete` 同时删除数据库记录与本地文件，重复删除返回 `false`。
 - `deleteAllForPet` 主要供删除狗狗和完整数据清理使用，普通页面不要直接调用。
 
+### 总数查询
+
+```dart
+Future<int> count(String petId, {String? keyword})
+```
+
+返回该狗狗符合关键词筛选条件的照片总数。
+
 ## 5. 健康记录接口
 
 源文件：`lib/features/records/data/health_record_repository.dart`
@@ -196,7 +287,8 @@ Future<void> deleteAllForPet(String petId)
 | 值 | 含义 |
 |---|---|
 | `weight` | 体重 |
-| `food_water` | 饮食或饮水 |
+| `food` | 饮食 |
+| `water` | 饮水 |
 | `elimination` | 排尿或排便 |
 | `symptom` | 症状观察 |
 | `medication` | 用药事实 |
@@ -224,6 +316,25 @@ Stream<List<HealthRecord>> watchForPet(
 - `keyword` 同时匹配标题和备注。
 - `limit` 必须大于 0；`offset` 必须非负且只能与 `limit` 同时使用。
 - 不传筛选条件时返回该狗狗的全部健康记录。
+
+### `count()`
+
+```dart
+Future<int> count(
+  String petId, {
+  String? type,
+  DateTime? from,
+  DateTime? to,
+  String? keyword,
+})
+```
+
+返回符合筛选条件的记录总数，不受 `limit` 和 `offset` 影响，适合分页 UI 计算总页数。
+
+```dart
+final total = await repository.count(petId, type: 'weight');
+final pages = (total / 20).ceil();
+```
 
 ### `findForPet()`
 
@@ -306,7 +417,8 @@ Future<bool> delete(String id)
 | `bath` | 洗澡 |
 | `walk` | 遛狗 |
 | `oral` | 口腔护理 |
-| `grooming` | 梳毛或美容 |
+| `combing` | 梳毛 |
+| `styling` | 美容 |
 | `nail` | 指甲检查或修剪 |
 | `ear` | 耳部观察或护理 |
 | `eye` | 眼部观察或护理 |
@@ -334,6 +446,20 @@ Future<CareActivity?> getActiveWalk(String petId)
 
 `keyword` 匹配地点和备注，其他筛选、时间边界、排序和分页规则与健康记录一致。
 
+### 总数查询
+
+```dart
+Future<int> count(
+  String petId, {
+  String? type,
+  DateTime? from,
+  DateTime? to,
+  String? keyword,
+})
+```
+
+返回符合筛选条件的护理记录总数，适合分页 UI 计算总页数。
+
 ### 通用写入、修改和删除
 
 ```dart
@@ -354,7 +480,7 @@ Future<bool> delete(String id)
 final activity = await repository.create(
   CareActivityDraft(
     petId: petId,
-    type: 'grooming',
+    type: 'combing',
     occurredAt: DateTime.now(),
     place: '家里',
     note: '梳毛十五分钟，没有发现打结',

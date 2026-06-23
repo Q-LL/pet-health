@@ -96,11 +96,13 @@ void main() {
 
     await tester.tap(find.text('狗狗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('创建狗狗档案'));
+    final createProfile = find.text('创建狗狗档案');
+    await tester.ensureVisible(createProfile);
+    await tester.pumpAndSettle();
+    await tester.tap(createProfile);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextFormField, '名字 *'), '团子');
-    await tester.enterText(find.widgetWithText(TextFormField, '类型'), '小型犬');
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
 

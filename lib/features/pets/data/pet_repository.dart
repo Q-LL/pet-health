@@ -6,6 +6,7 @@ import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
 import '../../care/data/care_repository.dart' show defaultLocalPetId;
 import 'pet_photo_repository.dart';
+import '../domain/pet_filter.dart';
 import '../domain/pet_profile.dart';
 
 const selectedPetSettingKey = 'selected_pet_id';
@@ -28,6 +29,28 @@ final selectedPetIdProvider = StreamProvider<String>((ref) async* {
   await repository.ensureSelectedPetId();
   yield* repository.watchSelectedPetId();
 });
+
+/// 按筛选条件实时返回狗狗档案列表。
+///
+/// 默认不含占位档案。需要包含占位档案时设置 `includePlaceholder: true`。
+///
+/// ```dart
+/// final pets = ref.watch(filteredPetsProvider(
+///   PetFilter(keyword: '团', species: '小型犬'),
+/// ));
+/// ```
+final filteredPetsProvider = StreamProvider.autoDispose
+    .family<List<PetProfile>, PetFilter>((ref, filter) {
+      return ref
+          .watch(petRepositoryProvider)
+          .watchPets(
+            keyword: filter.keyword,
+            species: filter.species,
+            includePlaceholder: filter.includePlaceholder,
+            limit: filter.limit,
+            offset: filter.offset,
+          );
+    });
 
 class PetRepository {
   PetRepository(this._database, [this._photoRepository]) : _uuid = const Uuid();
@@ -185,6 +208,35 @@ class PetRepository {
             updatedAt: DateTime.now().toUtc(),
           ),
         );
+  }
+
+  Future<int> count({
+    String? keyword,
+    String? species,
+    bool includePlaceholder = false,
+  }) {
+    _validatePage(limit: null, offset: 0);
+    final search = keyword?.trim();
+    final speciesFilter = species?.trim();
+    final query = _database.selectOnly(_database.pets)
+      ..addColumns([_database.pets.id.count()]);
+    if (!includePlaceholder) {
+      query.where(_database.pets.isPlaceholder.equals(false));
+    }
+    if (speciesFilter != null && speciesFilter.isNotEmpty) {
+      query.where(_database.pets.species.equals(speciesFilter));
+    }
+    if (search != null && search.isNotEmpty) {
+      query.where(
+        _database.pets.name.contains(search) |
+            _database.pets.breed.contains(search) |
+            _database.pets.allergies.contains(search) |
+            _database.pets.chronicConditions.contains(search),
+      );
+    }
+    return query
+        .map((row) => row.read(_database.pets.id.count()) ?? 0)
+        .getSingle();
   }
 
   Future<bool> delete(String id) => deletePet(id);

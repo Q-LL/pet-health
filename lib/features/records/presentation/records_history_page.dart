@@ -6,23 +6,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/page_frame.dart';
 import '../../care/data/care_repository.dart';
+import '../../care/domain/care_activity_filter.dart';
 import '../../care/domain/care_models.dart';
 import '../../pets/data/pet_repository.dart';
 import '../data/health_record_repository.dart';
 import '../domain/health_record.dart';
+import '../domain/health_record_filter.dart';
 import 'add_record_sheet.dart';
 
-final _allHealthRecordsProvider = StreamProvider.autoDispose
-    .family<List<HealthRecord>, String>((ref, petId) {
-      return ref
-          .watch(healthRecordRepositoryProvider)
-          .watchForPet(petId, limit: 300);
-    });
-
-final _allCareRecordsProvider = StreamProvider.autoDispose
-    .family<List<CareActivity>, String>((ref, petId) {
-      return ref.watch(careRepositoryProvider).watchForPet(petId, limit: 300);
-    });
+const _pageStep = 20;
 
 enum _RecordFilter { all, health, care }
 
@@ -35,20 +27,46 @@ class RecordsHistoryPage extends ConsumerStatefulWidget {
 
 class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
   var _filter = _RecordFilter.all;
+  var _keyword = '';
+  String? _healthType;
+  String? _careType;
+  var _limit = _pageStep;
+
+  String? get _searchKeyword =>
+      _keyword.trim().isEmpty ? null : _keyword.trim();
+
+  void _resetLimit() => _limit = _pageStep;
 
   @override
   Widget build(BuildContext context) {
     final petId = ref.watch(selectedPetIdProvider).value;
-    final health = petId == null
+
+    final healthFilter = petId == null
+        ? null
+        : HealthRecordFilter(
+            petId: petId,
+            type: _filter == _RecordFilter.health ? _healthType : null,
+            keyword: _searchKeyword,
+            limit: _limit,
+          );
+    final careFilter = petId == null
+        ? null
+        : CareActivityFilter(
+            petId: petId,
+            type: _filter == _RecordFilter.care ? _careType : null,
+            keyword: _searchKeyword,
+            limit: _limit,
+          );
+
+    final health = healthFilter == null
         ? const AsyncValue<List<HealthRecord>>.loading()
-        : ref.watch(_allHealthRecordsProvider(petId));
-    final care = petId == null
+        : ref.watch(filteredHealthRecordsProvider(healthFilter));
+    final care = careFilter == null
         ? const AsyncValue<List<CareActivity>>.loading()
-        : ref.watch(_allCareRecordsProvider(petId));
+        : ref.watch(filteredCareActivitiesProvider(careFilter));
 
     return PageFrame(
       title: '历史记录',
-      subtitle: '按日期向下浏览当前狗狗的全部健康和护理记录。',
       actions: [
         IconButton.filledTonal(
           tooltip: '返回日历',
@@ -60,6 +78,28 @@ class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: '搜索标题、备注、地点…',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: _keyword.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded),
+                      onPressed: () {
+                        setState(() {
+                          _keyword = '';
+                          _resetLimit();
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            onChanged: (value) => setState(() {
+              _keyword = value;
+              _resetLimit();
+            }),
+          ),
+          const SizedBox(height: 12),
           SegmentedButton<_RecordFilter>(
             segments: const [
               ButtonSegment(
@@ -79,13 +119,80 @@ class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
               ),
             ],
             selected: {_filter},
-            onSelectionChanged: (value) =>
-                setState(() => _filter = value.single),
+            onSelectionChanged: (value) => setState(() {
+              _filter = value.single;
+              _resetLimit();
+            }),
           ),
+          if (_filter == _RecordFilter.health) ...[
+            const SizedBox(height: 12),
+            _TypeFilterDropdown(
+              label: '记录类型',
+              allLabel: '全部健康记录',
+              labels: healthRecordLabels,
+              value: _healthType,
+              onChanged: (value) => setState(() {
+                _healthType = value;
+                _resetLimit();
+              }),
+            ),
+          ],
+          if (_filter == _RecordFilter.care) ...[
+            const SizedBox(height: 12),
+            _TypeFilterDropdown(
+              label: '护理类型',
+              allLabel: '全部护理记录',
+              labels: careActivityLabels,
+              value: _careType,
+              onChanged: (value) => setState(() {
+                _careType = value;
+                _resetLimit();
+              }),
+            ),
+          ],
           const SizedBox(height: 16),
-          _HistoryList(filter: _filter, health: health, care: care),
+          _HistoryList(
+            filter: _filter,
+            health: health,
+            care: care,
+            limit: _limit,
+            onLoadMore: () => setState(() => _limit += _pageStep),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _TypeFilterDropdown extends StatelessWidget {
+  const _TypeFilterDropdown({
+    required this.label,
+    required this.allLabel,
+    required this.labels,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String allLabel;
+  final Map<String, String> labels;
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String?>(
+      initialValue: value,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: const Icon(Icons.filter_list_rounded),
+      ),
+      items: [
+        DropdownMenuItem<String?>(value: null, child: Text(allLabel)),
+        for (final entry in labels.entries)
+          DropdownMenuItem<String?>(value: entry.key, child: Text(entry.value)),
+      ],
+      onChanged: onChanged,
     );
   }
 }
@@ -95,11 +202,15 @@ class _HistoryList extends StatelessWidget {
     required this.filter,
     required this.health,
     required this.care,
+    required this.limit,
+    required this.onLoadMore,
   });
 
   final _RecordFilter filter;
   final AsyncValue<List<HealthRecord>> health;
   final AsyncValue<List<CareActivity>> care;
+  final int limit;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +259,11 @@ class _HistoryList extends StatelessWidget {
               Icon(Icons.list_alt_rounded, size: 36),
               SizedBox(height: 12),
               Text(
-                '还没有历史记录',
+                '没有匹配的记录',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
               ),
               SizedBox(height: 6),
-              Text('新增健康或护理记录后，会按日期排列在这里。'),
+              Text('尝试更换关键词或筛选条件，或新增一条记录。'),
             ],
           ),
         ),
@@ -160,6 +271,14 @@ class _HistoryList extends StatelessWidget {
     }
 
     final sections = _groupByDay(entries);
+
+    // 判断是否还有更多数据可加载
+    final healthCount = health.value?.length ?? 0;
+    final careCount = care.value?.length ?? 0;
+    final showLoadMore =
+        (filter != _RecordFilter.care && healthCount >= limit) ||
+        (filter != _RecordFilter.health && careCount >= limit);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -186,6 +305,16 @@ class _HistoryList extends StatelessWidget {
                     const Divider(height: 1),
                 ],
               ],
+            ),
+          ),
+        ],
+        if (showLoadMore) ...[
+          const SizedBox(height: 16),
+          Center(
+            child: FilledButton.tonalIcon(
+              onPressed: onLoadMore,
+              icon: const Icon(Icons.expand_more_rounded),
+              label: const Text('加载更多'),
             ),
           ),
         ],
@@ -577,8 +706,9 @@ String _formatWalkWindow(CareActivity activity) {
 
 IconData _healthIcon(String type) => switch (type) {
   'weight' => Icons.monitor_weight_outlined,
-  'food_water' => Icons.restaurant_outlined,
-  'elimination' => Icons.water_drop_outlined,
+  'food' => Icons.restaurant_outlined,
+  'water' => Icons.water_drop_rounded,
+  'elimination' => Icons.wc_outlined,
   'symptom' => Icons.healing_outlined,
   'medication' => Icons.medication_outlined,
   'vaccine' => Icons.vaccines_outlined,
@@ -590,7 +720,8 @@ IconData _careIcon(String type) => switch (type) {
   'bath' => Icons.bathtub_outlined,
   'walk' => Icons.directions_walk_rounded,
   'oral' => Icons.medical_services_outlined,
-  'grooming' => Icons.content_cut_rounded,
+  'combing' => Icons.brush_outlined,
+  'styling' => Icons.content_cut_rounded,
   'nail' => Icons.back_hand_outlined,
   'ear' => Icons.hearing_outlined,
   'eye' => Icons.visibility_outlined,

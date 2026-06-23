@@ -29,7 +29,7 @@ void main() {
       );
 
       final pet = await pets.savePet(
-        const PetDraft(name: '团子', species: '狗', breed: '贵宾犬'),
+        const PetDraft(name: '团子', species: '小型犬', breed: '贵宾犬'),
       );
       final careState = await care.watchState(pet.id).first;
 
@@ -62,27 +62,40 @@ void main() {
 
   test('supports explicit CRUD, keyword search and pagination', () async {
     final first = await pets.create(
-      const PetDraft(name: '团子', species: '狗', breed: '贵宾犬'),
+      const PetDraft(name: '团子', species: '小型犬', breed: '贵宾犬'),
     );
     await pets.create(
-      const PetDraft(name: '旺财', species: '狗', chronicConditions: '关注关节'),
+      const PetDraft(name: '旺财', species: '大型犬', chronicConditions: '关注关节'),
     );
 
     final updated = await pets.update(
       first.id,
-      const PetDraft(name: '团团', species: '狗', breed: '贵宾犬'),
+      const PetDraft(name: '团团', species: '小型犬', breed: '贵宾犬'),
     );
-    final dogs = await pets.findPets(species: '狗');
+    final smallDogs = await pets.findPets(species: '小型犬');
     final joint = await pets.findPets(keyword: '关节');
     final page = await pets.findPets(limit: 1, offset: 1);
 
     expect(updated.name, '团团');
     expect((await pets.getById(first.id))?.name, '团团');
-    expect(dogs, hasLength(2));
+    expect(smallDogs.single.name, '团团');
     expect(joint.single.name, '旺财');
     expect(page, hasLength(1));
     expect(await pets.delete(first.id), isTrue);
     expect(await pets.delete(first.id), isFalse);
+  });
+
+  test('count returns total and respects filters', () async {
+    await pets.create(const PetDraft(name: '团子', species: '小型犬', breed: '贵宾犬'));
+    await pets.create(
+      const PetDraft(name: '旺财', species: '大型犬', chronicConditions: '关节'),
+    );
+    await pets.create(const PetDraft(name: '豆豆', species: '中型犬'));
+
+    expect(await pets.count(), 3);
+    expect(await pets.count(species: '小型犬'), 1);
+    expect(await pets.count(keyword: '关节'), 1);
+    expect(await pets.count(species: '中型犬'), 1);
   });
 
   test('update rejects a missing pet', () async {

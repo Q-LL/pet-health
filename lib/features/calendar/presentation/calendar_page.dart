@@ -141,16 +141,9 @@ class _RecordsEntryCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '查看全部历史记录',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    SizedBox(height: 3),
-                    Text('按日期向下浏览，可在详情里编辑或删除'),
-                  ],
+                child: Text(
+                  '查看全部历史记录',
+                  style: TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
               const Icon(Icons.chevron_right_rounded),
@@ -327,8 +320,9 @@ String _formatWalkWindow(CareActivity activity) {
 
 IconData _healthIcon(String type) => switch (type) {
   'weight' => Icons.monitor_weight_outlined,
-  'food_water' => Icons.restaurant_outlined,
-  'elimination' => Icons.water_drop_outlined,
+  'food' => Icons.restaurant_outlined,
+  'water' => Icons.water_drop_rounded,
+  'elimination' => Icons.wc_outlined,
   'symptom' => Icons.healing_outlined,
   'medication' => Icons.medication_outlined,
   'vaccine' => Icons.vaccines_outlined,
@@ -340,7 +334,8 @@ IconData _careIcon(String type) => switch (type) {
   'bath' => Icons.bathtub_outlined,
   'walk' => Icons.directions_walk_rounded,
   'oral' => Icons.medical_services_outlined,
-  'grooming' => Icons.content_cut_rounded,
+  'combing' => Icons.brush_outlined,
+  'styling' => Icons.content_cut_rounded,
   'nail' => Icons.back_hand_outlined,
   'ear' => Icons.hearing_outlined,
   'eye' => Icons.visibility_outlined,

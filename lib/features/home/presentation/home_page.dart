@@ -131,14 +131,35 @@ class _WelcomeHero extends ConsumerWidget {
                             ),
                           ),
                           const Spacer(),
-                          Chip(
-                            avatar: const Icon(
-                              Icons.lock_outline_rounded,
-                              size: 16,
-                            ),
-                            label: const Text('本机'),
-                            backgroundColor: colors.surface.withValues(
-                              alpha: .7,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.surface.withValues(alpha: .7),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 12,
+                                    color: colors.onSurface,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '本机',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: colors.onSurface),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

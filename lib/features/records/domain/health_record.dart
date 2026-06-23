@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 
 const healthRecordTypes = {
   'weight',
-  'food_water',
+  'food',
+  'water',
   'elimination',
   'symptom',
   'medication',

@@ -2,20 +2,33 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/files/image_file_picker.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../data/pet_photo_repository.dart';
 import '../data/pet_repository.dart';
+import '../domain/pet_filter.dart';
 import '../domain/pet_profile.dart';
 import 'pet_avatar.dart';
 
-class PetsPage extends ConsumerWidget {
+class PetsPage extends ConsumerStatefulWidget {
   const PetsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pets = ref.watch(petsProvider);
+  ConsumerState<PetsPage> createState() => _PetsPageState();
+}
+
+class _PetsPageState extends ConsumerState<PetsPage> {
+  var _keyword = '';
+
+  String? get _searchKeyword =>
+      _keyword.trim().isEmpty ? null : _keyword.trim();
+
+  @override
+  Widget build(BuildContext context) {
+    final filter = PetFilter(keyword: _searchKeyword);
+    final pets = ref.watch(filteredPetsProvider(filter));
     final selectedPetId = ref.watch(selectedPetIdProvider).value;
     return PageFrame(
       title: '狗狗',
@@ -28,33 +41,56 @@ class PetsPage extends ConsumerWidget {
         ),
         const SizedBox(width: 12),
       ],
-      child: pets.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _ErrorCard(message: error.toString()),
-        data: (items) {
-          final realPets = items
-              .where((pet) => !pet.isPlaceholder)
-              .toList(growable: false);
-          if (realPets.isEmpty) {
-            return _EmptyPets(onCreate: () => _editPet(context, ref));
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final pet in realPets) ...[
-                _PetCard(
-                  pet: pet,
-                  selected: pet.id == selectedPetId,
-                  onSelect: () =>
-                      ref.read(petRepositoryProvider).selectPet(pet.id),
-                  onEdit: () => _editPet(context, ref, pet: pet),
-                  onDelete: () => _deletePet(context, ref, pet),
-                ),
-                const SizedBox(height: 14),
-              ],
-            ],
-          );
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: '搜索名字、品种、过敏信息…',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: _keyword.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded),
+                      onPressed: () => setState(() => _keyword = ''),
+                    )
+                  : null,
+            ),
+            onChanged: (value) => setState(() => _keyword = value),
+          ),
+          const SizedBox(height: 16),
+          pets.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => _ErrorCard(message: error.toString()),
+            data: (items) {
+              final realPets = items
+                  .where((pet) => !pet.isPlaceholder)
+                  .toList(growable: false);
+              if (realPets.isEmpty) {
+                return _EmptyPets(onCreate: () => _editPet(context, ref));
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final pet in realPets) ...[
+                    _PetCard(
+                      pet: pet,
+                      selected: pet.id == selectedPetId,
+                      onSelect: () =>
+                          ref.read(petRepositoryProvider).selectPet(pet.id),
+                      onEdit: () => _editPet(context, ref, pet: pet),
+                      onDelete: () => _deletePet(context, ref, pet),
+                      onPhotos: () {
+                        ref.read(petRepositoryProvider).selectPet(pet.id);
+                        context.go('/pets/photos');
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -173,6 +209,7 @@ class _PetCard extends StatelessWidget {
     required this.onSelect,
     required this.onEdit,
     required this.onDelete,
+    required this.onPhotos,
   });
 
   final PetProfile pet;
@@ -180,6 +217,7 @@ class _PetCard extends StatelessWidget {
   final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onPhotos;
 
   @override
   Widget build(BuildContext context) {
@@ -242,9 +280,19 @@ class _PetCard extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<String>(
-                onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      onEdit();
+                    case 'photos':
+                      onPhotos();
+                    case 'delete':
+                      onDelete();
+                  }
+                },
                 itemBuilder: (_) => const [
                   PopupMenuItem(value: 'edit', child: Text('编辑档案')),
+                  PopupMenuItem(value: 'photos', child: Text('照片管理')),
                   PopupMenuItem(value: 'delete', child: Text('删除档案')),
                 ],
               ),
@@ -295,7 +343,7 @@ class _MiniInfoChip extends StatelessWidget {
 class _PetEditorDialogState extends State<_PetEditorDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
-  late final TextEditingController _species;
+  String? _species;
   late final TextEditingController _breed;
   late final TextEditingController _allergies;
   late final TextEditingController _conditions;
@@ -310,7 +358,7 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
     super.initState();
     final pet = widget.pet;
     _name = TextEditingController(text: pet?.name);
-    _species = TextEditingController(text: pet?.species);
+    _species = pet?.species;
     _breed = TextEditingController(text: pet?.breed);
     _allergies = TextEditingController(text: pet?.allergies);
     _conditions = TextEditingController(text: pet?.chronicConditions);
@@ -322,7 +370,6 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
   @override
   void dispose() {
     _name.dispose();
-    _species.dispose();
     _breed.dispose();
     _allergies.dispose();
     _conditions.dispose();
@@ -354,12 +401,18 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
                     value == null || value.trim().isEmpty ? '请填写狗狗名字' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _species,
-                decoration: const InputDecoration(
-                  labelText: '类型',
-                  hintText: '默认狗狗，可补充小型犬 / 中型犬 / 大型犬等',
-                ),
+              DropdownButtonFormField<String?>(
+                initialValue: _species,
+                decoration: const InputDecoration(labelText: '类型'),
+                items: const [
+                  DropdownMenuItem<String?>(value: null, child: Text('未填写')),
+                  DropdownMenuItem(value: '小型犬', child: Text('小型犬')),
+                  DropdownMenuItem(value: '中型犬', child: Text('中型犬')),
+                  DropdownMenuItem(value: '大型犬', child: Text('大型犬')),
+                  DropdownMenuItem(value: '幼犬', child: Text('幼犬')),
+                  DropdownMenuItem(value: '老年犬', child: Text('老年犬')),
+                ],
+                onChanged: (value) => setState(() => _species = value),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -436,7 +489,7 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
             _PetEditorResult(
               draft: PetDraft(
                 name: _name.text,
-                species: _species.text,
+                species: _species ?? '',
                 breed: _breed.text,
                 sex: _sex,
                 birthday: _birthday,

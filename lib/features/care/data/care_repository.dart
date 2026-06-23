@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
+import '../domain/care_activity_filter.dart';
 import '../domain/care_models.dart';
 
 const defaultLocalPetId = 'local-default-pet';
@@ -11,6 +12,28 @@ const defaultLocalPetId = 'local-default-pet';
 final careRepositoryProvider = Provider<CareRepository>((ref) {
   return CareRepository(ref.watch(appDatabaseProvider));
 });
+
+/// 按筛选条件实时返回护理记录列表。
+///
+/// ```dart
+/// final activities = ref.watch(filteredCareActivitiesProvider(
+///   CareActivityFilter(petId: petId, type: 'bath', limit: 20),
+/// ));
+/// ```
+final filteredCareActivitiesProvider = StreamProvider.autoDispose
+    .family<List<CareActivity>, CareActivityFilter>((ref, filter) {
+      return ref
+          .watch(careRepositoryProvider)
+          .watchForPet(
+            filter.petId,
+            type: filter.type,
+            from: filter.from,
+            to: filter.to,
+            keyword: filter.keyword,
+            limit: filter.limit,
+            offset: filter.offset,
+          );
+    });
 
 class CareRepository {
   CareRepository(this._database) : _uuid = const Uuid();
@@ -167,11 +190,47 @@ class CareRepository {
     return (await getById(targetId))!;
   }
 
+  Future<int> count(
+    String petId, {
+    String? type,
+    DateTime? from,
+    DateTime? to,
+    String? keyword,
+  }) {
+    _validateQuery(type: type, from: from, to: to, limit: null, offset: 0);
+    final search = keyword?.trim();
+    final query = _database.selectOnly(_database.careActivities)
+      ..addColumns([_database.careActivities.id.count()])
+      ..where(_database.careActivities.petId.equals(petId));
+    if (type != null) {
+      query.where(_database.careActivities.type.equals(type));
+    }
+    if (from != null) {
+      query.where(
+        _database.careActivities.occurredAt.isBiggerOrEqualValue(from.toUtc()),
+      );
+    }
+    if (to != null) {
+      query.where(
+        _database.careActivities.occurredAt.isSmallerThanValue(to.toUtc()),
+      );
+    }
+    if (search != null && search.isNotEmpty) {
+      query.where(
+        _database.careActivities.place.contains(search) |
+            _database.careActivities.note.contains(search),
+      );
+    }
+    return query
+        .map((row) => row.read(_database.careActivities.id.count()) ?? 0)
+        .getSingle();
+  }
+
   Future<bool> delete(String id) async {
-    final count = await (_database.delete(
+    final deleted = await (_database.delete(
       _database.careActivities,
     )..where((activity) => activity.id.equals(id))).go();
-    return count > 0;
+    return deleted > 0;
   }
 
   Stream<CareState> watchState(String petId) {

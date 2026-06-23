@@ -138,6 +138,50 @@ void main() {
     );
   });
 
+  test('count returns total and respects filters', () async {
+    await records.create(
+      HealthRecordDraft(
+        petId: petId,
+        type: 'weight',
+        occurredAt: DateTime.utc(2026, 6, 20),
+        title: '体重',
+        numericValue: 4.5,
+        unit: 'kg',
+      ),
+    );
+    await records.create(
+      HealthRecordDraft(
+        petId: petId,
+        type: 'symptom',
+        occurredAt: DateTime.utc(2026, 6, 22),
+        title: '打喷嚏',
+        note: '夜间观察',
+      ),
+    );
+    await records.create(
+      HealthRecordDraft(
+        petId: petId,
+        type: 'weight',
+        occurredAt: DateTime.utc(2026, 6, 23),
+        title: '体重',
+        numericValue: 4.8,
+        unit: 'kg',
+      ),
+    );
+
+    expect(await records.count(petId), 3);
+    expect(await records.count(petId, type: 'weight'), 2);
+    expect(await records.count(petId, keyword: '夜间'), 1);
+    expect(
+      await records.count(
+        petId,
+        from: DateTime.utc(2026, 6, 21),
+        to: DateTime.utc(2026, 6, 24),
+      ),
+      2,
+    );
+  });
+
   test('pet deletion cascades to its health records', () async {
     await records.save(
       HealthRecordDraft(

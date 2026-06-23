@@ -108,6 +108,28 @@ void main() {
     expect(await photos.findForPet(petId), isEmpty);
   });
 
+  test('count returns total and respects keyword', () async {
+    await photos.add(
+      petId: petId,
+      bytes: Uint8List.fromList([1]),
+      originalName: 'park.jpg',
+      mediaType: 'image/jpeg',
+      caption: '公园散步',
+    );
+    await photos.add(
+      petId: petId,
+      bytes: Uint8List.fromList([2]),
+      originalName: 'home.png',
+      mediaType: 'image/png',
+      caption: '在家休息',
+    );
+
+    expect(await photos.count(petId), 2);
+    expect(await photos.count(petId, keyword: '公园'), 1);
+    expect(await photos.count(petId, keyword: 'png'), 1);
+    expect(await photos.count(petId, keyword: '不存在'), 0);
+  });
+
   test('rejects empty, oversized and unsupported photo data', () async {
     expect(
       () => photos.add(

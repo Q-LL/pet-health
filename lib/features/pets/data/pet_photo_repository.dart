@@ -6,6 +6,7 @@ import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
 import '../../../core/files/photo_storage.dart';
 import '../domain/pet_photo.dart';
+import '../domain/pet_photo_filter.dart';
 
 const maxPetPhotoBytes = 20 * 1024 * 1024;
 
@@ -19,6 +20,25 @@ final petPhotoRepositoryProvider = Provider<PetPhotoRepository>((ref) {
     ref.watch(localPhotoStorageProvider),
   );
 });
+
+/// 按筛选条件实时返回狗狗照片列表。
+///
+/// ```dart
+/// final photos = ref.watch(filteredPetPhotosProvider(
+///   PetPhotoFilter(petId: petId, keyword: '公园', limit: 20),
+/// ));
+/// ```
+final filteredPetPhotosProvider = StreamProvider.autoDispose
+    .family<List<PetPhoto>, PetPhotoFilter>((ref, filter) {
+      return ref
+          .watch(petPhotoRepositoryProvider)
+          .watchForPet(
+            filter.petId,
+            keyword: filter.keyword,
+            limit: filter.limit,
+            offset: filter.offset,
+          );
+    });
 
 class PetPhotoRepository {
   PetPhotoRepository(this._database, this._storage) : _uuid = const Uuid();
@@ -186,6 +206,23 @@ class PetPhotoRepository {
     final photo = await getById(id);
     if (photo == null) throw StateError('狗狗照片不存在：$id');
     return _storage.read(filePath: photo.filePath, bytes: photo.bytes);
+  }
+
+  Future<int> count(String petId, {String? keyword}) {
+    _validatePage(limit: null, offset: 0);
+    final search = keyword?.trim();
+    final query = _database.selectOnly(_database.petPhotos)
+      ..addColumns([_database.petPhotos.id.count()])
+      ..where(_database.petPhotos.petId.equals(petId));
+    if (search != null && search.isNotEmpty) {
+      query.where(
+        _database.petPhotos.originalName.contains(search) |
+            _database.petPhotos.caption.contains(search),
+      );
+    }
+    return query
+        .map((row) => row.read(_database.petPhotos.id.count()) ?? 0)
+        .getSingle();
   }
 
   Future<bool> delete(String id) async {

@@ -12,7 +12,8 @@ import '../domain/health_record.dart';
 
 const healthRecordLabels = <String, String>{
   'weight': '体重',
-  'food_water': '饮食 / 饮水',
+  'food': '饮食',
+  'water': '饮水',
   'elimination': '排泄',
   'symptom': '症状',
   'medication': '用药',
@@ -25,7 +26,8 @@ const careActivityLabels = <String, String>{
   'bath': '洗澡',
   'walk': '遛狗',
   'oral': '口腔护理',
-  'grooming': '梳毛 / 美容',
+  'combing': '梳毛',
+  'styling': '美容',
   'nail': '指甲护理',
   'ear': '耳部护理',
   'eye': '眼部护理',
@@ -88,6 +90,50 @@ Future<void> showWalkRecordSheet(BuildContext context) {
   );
 }
 
+void _showGroomingChoiceSheet(BuildContext context) {
+  final colors = Theme.of(context).colorScheme;
+  showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: AppMotion.medium,
+      reverseDuration: AppMotion.fast,
+    ),
+    builder: (context) => _RecordSheetFrame(
+      title: '梳毛 / 美容',
+      subtitle: '选择本次护理类型',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _ChoiceTile(
+            icon: Icons.brush_outlined,
+            title: '梳毛',
+            subtitle: '日常梳毛、去结毛、整理毛发',
+            color: colors.primaryContainer,
+            onTap: () {
+              Navigator.pop(context);
+              showCareActivitySheet(context, type: 'combing');
+            },
+          ),
+          const SizedBox(height: 12),
+          _ChoiceTile(
+            icon: Icons.content_cut_rounded,
+            title: '美容',
+            subtitle: '宠物店美容、造型、修剪',
+            color: colors.tertiaryContainer,
+            onTap: () {
+              Navigator.pop(context);
+              showCareActivitySheet(context, type: 'styling');
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _AddRecordSheet extends ConsumerWidget {
   const _AddRecordSheet();
 
@@ -98,35 +144,62 @@ class _AddRecordSheet extends ConsumerWidget {
         (state) => state.activeWalkStartedAt != null,
       ),
     );
-    final records = <({IconData icon, String label, VoidCallback action})>[
-      for (final entry in healthRecordLabels.entries)
-        (
-          icon: _healthIcon(entry.key),
-          label: entry.value,
-          action: () {
-            Navigator.pop(context);
-            showHealthRecordSheet(context, type: entry.key);
-          },
-        ),
-      for (final entry in careActivityLabels.entries)
-        (
-          icon: _careIcon(entry.key),
-          label: entry.key == 'walk' && isWalking ? '结束遛狗' : entry.value,
-          action: () {
-            Navigator.pop(context);
-            if (entry.key == 'bath') {
-              showBathRecordSheet(context);
-            } else if (entry.key == 'walk') {
-              if (isWalking) {
-                showFinishWalkSheet(context);
+    final colors = Theme.of(context).colorScheme;
+
+    // ── 健康记录 ──
+    const healthOrder = [
+      'weight', 'symptom', 'medication', 'vaccine', 'deworming',
+      'food', 'water', 'elimination', 'custom',
+    ];
+    final healthRecords = [
+      for (final key in healthOrder)
+        if (healthRecordLabels.containsKey(key))
+          (
+            icon: _healthIcon(key),
+            label: healthRecordLabels[key]!,
+            action: () {
+              Navigator.pop(context);
+              showHealthRecordSheet(context, type: key);
+            },
+          ),
+    ];
+
+    // ── 护理记录 ──
+    const careOrder = [
+      'walk', 'bath', 'grooming', 'oral', 'nail',
+      'ear', 'eye', 'paw', 'environment', 'custom',
+    ];
+    final careRecords = <({IconData icon, String label, VoidCallback action})>[
+      for (final key in careOrder)
+        if (key == 'grooming')
+          (
+            icon: Icons.content_cut_rounded,
+            label: '梳毛 / 美容',
+            action: () {
+              Navigator.pop(context);
+              _showGroomingChoiceSheet(context);
+            },
+          )
+        else if (careActivityLabels.containsKey(key) &&
+            key != 'combing' && key != 'styling')
+          (
+            icon: _careIcon(key),
+            label: key == 'walk' && isWalking ? '结束遛狗' : careActivityLabels[key]!,
+            action: () {
+              Navigator.pop(context);
+              if (key == 'bath') {
+                showBathRecordSheet(context);
+              } else if (key == 'walk') {
+                if (isWalking) {
+                  showFinishWalkSheet(context);
+                } else {
+                  showWalkRecordSheet(context);
+                }
               } else {
-                showWalkRecordSheet(context);
+                showCareActivitySheet(context, type: key);
               }
-            } else {
-              showCareActivitySheet(context, type: entry.key);
-            }
-          },
-        ),
+            },
+          ),
     ];
 
     return ConstrainedBox(
@@ -146,39 +219,114 @@ class _AddRecordSheet extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 18),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: MediaQuery.sizeOf(context).width > 620
-                      ? 4
-                      : 2,
-                  mainAxisExtent: 76,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: records.length,
-                itemBuilder: (context, index) => Material(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(20),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: records[index].action,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Row(
-                        children: [
-                          Icon(records[index].icon),
-                          const SizedBox(width: 10),
-                          Expanded(child: Text(records[index].label)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              const SizedBox(height: 20),
+
+              // ── 健康记录标题 ──
+              _SectionHeader(
+                icon: Icons.favorite_outline,
+                label: '健康',
+                color: colors.errorContainer,
+                onColor: colors.onErrorContainer,
               ),
+              const SizedBox(height: 10),
+              _RecordGrid(records: healthRecords),
+
+              const SizedBox(height: 22),
+
+              // ── 护理记录标题 ──
+              _SectionHeader(
+                icon: Icons.spa_outlined,
+                label: '护理',
+                color: colors.tertiaryContainer,
+                onColor: colors.onTertiaryContainer,
+              ),
+              const SizedBox(height: 10),
+              _RecordGrid(records: careRecords),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color onColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 18, color: onColor),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Divider(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RecordGrid extends StatelessWidget {
+  const _RecordGrid({required this.records});
+
+  final List<({IconData icon, String label, VoidCallback action})> records;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.sizeOf(context).width > 620 ? 4 : 2,
+        mainAxisExtent: 76,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: records.length,
+      itemBuilder: (context, index) => Material(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: records[index].action,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                Icon(records[index].icon),
+                const SizedBox(width: 10),
+                Expanded(child: Text(records[index].label)),
+              ],
+            ),
           ),
         ),
       ),
@@ -711,8 +859,9 @@ class _RecordSheetFrame extends StatelessWidget {
 
 IconData _healthIcon(String type) => switch (type) {
   'weight' => Icons.monitor_weight_outlined,
-  'food_water' => Icons.restaurant_outlined,
-  'elimination' => Icons.water_drop_outlined,
+  'food' => Icons.restaurant_outlined,
+  'water' => Icons.water_drop_rounded,
+  'elimination' => Icons.wc_outlined,
   'symptom' => Icons.healing_outlined,
   'medication' => Icons.medication_outlined,
   'vaccine' => Icons.vaccines_outlined,
@@ -724,7 +873,8 @@ IconData _careIcon(String type) => switch (type) {
   'bath' => Icons.bathtub_outlined,
   'walk' => Icons.directions_walk_rounded,
   'oral' => Icons.medical_services_outlined,
-  'grooming' => Icons.content_cut_rounded,
+  'combing' => Icons.brush_outlined,
+  'styling' => Icons.content_cut_rounded,
   'nail' => Icons.back_hand_outlined,
   'ear' => Icons.hearing_outlined,
   'eye' => Icons.visibility_outlined,

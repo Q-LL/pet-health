@@ -5,10 +5,33 @@ import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
 import '../domain/health_record.dart';
+import '../domain/health_record_filter.dart';
 
 final healthRecordRepositoryProvider = Provider<HealthRecordRepository>((ref) {
   return HealthRecordRepository(ref.watch(appDatabaseProvider));
 });
+
+/// 按筛选条件实时返回健康记录列表。
+///
+/// ```dart
+/// final records = ref.watch(filteredHealthRecordsProvider(
+///   HealthRecordFilter(petId: petId, type: 'weight', limit: 20),
+/// ));
+/// ```
+final filteredHealthRecordsProvider = StreamProvider.autoDispose
+    .family<List<HealthRecord>, HealthRecordFilter>((ref, filter) {
+      return ref
+          .watch(healthRecordRepositoryProvider)
+          .watchForPet(
+            filter.petId,
+            type: filter.type,
+            from: filter.from,
+            to: filter.to,
+            keyword: filter.keyword,
+            limit: filter.limit,
+            offset: filter.offset,
+          );
+    });
 
 class HealthRecordRepository {
   HealthRecordRepository(this._database) : _uuid = const Uuid();
@@ -120,11 +143,47 @@ class HealthRecordRepository {
     return (await getById(targetId))!;
   }
 
+  Future<int> count(
+    String petId, {
+    String? type,
+    DateTime? from,
+    DateTime? to,
+    String? keyword,
+  }) {
+    _validateQuery(type: type, from: from, to: to, limit: null, offset: 0);
+    final search = keyword?.trim();
+    final query = _database.selectOnly(_database.healthRecords)
+      ..addColumns([_database.healthRecords.id.count()])
+      ..where(_database.healthRecords.petId.equals(petId));
+    if (type != null) {
+      query.where(_database.healthRecords.type.equals(type));
+    }
+    if (from != null) {
+      query.where(
+        _database.healthRecords.occurredAt.isBiggerOrEqualValue(from.toUtc()),
+      );
+    }
+    if (to != null) {
+      query.where(
+        _database.healthRecords.occurredAt.isSmallerThanValue(to.toUtc()),
+      );
+    }
+    if (search != null && search.isNotEmpty) {
+      query.where(
+        _database.healthRecords.title.contains(search) |
+            _database.healthRecords.note.contains(search),
+      );
+    }
+    return query
+        .map((row) => row.read(_database.healthRecords.id.count()) ?? 0)
+        .getSingle();
+  }
+
   Future<bool> delete(String id) async {
-    final count = await (_database.delete(
+    final deleted = await (_database.delete(
       _database.healthRecords,
     )..where((record) => record.id.equals(id))).go();
-    return count > 0;
+    return deleted > 0;
   }
 
   void _validate(HealthRecordDraft draft) {
