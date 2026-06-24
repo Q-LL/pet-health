@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_models.dart';
+import '../../memories/presentation/memories_page.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../records/data/health_record_repository.dart';
 import '../../records/domain/health_record.dart';
@@ -44,73 +44,95 @@ class CalendarPage extends ConsumerStatefulWidget {
   ConsumerState<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends ConsumerState<CalendarPage> {
+class _CalendarPageState extends ConsumerState<CalendarPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   var _selectedDay = _startOfDay(DateTime.now());
 
   @override
-  Widget build(BuildContext context) {
-    final petId = ref.watch(selectedPetIdProvider).value;
-    final query = petId == null ? null : (petId: petId, day: _selectedDay);
-    final health = query == null
-        ? const AsyncValue<List<HealthRecord>>.loading()
-        : ref.watch(_healthForDayProvider(query));
-    final care = query == null
-        ? const AsyncValue<List<CareActivity>>.loading()
-        : ref.watch(_careForDayProvider(query));
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
-    return PageFrame(
-      title: '日历',
-      subtitle: '选择某一天，快速回看当天发生过什么。',
-      actions: [
-        IconButton.filledTonal(
-          tooltip: '全部记录',
-          onPressed: () => context.go('/calendar/records'),
-          icon: const Icon(Icons.list_alt_rounded),
-        ),
-        const SizedBox(width: 12),
-      ],
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _RecordsEntryCard(onTap: () => context.go('/calendar/records')),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _SummaryChip(
-                  icon: Icons.favorite_outline_rounded,
-                  value: '${health.value?.length ?? 0}',
-                  label: '健康',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _SummaryChip(
-                  icon: Icons.spa_outlined,
-                  value: '${care.value?.length ?? 0}',
-                  label: '护理',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          PressableScale(
-            child: Card(
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
               child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: CalendarDatePicker(
-                  initialDate: _selectedDay,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2035),
-                  onDateChanged: (date) =>
-                      setState(() => _selectedDay = _startOfDay(date)),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: Row(
+                  children: [
+                    Text(
+                      '日历',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const Spacer(),
+                    IconButton.filledTonal(
+                      tooltip: '全部记录',
+                      onPressed: () => context.go('/calendar/records'),
+                      icon: const Icon(Icons.list_alt_rounded),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 22),
-          SectionHeader('${_selectedDay.month} 月 ${_selectedDay.day} 日时间线'),
-          _DayTimeline(health: health, care: care),
+          const SizedBox(height: 8),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  '记录回看与成长时光。',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: '日历', icon: Icon(Icons.calendar_month_rounded)),
+                    Tab(text: '爱宠时光', icon: Icon(Icons.auto_awesome_rounded)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _CalendarTab(
+                  selectedDay: _selectedDay,
+                  onDayChanged: (day) =>
+                      setState(() => _selectedDay = _startOfDay(day)),
+                ),
+                const MemoriesTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -147,6 +169,79 @@ class _RecordsEntryCard extends StatelessWidget {
                 ),
               ),
               const Icon(Icons.chevron_right_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 日历 Tab 内容：包含记录入口、统计、日历和当天时间线。
+class _CalendarTab extends ConsumerWidget {
+  const _CalendarTab({required this.selectedDay, required this.onDayChanged});
+
+  final DateTime selectedDay;
+  final ValueChanged<DateTime> onDayChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final petId = ref.watch(selectedPetIdProvider).value;
+    final query = petId == null ? null : (petId: petId, day: selectedDay);
+    final health = query == null
+        ? const AsyncValue<List<HealthRecord>>.loading()
+        : ref.watch(_healthForDayProvider(query));
+    final care = query == null
+        ? const AsyncValue<List<CareActivity>>.loading()
+        : ref.watch(_careForDayProvider(query));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _RecordsEntryCard(onTap: () => context.go('/calendar/records')),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _SummaryChip(
+                      icon: Icons.favorite_outline_rounded,
+                      value: '${health.value?.length ?? 0}',
+                      label: '健康',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SummaryChip(
+                      icon: Icons.spa_outlined,
+                      value: '${care.value?.length ?? 0}',
+                      label: '护理',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: SizedBox(
+                    height: 360,
+                    child: CalendarDatePicker(
+                      initialDate: selectedDay,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2035),
+                      onDateChanged: onDayChanged,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              SectionHeader('${selectedDay.month} 月 ${selectedDay.day} 日时间线'),
+              _DayTimeline(health: health, care: care),
             ],
           ),
         ),

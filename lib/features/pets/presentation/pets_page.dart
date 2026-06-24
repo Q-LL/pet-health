@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/files/image_file_picker.dart';
 import '../../../core/widgets/page_frame.dart';
@@ -79,10 +78,6 @@ class _PetsPageState extends ConsumerState<PetsPage> {
                           ref.read(petRepositoryProvider).selectPet(pet.id),
                       onEdit: () => _editPet(context, ref, pet: pet),
                       onDelete: () => _deletePet(context, ref, pet),
-                      onPhotos: () {
-                        ref.read(petRepositoryProvider).selectPet(pet.id);
-                        context.go('/pets/photos');
-                      },
                     ),
                     const SizedBox(height: 14),
                   ],
@@ -209,7 +204,6 @@ class _PetCard extends StatelessWidget {
     required this.onSelect,
     required this.onEdit,
     required this.onDelete,
-    required this.onPhotos,
   });
 
   final PetProfile pet;
@@ -217,7 +211,6 @@ class _PetCard extends StatelessWidget {
   final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onPhotos;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +225,7 @@ class _PetCard extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           child: Row(
             children: [
-              PetPortrait(pet: pet, width: 72, height: 96, borderRadius: 20),
+              PetPortrait(pet: pet, size: 72),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -284,15 +277,12 @@ class _PetCard extends StatelessWidget {
                   switch (value) {
                     case 'edit':
                       onEdit();
-                    case 'photos':
-                      onPhotos();
                     case 'delete':
                       onDelete();
                   }
                 },
                 itemBuilder: (_) => const [
                   PopupMenuItem(value: 'edit', child: Text('编辑档案')),
-                  PopupMenuItem(value: 'photos', child: Text('照片管理')),
                   PopupMenuItem(value: 'delete', child: Text('删除档案')),
                 ],
               ),
@@ -545,28 +535,21 @@ class _PhotoPickerPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+        ClipOval(
           child: Container(
-            width: 120,
-            height: 160,
+            width: 100,
+            height: 100,
             color: colors.surfaceContainerHighest,
             child: bytes == null
                 ? pet == null
                       ? Icon(
                           Icons.add_photo_alternate_outlined,
-                          size: 38,
+                          size: 32,
                           color: colors.onSurfaceVariant,
                         )
-                      : PetPortrait(
-                          pet: pet!,
-                          width: 120,
-                          height: 160,
-                          borderRadius: 0,
-                          showBadge: true,
-                        )
+                      : PetPortrait(pet: pet!, size: 100)
                 : Image.memory(bytes!, fit: BoxFit.cover),
           ),
         ),
@@ -576,17 +559,17 @@ class _PhotoPickerPreview extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('档案照片', style: Theme.of(context).textTheme.titleSmall),
+              Text('档案头像', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 4),
               Text(
-                '上传后会按 3:4 竖屏比例预览裁切，并作为首页和档案头像显示。',
+                '选择照片后会按 1:1 比例裁切，并作为首页和档案头像显示。',
                 style: TextStyle(color: colors.onSurfaceVariant, height: 1.35),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
                 onPressed: onPick,
                 icon: const Icon(Icons.upload_rounded),
-                label: Text(bytes == null ? '上传照片' : '更换照片'),
+                label: Text(bytes == null ? '设置头像' : '更换头像'),
               ),
             ],
           ),

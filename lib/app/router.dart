@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/care/presentation/care_plans_page.dart';
 import '../features/home/presentation/home_page.dart';
-import '../features/pets/presentation/pet_photos_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
 import '../features/records/presentation/records_history_page.dart';
@@ -50,12 +49,6 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/pets',
               builder: (_, _) => const PetsPage(),
-              routes: [
-                GoRoute(
-                  path: 'photos',
-                  builder: (_, _) => const PetPhotosPage(),
-                ),
-              ],
             ),
           ],
         ),
