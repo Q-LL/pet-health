@@ -18,11 +18,7 @@ final _photoBytesProvider = FutureProvider.autoDispose
     });
 
 class PetPortrait extends ConsumerWidget {
-  const PetPortrait({
-    required this.pet,
-    this.size = 84,
-    super.key,
-  });
+  const PetPortrait({required this.pet, this.size = 84, super.key});
 
   final PetProfile pet;
   final double size;
@@ -50,12 +46,11 @@ class PetPortrait extends ConsumerWidget {
                       loading: () => const Center(
                         child: SizedBox.square(
                           dimension: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      error: (_, _) => _PetFallbackIcon(pet: pet, iconSize: size * 0.4),
+                      error: (_, _) =>
+                          _PetFallbackIcon(pet: pet, iconSize: size * 0.4),
                       data: (bytes) => Image.memory(
                         bytes,
                         fit: BoxFit.cover,
