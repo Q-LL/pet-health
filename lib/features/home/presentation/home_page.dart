@@ -107,101 +107,111 @@ class _WelcomeHero extends ConsumerWidget {
             child: _SoftCircle(size: 104, color: colors.onPrimaryContainer),
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: colors.surface.withValues(alpha: .75),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              Icons.pets_rounded,
-                              color: colors.primary,
-                              size: 28,
-                            ),
-                          ),
-                          const Spacer(),
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colors.surface.withValues(alpha: .7),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.lock_outline_rounded,
-                                    size: 12,
-                                    color: colors.onSurface,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '本机',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(color: colors.onSurface),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: colors.surface.withValues(alpha: .75),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(height: 30),
-                      Text(
-                        hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      child: Icon(
+                        Icons.pets_rounded,
+                        color: colors.primary,
+                        size: 28,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        hasProfile
-                            ? '健康和护理记录都只保存在本机，慢慢积累成属于它的狗狗履历。'
-                            : '创建第一份狗狗档案，体重、护理和每次观察都会有迹可循。',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.copyWith(height: 1.5),
-                      ),
-                      const SizedBox(height: 22),
-                      FilledButton.icon(
-                        onPressed: () => hasProfile
-                            ? showAddRecordSheet(context)
-                            : context.go('/pets'),
-                        icon: Icon(
-                          hasProfile ? Icons.add_rounded : Icons.pets_rounded,
+                    ),
+                    const Spacer(),
+                    if (hasProfile)
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: colors.surface.withValues(alpha: .78),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.shadow.withValues(alpha: .14),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        label: Text(hasProfile ? '新增一条记录' : '创建档案'),
-                      ),
-                    ],
+                        child: PetPortrait(pet: selectedPet, size: 86),
+                      )
+                    else
+                      const _LocalBadge(),
+                  ],
+                ),
+                const SizedBox(height: 26),
+                Text(
+                  hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Text(
+                    hasProfile
+                        ? '健康和护理记录都只保存在本机，慢慢积累成属于它的狗狗履历。'
+                        : '创建第一份狗狗档案，体重、护理和每次观察都会有迹可循。',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.5),
                   ),
                 ),
-                if (hasProfile) ...[
-                  const SizedBox(width: 20),
-                  PetPortrait(
-                    pet: selectedPet,
-                    width: 108,
-                    height: 144,
-                    borderRadius: 28,
-                  ),
-                ],
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () => hasProfile
+                          ? showAddRecordSheet(context)
+                          : context.go('/pets'),
+                      icon: Icon(
+                        hasProfile ? Icons.add_rounded : Icons.pets_rounded,
+                      ),
+                      label: Text(hasProfile ? '新增一条记录' : '创建档案'),
+                    ),
+                    const Spacer(),
+                    if (hasProfile) const _LocalBadge(),
+                  ],
+                ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocalBadge extends StatelessWidget {
+  const _LocalBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.surface.withValues(alpha: .7),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_outline_rounded, size: 12, color: colors.onSurface),
+          const SizedBox(width: 4),
+          Text(
+            '本机',
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: colors.onSurface),
           ),
         ],
       ),

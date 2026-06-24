@@ -33,13 +33,13 @@ Future<PickedImageFile?> pickPetPhotoFile() async {
 
   final croppedFile = await ImageCropper().cropImage(
     sourcePath: tempPath,
-    aspectRatio: const CropAspectRatio(ratioX: 3, ratioY: 4),
+    aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
     compressFormat: ImageCompressFormat.jpg,
     compressQuality: 90,
     uiSettings: [
-      AndroidUiSettings(toolbarTitle: '裁剪照片', lockAspectRatio: true),
+      AndroidUiSettings(toolbarTitle: '裁剪头像', lockAspectRatio: true),
       IOSUiSettings(
-        title: '裁剪照片',
+        title: '裁剪头像',
         aspectRatioLockEnabled: true,
         resetAspectRatioEnabled: false,
       ),
