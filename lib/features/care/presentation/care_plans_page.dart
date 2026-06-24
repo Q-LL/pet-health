@@ -281,7 +281,10 @@ class _EnabledList extends StatelessWidget {
     return Column(
       children: [
         for (final plan in state.enabledPlans.values) ...[
-          _EnabledPlanCard(candidate: byId[plan.candidateId]!, plan: plan),
+          _EnabledPlanCard(
+            candidate: byId[plan.candidateId] ?? _candidateFromPlan(plan),
+            plan: plan,
+          ),
           const SizedBox(height: 12),
         ],
       ],
@@ -289,11 +292,25 @@ class _EnabledList extends StatelessWidget {
   }
 }
 
+CarePlanCandidate _candidateFromPlan(CarePlan plan) {
+  final schedule = plan.scheduleRule.isEmpty ? '每天' : plan.scheduleRule;
+  return CarePlanCandidate(
+    id: plan.candidateId,
+    title: plan.title.isEmpty ? '护理计划' : plan.title,
+    summary: '已保存的护理计划',
+    reason: plan.reasonSnapshot.isEmpty ? '这是已保存的护理计划。' : plan.reasonSnapshot,
+    source: CareSuggestionSource.general,
+    scheduleOptions: [schedule, '每天', '每周 1 次', '每 2 周', '每 4 周'],
+    defaultSchedule: schedule,
+    iconKey: plan.careType,
+  );
+}
+
 class _EnabledPlanCard extends StatelessWidget {
   const _EnabledPlanCard({required this.candidate, required this.plan});
 
   final CarePlanCandidate candidate;
-  final EnabledCarePlan plan;
+  final CarePlan plan;
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +327,7 @@ class _EnabledPlanCard extends StatelessWidget {
           child: Icon(_icon(candidate.iconKey), color: colors.primary),
         ),
         title: Text(candidate.title),
-        subtitle: Text(plan.schedule),
+        subtitle: Text(plan.scheduleRule),
         trailing: const Icon(Icons.tune_rounded),
         onTap: () => showEnableCarePlanSheet(context, candidate),
       ),
@@ -445,6 +462,7 @@ class _EnableCarePlanSheet extends ConsumerStatefulWidget {
 
 class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
   late String _schedule;
+  var _isSaving = false;
 
   @override
   void initState() {
@@ -452,7 +470,7 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
     final enabled = ref
         .read(carePlanControllerProvider)
         .enabledPlans[widget.candidate.id];
-    _schedule = enabled?.schedule ?? widget.candidate.defaultSchedule;
+    _schedule = enabled?.scheduleRule ?? widget.candidate.defaultSchedule;
   }
 
   @override
@@ -497,39 +515,63 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
           ),
           const SizedBox(height: 22),
           FilledButton.icon(
-            onPressed: () {
-              ref
-                  .read(carePlanControllerProvider.notifier)
-                  .enable(widget.candidate, _schedule);
-              Navigator.pop(context);
-            },
+            onPressed: _isSaving ? null : _savePlan,
             icon: Icon(isEnabled ? Icons.save_rounded : Icons.add_task_rounded),
-            label: Text(isEnabled ? '保存计划' : '确认开启'),
+            label: Text(_isSaving ? '保存中...' : (isEnabled ? '保存计划' : '确认开启')),
           ),
           const SizedBox(height: 8),
           if (isEnabled)
             TextButton(
-              onPressed: () {
-                ref
-                    .read(carePlanControllerProvider.notifier)
-                    .disable(widget.candidate.id);
-                Navigator.pop(context);
-              },
+              onPressed: _isSaving ? null : _disablePlan,
               child: const Text('关闭这个计划'),
             )
           else
             TextButton(
-              onPressed: () {
-                ref
-                    .read(carePlanControllerProvider.notifier)
-                    .dismiss(widget.candidate.id);
-                Navigator.pop(context);
-              },
+              onPressed: _isSaving ? null : _dismissPlan,
               child: const Text('暂不需要，不再显示'),
             ),
         ],
       ),
     );
+  }
+
+  Future<void> _savePlan() {
+    return _runMutation(
+      () => ref
+          .read(carePlanControllerProvider.notifier)
+          .enable(widget.candidate, _schedule),
+    );
+  }
+
+  Future<void> _disablePlan() {
+    return _runMutation(
+      () => ref
+          .read(carePlanControllerProvider.notifier)
+          .disable(widget.candidate.id),
+    );
+  }
+
+  Future<void> _dismissPlan() {
+    return _runMutation(
+      () => ref
+          .read(carePlanControllerProvider.notifier)
+          .dismiss(widget.candidate.id),
+    );
+  }
+
+  Future<void> _runMutation(Future<void> Function() mutation) async {
+    setState(() => _isSaving = true);
+    try {
+      await mutation();
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
+    }
   }
 }
 
@@ -545,10 +587,17 @@ IconData _icon(String key) => switch (key) {
   'paw' => Icons.pets_rounded,
   'bath' => Icons.bathtub_outlined,
   'coat' => Icons.brush_rounded,
+  'combing' => Icons.brush_rounded,
   'nail' => Icons.content_cut_rounded,
   'ear' => Icons.hearing_rounded,
   _ => Icons.health_and_safety_outlined,
 };
+
+String _errorMessage(Object error) {
+  if (error is FormatException) return error.message;
+  if (error is StateError) return error.message;
+  return '保存失败，请稍后重试';
+}
 
 Color _containerColor(CarePlanCandidate candidate, ColorScheme colors) {
   return switch (candidate.source) {

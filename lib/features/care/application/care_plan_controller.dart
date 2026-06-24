@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../pets/data/pet_repository.dart';
+import '../data/care_plan_repository.dart';
 import '../domain/care_plan_models.dart';
 
+/// 静态护理候选列表，不入库。
 final carePlanCandidatesProvider = Provider<List<CarePlanCandidate>>((ref) {
   return const [
     CarePlanCandidate(
@@ -35,33 +38,33 @@ final carePlanCandidatesProvider = Provider<List<CarePlanCandidate>>((ref) {
       iconKey: 'bath',
     ),
     CarePlanCandidate(
-      id: 'coat_brushing',
-      title: '梳毛护理',
-      summary: '减少打结，并持续观察毛发和皮肤变化',
-      reason: '补充毛长、毛型和生活方式后，可以得到更适合的候选周期。',
-      source: CareSuggestionSource.profile,
-      scheduleOptions: ['每天', '每周 3 次', '每周一次', '自定义周期'],
-      defaultSchedule: '每周 3 次',
-      iconKey: 'coat',
+      id: 'nail_check',
+      title: '指甲检查与修剪',
+      summary: '定期检查指甲磨损和长度',
+      reason: '指甲过长会影响步态和关节；修剪频率取决于日常磨损速度。',
+      source: CareSuggestionSource.general,
+      scheduleOptions: ['每 2 周', '每 4 周', '自定义周期'],
+      defaultSchedule: '每 4 周',
+      iconKey: 'nail',
     ),
     CarePlanCandidate(
-      id: 'nail_check',
-      title: '指甲检查',
-      summary: '记录磨损速度，再决定是否需要修剪',
-      reason: '建议先检查而不是直接修剪；狗狗抗拒或主人不熟悉时应交给专业人员。',
-      source: CareSuggestionSource.history,
-      scheduleOptions: ['每 2 周检查', '每 4 周检查', '自定义周期'],
-      defaultSchedule: '每 2 周检查',
-      iconKey: 'nail',
+      id: 'combing_regular',
+      title: '梳毛计划',
+      summary: '根据毛发情况建立定期梳毛习惯',
+      reason: '梳毛频率应根据犬种、毛型和季节调整，不套用统一周期。',
+      source: CareSuggestionSource.profile,
+      scheduleOptions: ['每天', '每周 3 次', '每周 1 次', '自定义周期'],
+      defaultSchedule: '每周 3 次',
+      iconKey: 'combing',
     ),
     CarePlanCandidate(
       id: 'ear_observation',
       title: '耳部观察',
-      summary: '观察气味、分泌物、红肿和抓挠等事实',
-      reason: '这是观察计划，不默认建议深度清洁；发现异常时转为健康记录。',
+      summary: '定期检查耳朵气味和分泌物',
+      reason: '耳部问题早期通常没有明显症状，定期观察有助于及时发现问题。',
       source: CareSuggestionSource.general,
-      scheduleOptions: ['每周观察', '每 2 周观察', '自定义周期'],
-      defaultSchedule: '每周观察',
+      scheduleOptions: ['每周 1 次', '每 2 周', '自定义周期'],
+      defaultSchedule: '每周 1 次',
       iconKey: 'ear',
     ),
   ];
@@ -72,32 +75,97 @@ final carePlanControllerProvider =
 
 class CarePlanController extends Notifier<CarePlanState> {
   @override
-  CarePlanState build() => const CarePlanState();
+  CarePlanState build() {
+    _subscribe();
+    return const CarePlanState(isLoading: true);
+  }
 
-  void enable(CarePlanCandidate candidate, String schedule) {
+  void _subscribe() {
+    final petId = ref.watch(selectedPetIdProvider).value;
+    if (petId == null) return;
+
+    ref.listen(carePlansForPetProvider(petId), (_, next) {
+      next.whenData((plans) => _syncFromDatabase(plans));
+    }, fireImmediately: true);
+  }
+
+  void _syncFromDatabase(List<CarePlan> plans) {
+    final enabled = <String, CarePlan>{};
+    final dismissed = <String>{};
+    for (final plan in plans) {
+      if (plan.enabled) {
+        enabled[plan.candidateId] = plan;
+      } else if (plan.reasonSnapshot == 'dismissed') {
+        dismissed.add(plan.candidateId);
+      }
+    }
     state = state.copyWith(
-      enabledPlans: {
-        ...state.enabledPlans,
-        candidate.id: EnabledCarePlan(
+      enabledPlans: enabled,
+      dismissedCandidateIds: dismissed,
+      isLoading: false,
+    );
+  }
+
+  Future<void> enable(CarePlanCandidate candidate, String schedule) async {
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final repository = ref.read(carePlanRepositoryProvider);
+
+    final existing = await repository.findByCandidate(petId, candidate.id);
+    if (existing != null) {
+      await repository.update(
+        existing.id,
+        CarePlanDraft(
+          petId: petId,
           candidateId: candidate.id,
-          schedule: schedule,
-          enabledAt: DateTime.now(),
+          careType: candidate.iconKey,
+          title: candidate.title,
+          scheduleRule: schedule,
+          reasonSnapshot: candidate.reason,
         ),
-      },
-      dismissedCandidateIds: {...state.dismissedCandidateIds}
-        ..remove(candidate.id),
-    );
+      );
+    } else {
+      await repository.create(
+        CarePlanDraft(
+          petId: petId,
+          candidateId: candidate.id,
+          careType: candidate.iconKey,
+          title: candidate.title,
+          scheduleRule: schedule,
+          reasonSnapshot: candidate.reason,
+        ),
+      );
+    }
   }
 
-  void disable(String candidateId) {
-    state = state.copyWith(
-      enabledPlans: {...state.enabledPlans}..remove(candidateId),
-    );
+  Future<void> disable(String candidateId) async {
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final repository = ref.read(carePlanRepositoryProvider);
+    final existing = await repository.findByCandidate(petId, candidateId);
+    if (existing != null) {
+      await repository.disable(existing.id);
+    }
   }
 
-  void dismiss(String candidateId) {
-    state = state.copyWith(
-      dismissedCandidateIds: {...state.dismissedCandidateIds, candidateId},
-    );
+  Future<void> dismiss(String candidateId) async {
+    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    await ref.read(carePlanRepositoryProvider).dismiss(petId, candidateId);
+  }
+
+  Future<CarePlanLog> logCompletion(
+    String candidateId, {
+    String note = '',
+  }) async {
+    final plan = state.enabledPlans[candidateId];
+    if (plan == null) throw StateError('护理计划未开启：$candidateId');
+    final repository = ref.read(carePlanRepositoryProvider);
+    final log = await repository.logCompletion(plan.id, note: note);
+    await repository.recalculateNextDue(plan.id);
+    return log;
+  }
+
+  Future<CarePlanLog> logSkip(String candidateId, {String note = ''}) async {
+    final plan = state.enabledPlans[candidateId];
+    if (plan == null) throw StateError('护理计划未开启：$candidateId');
+    return ref.read(carePlanRepositoryProvider).logSkip(plan.id, note: note);
   }
 }
