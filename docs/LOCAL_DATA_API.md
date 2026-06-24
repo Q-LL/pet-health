@@ -1,10 +1,10 @@
 # 毛健康本地数据接口文档
 
-> 版本：0.7
+> 版本：0.8
 > 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
 
-当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录和护理活动。提醒、就诊、处方、通用附件、护理计划持久化、导出、备份恢复、本地知识库和 OCR 尚未进入本接口文档。
+当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录、护理活动、护理计划和提醒。就诊、处方、通用附件、导出、备份恢复、本地知识库和 OCR 尚未进入本接口文档。
 
 ## 1. 前端接入原则
 
@@ -12,7 +12,7 @@
 - 所有实体 ID 为 UUID 字符串；第一个占位狗狗可能保留 `local-default-pet`。
 - Repository 输入输出的时间统一为 UTC，页面展示时调用 `toLocal()`。
 - `watch...` 返回实时 `Stream`，数据库变化后页面会自动收到新数据。
-- 删除狗狗会通过 SQLite 外键级联删除其健康与护理记录。
+- 删除狗狗会通过 SQLite 外键级联删除其健康记录、护理记录、照片、护理计划和提醒。
 
 ## 2. Riverpod 入口
 
@@ -26,6 +26,9 @@
 | `petPhotoRepositoryProvider` | `PetPhotoRepository` | 狗狗照片、头像和本地文件管理 |
 | `healthRecordRepositoryProvider` | `HealthRecordRepository` | 健康记录读写 |
 | `careRepositoryProvider` | `CareRepository` | 洗澡、遛狗等护理活动 |
+| `carePlanRepositoryProvider` | `CarePlanRepository` | 护理计划持久化、完成日志和到期计算 |
+| `carePlanControllerProvider` | `CarePlanState` | 当前狗狗的护理计划页面状态（数据库驱动） |
+| `reminderRepositoryProvider` | `ReminderRepository` | 提醒的创建、修改、暂停、完成和执行日志 |
 | `careControllerProvider` | `CareState` | 当前狗狗的护理页面状态 |
 
 ### 筛选 Provider
@@ -37,6 +40,9 @@
 | `filteredPetsProvider` | `PetFilter` | `AsyncValue<List<PetProfile>>` | 按关键词和狗狗类型/体型筛选狗狗（UI 已移除类型筛选下拉框，API 仍可用） |
 | `filteredHealthRecordsProvider` | `HealthRecordFilter` | `AsyncValue<List<HealthRecord>>` | 按类型、日期、关键词筛选健康记录 |
 | `filteredCareActivitiesProvider` | `CareActivityFilter` | `AsyncValue<List<CareActivity>>` | 按类型、日期、关键词筛选护理记录 |
+| `carePlansForPetProvider` | `String` (petId) | `AsyncValue<List<CarePlan>>` | 实时狗狗护理计划列表 |
+| `filteredRemindersProvider` | `ReminderFilter` | `AsyncValue<List<Reminder>>` | 按来源类型、启用状态、时间筛选提醒 |
+| `todayRemindersProvider` | `String` (petId) | `AsyncValue<List<Reminder>>` | 今日启用且未暂停的提醒 |
 | `filteredPetPhotosProvider` | `PetPhotoFilter` | `AsyncValue<List<PetPhoto>>` | 按关键词筛选狗狗照片 |
 
 前端读取示例：
@@ -103,6 +109,22 @@ final records = ref.watch(filteredHealthRecordsProvider(
 | `keyword` | `String?` | `null` | 匹配原文件名和照片说明 |
 | `limit` | `int?` | `null` | 每页条数 |
 | `offset` | `int` | `0` | 偏移量 |
+
+#### ReminderFilter
+
+源文件：`lib/features/reminders/domain/reminder_filter.dart`
+
+| 字段 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `petId` | `String` | 必填 | 目标狗狗 ID |
+| `sourceType` | `String?` | `null` | 来源类型筛选 |
+| `enabled` | `bool?` | `null` | 启用状态筛选 |
+| `from` | `DateTime?` | `null` | 计划时间下界（包含） |
+| `to` | `DateTime?` | `null` | 计划时间上界（不包含） |
+| `limit` | `int?` | `null` | 每页条数 |
+| `offset` | `int` | `0` | 偏移量 |
+
+`withoutPaging()` 返回不带分页参数的副本。
 
 ## 3. 狗狗档案接口
 
@@ -512,7 +534,145 @@ Future<WalkRecord?> finishWalk(...)
 
 页面通常直接使用 `careControllerProvider`，不需要自行组合这些方法。
 
-## 7. 错误约定
+## 7. 护理计划接口
+
+源文件：`lib/features/care/data/care_plan_repository.dart`
+
+护理计划持久化在 `care_plans` 表，完成和跳过日志记录在 `care_plan_logs` 表。`CarePlanController` 已改为数据库驱动，重启后计划状态可恢复。同一只狗狗的同一 `candidateId` 只保留一条计划记录。
+
+### 读取
+
+```dart
+Stream<List<CarePlan>> watchForPet(String petId, {bool? enabled})
+Future<List<CarePlan>> findForPet(String petId, {bool? enabled})
+Future<CarePlan?> getById(String id)
+Future<CarePlan?> findByCandidate(String petId, String candidateId)
+```
+
+- `watchForPet` 实时返回计划列表，数据变化后页面自动更新。
+- `enabled` 筛选：`true` 只返回启用的，`false` 只返回关闭的（包含已忽略的），`null` 返回全部。
+- `findByCandidate` 查找某只狗狗的某个候选 ID 对应的启用计划；已忽略或关闭的记录不会返回。
+
+### 写入
+
+```dart
+Future<CarePlan> create(CarePlanDraft draft)
+Future<CarePlan> update(String id, CarePlanDraft draft)
+Future<bool> enable(String id)
+Future<bool> pause(String id)
+Future<bool> resume(String id)
+Future<bool> disable(String id)
+Future<bool> delete(String id)
+Future<CarePlan> dismiss(String petId, String candidateId)
+```
+
+- `create`：创建新计划，必须填写 `petId`、`candidateId`、`careType`、`title`、`scheduleRule`；如果同一只狗狗已经存在相同 `candidateId`，会复用并更新原记录，避免重复计划。
+- `update`：修改已有计划，ID 不存在时抛出 `StateError`。
+- `pause/resume`：暂停或恢复计划。
+- `disable`：关闭计划。
+- `dismiss`：忽略候选。已有计划则关闭；无记录则创建一条 `enabled=false, reasonSnapshot='dismissed'` 的占位记录。
+
+### 日志
+
+```dart
+Future<CarePlanLog> logCompletion(String planId, {String note})
+Future<CarePlanLog> logSkip(String planId, {String note})
+Stream<List<CarePlanLog>> watchLogs(String planId, {int? limit})
+Future<List<CarePlanLog>> findLogs(String planId, {int? limit})
+```
+
+- `logCompletion/logSkip` 写入日志并关联 `planId` 和 `petId`。
+- 日志按 `occurredAt DESC` 排序。
+
+### 到期计算
+
+```dart
+Future<void> recalculateNextDue(String planId)
+```
+
+根据最近一次 `completed` 日志和固定周期 `scheduleRule` 重新计算 `nextDueAt`。当前支持：
+
+| 格式 | 示例 | 计算方式 |
+|---|---|---|
+| `每天` | `每天` | 加 1 天 |
+| `每 N 天` | `每 3 天` | 加 N 天 |
+| `每 N 周` | `每 2 周` | 加 N 周 |
+| `每周 N 次` | `每周 3 次` | 按一周均匀分布，向上取整天数 |
+| 每周一次类文案 | `每周 1 次`、`每周一次`、`每周观察` | 加 7 天 |
+
+事件触发或历史驱动文案（如 `每次遛狗后询问`、`根据历史间隔`）不会推导固定日期，`nextDueAt` 保持为空，后续由对应规则引擎补充。
+
+## 8. 提醒接口
+
+源文件：`lib/features/reminders/data/reminder_repository.dart`
+
+提醒持久化在 `reminders` 表，执行日志在 `reminder_logs` 表。支持的 `sourceType`：
+
+| 值 | 含义 |
+|---|---|
+| `care_plan` | 来自护理计划 |
+| `manual` | 手动创建 |
+| `visit` | 来自就诊 |
+| `medication` | 来自用药 |
+| `vaccine` | 来自疫苗 |
+| `deworming` | 来自驱虫 |
+
+### 读取
+
+```dart
+Stream<List<Reminder>> watchForPet(String petId, {String? sourceType, bool? enabled, DateTime? from, DateTime? to, int? limit, int offset})
+Future<List<Reminder>> findForPet(...)
+Future<Reminder?> getById(String id)
+Future<int> count(String petId, {String? sourceType, bool? enabled})
+Stream<List<Reminder>> watchTodayReminders(String petId)
+```
+
+- 筛选、时间边界、排序和分页规则与健康记录一致。
+- `watchTodayReminders` 按本地自然日计算当天 `[00:00, 次日 00:00)`，再转换为 UTC 查询，返回启用且未暂停提醒。
+
+### 写入
+
+```dart
+Future<Reminder> create(ReminderDraft draft)
+Future<Reminder> update(String id, ReminderDraft draft)
+Future<bool> enable(String id)
+Future<bool> pause(String id)
+Future<bool> resume(String id)
+Future<bool> disable(String id)
+Future<bool> delete(String id)
+```
+
+- `create`：必须填写 `petId`、`sourceType`、`title`、`scheduledAt`。
+- `sourceType` 必须在支持列表中，`title` 不能为空。
+- `repeatRule` 如填写，必须符合下方重复规则格式；非法格式抛出 `FormatException`。
+- `update` 要求目标已存在，否则抛出 `StateError`。
+
+### 日志
+
+```dart
+Future<ReminderLog> logAction(String reminderId, String action, {String result})
+Stream<List<ReminderLog>> watchLogs(String reminderId, {int? limit})
+Future<List<ReminderLog>> findLogs(String reminderId, {int? limit})
+```
+
+- `action` 必须是 `fired`、`completed`、`skipped`、`snoozed` 或 `failed`。
+- `result` 保存额外信息，如“已完成”或失败原因。
+
+### 重复规则
+
+`repeatRule` 字段支持以下格式：
+
+| 格式 | 含义 |
+|---|---|
+| `daily` | 每天 |
+| `monthly` | 每月 |
+| `weekly:N` | 每周 N 次 |
+| `interval:Nd` | 每 N 天 |
+| `interval:Nw` | 每 N 周 |
+
+辅助类 `ReminderRepeatRule` 提供 `parse(raw)`、`format()` 和 `nextOccurrence(from)` 方法。
+
+## 9. 错误约定
 
 | 错误 | 情况 | 前端处理 |
 |---|---|---|
@@ -523,7 +683,7 @@ Future<WalkRecord?> finishWalk(...)
 
 所有写操作返回的 `Future` 必须等待完成后再关闭表单。数据库写入失败时不要先在 UI 中显示“保存成功”。
 
-## 8. 自动化测试
+## 10. 自动化测试
 
 安装依赖并生成数据库代码：
 
@@ -547,11 +707,13 @@ flutter test test/features/pets/pet_repository_test.dart
 flutter test test/features/pets/pet_photo_repository_test.dart
 flutter test test/features/records/health_record_repository_test.dart
 flutter test test/features/care/care_repository_test.dart
+flutter test test/features/care/care_plan_controller_test.dart
+flutter test test/features/reminders/reminder_repository_test.dart
 ```
 
 测试使用内存 SQLite，不会污染手机、模拟器或浏览器中的真实数据。
 
-## 9. 手工验收
+## 11. 手工验收
 
 1. 执行 `flutter run -d chrome` 或连接手机运行。
 2. 打开“狗狗”，创建第一只狗狗；确认占位页面变成狗狗卡片。

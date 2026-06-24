@@ -3061,6 +3061,2412 @@ class PetPhotosCompanion extends UpdateCompanion<PetPhoto> {
   }
 }
 
+class $CarePlansTable extends CarePlans
+    with TableInfo<$CarePlansTable, CarePlan> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CarePlansTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _petIdMeta = const VerificationMeta('petId');
+  @override
+  late final GeneratedColumn<String> petId = GeneratedColumn<String>(
+    'pet_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES pets (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _candidateIdMeta = const VerificationMeta(
+    'candidateId',
+  );
+  @override
+  late final GeneratedColumn<String> candidateId = GeneratedColumn<String>(
+    'candidate_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _careTypeMeta = const VerificationMeta(
+    'careType',
+  );
+  @override
+  late final GeneratedColumn<String> careType = GeneratedColumn<String>(
+    'care_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scheduleRuleMeta = const VerificationMeta(
+    'scheduleRule',
+  );
+  @override
+  late final GeneratedColumn<String> scheduleRule = GeneratedColumn<String>(
+    'schedule_rule',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nextDueAtMeta = const VerificationMeta(
+    'nextDueAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextDueAt = GeneratedColumn<DateTime>(
+    'next_due_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _pausedMeta = const VerificationMeta('paused');
+  @override
+  late final GeneratedColumn<bool> paused = GeneratedColumn<bool>(
+    'paused',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("paused" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _reasonSnapshotMeta = const VerificationMeta(
+    'reasonSnapshot',
+  );
+  @override
+  late final GeneratedColumn<String> reasonSnapshot = GeneratedColumn<String>(
+    'reason_snapshot',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _ruleIdMeta = const VerificationMeta('ruleId');
+  @override
+  late final GeneratedColumn<String> ruleId = GeneratedColumn<String>(
+    'rule_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ruleVersionMeta = const VerificationMeta(
+    'ruleVersion',
+  );
+  @override
+  late final GeneratedColumn<String> ruleVersion = GeneratedColumn<String>(
+    'rule_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    petId,
+    candidateId,
+    careType,
+    title,
+    scheduleRule,
+    nextDueAt,
+    enabled,
+    paused,
+    reasonSnapshot,
+    ruleId,
+    ruleVersion,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'care_plans';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CarePlan> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('pet_id')) {
+      context.handle(
+        _petIdMeta,
+        petId.isAcceptableOrUnknown(data['pet_id']!, _petIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_petIdMeta);
+    }
+    if (data.containsKey('candidate_id')) {
+      context.handle(
+        _candidateIdMeta,
+        candidateId.isAcceptableOrUnknown(
+          data['candidate_id']!,
+          _candidateIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_candidateIdMeta);
+    }
+    if (data.containsKey('care_type')) {
+      context.handle(
+        _careTypeMeta,
+        careType.isAcceptableOrUnknown(data['care_type']!, _careTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_careTypeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('schedule_rule')) {
+      context.handle(
+        _scheduleRuleMeta,
+        scheduleRule.isAcceptableOrUnknown(
+          data['schedule_rule']!,
+          _scheduleRuleMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scheduleRuleMeta);
+    }
+    if (data.containsKey('next_due_at')) {
+      context.handle(
+        _nextDueAtMeta,
+        nextDueAt.isAcceptableOrUnknown(data['next_due_at']!, _nextDueAtMeta),
+      );
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    }
+    if (data.containsKey('paused')) {
+      context.handle(
+        _pausedMeta,
+        paused.isAcceptableOrUnknown(data['paused']!, _pausedMeta),
+      );
+    }
+    if (data.containsKey('reason_snapshot')) {
+      context.handle(
+        _reasonSnapshotMeta,
+        reasonSnapshot.isAcceptableOrUnknown(
+          data['reason_snapshot']!,
+          _reasonSnapshotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rule_id')) {
+      context.handle(
+        _ruleIdMeta,
+        ruleId.isAcceptableOrUnknown(data['rule_id']!, _ruleIdMeta),
+      );
+    }
+    if (data.containsKey('rule_version')) {
+      context.handle(
+        _ruleVersionMeta,
+        ruleVersion.isAcceptableOrUnknown(
+          data['rule_version']!,
+          _ruleVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CarePlan map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CarePlan(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      petId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pet_id'],
+      )!,
+      candidateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}candidate_id'],
+      )!,
+      careType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}care_type'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      scheduleRule: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}schedule_rule'],
+      )!,
+      nextDueAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_due_at'],
+      ),
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      paused: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}paused'],
+      )!,
+      reasonSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason_snapshot'],
+      )!,
+      ruleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_id'],
+      ),
+      ruleVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_version'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CarePlansTable createAlias(String alias) {
+    return $CarePlansTable(attachedDatabase, alias);
+  }
+}
+
+class CarePlan extends DataClass implements Insertable<CarePlan> {
+  final String id;
+  final String petId;
+  final String candidateId;
+  final String careType;
+  final String title;
+  final String scheduleRule;
+  final DateTime? nextDueAt;
+  final bool enabled;
+  final bool paused;
+  final String reasonSnapshot;
+  final String? ruleId;
+  final String? ruleVersion;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const CarePlan({
+    required this.id,
+    required this.petId,
+    required this.candidateId,
+    required this.careType,
+    required this.title,
+    required this.scheduleRule,
+    this.nextDueAt,
+    required this.enabled,
+    required this.paused,
+    required this.reasonSnapshot,
+    this.ruleId,
+    this.ruleVersion,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['pet_id'] = Variable<String>(petId);
+    map['candidate_id'] = Variable<String>(candidateId);
+    map['care_type'] = Variable<String>(careType);
+    map['title'] = Variable<String>(title);
+    map['schedule_rule'] = Variable<String>(scheduleRule);
+    if (!nullToAbsent || nextDueAt != null) {
+      map['next_due_at'] = Variable<DateTime>(nextDueAt);
+    }
+    map['enabled'] = Variable<bool>(enabled);
+    map['paused'] = Variable<bool>(paused);
+    map['reason_snapshot'] = Variable<String>(reasonSnapshot);
+    if (!nullToAbsent || ruleId != null) {
+      map['rule_id'] = Variable<String>(ruleId);
+    }
+    if (!nullToAbsent || ruleVersion != null) {
+      map['rule_version'] = Variable<String>(ruleVersion);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CarePlansCompanion toCompanion(bool nullToAbsent) {
+    return CarePlansCompanion(
+      id: Value(id),
+      petId: Value(petId),
+      candidateId: Value(candidateId),
+      careType: Value(careType),
+      title: Value(title),
+      scheduleRule: Value(scheduleRule),
+      nextDueAt: nextDueAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextDueAt),
+      enabled: Value(enabled),
+      paused: Value(paused),
+      reasonSnapshot: Value(reasonSnapshot),
+      ruleId: ruleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ruleId),
+      ruleVersion: ruleVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ruleVersion),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CarePlan.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CarePlan(
+      id: serializer.fromJson<String>(json['id']),
+      petId: serializer.fromJson<String>(json['petId']),
+      candidateId: serializer.fromJson<String>(json['candidateId']),
+      careType: serializer.fromJson<String>(json['careType']),
+      title: serializer.fromJson<String>(json['title']),
+      scheduleRule: serializer.fromJson<String>(json['scheduleRule']),
+      nextDueAt: serializer.fromJson<DateTime?>(json['nextDueAt']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      paused: serializer.fromJson<bool>(json['paused']),
+      reasonSnapshot: serializer.fromJson<String>(json['reasonSnapshot']),
+      ruleId: serializer.fromJson<String?>(json['ruleId']),
+      ruleVersion: serializer.fromJson<String?>(json['ruleVersion']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'petId': serializer.toJson<String>(petId),
+      'candidateId': serializer.toJson<String>(candidateId),
+      'careType': serializer.toJson<String>(careType),
+      'title': serializer.toJson<String>(title),
+      'scheduleRule': serializer.toJson<String>(scheduleRule),
+      'nextDueAt': serializer.toJson<DateTime?>(nextDueAt),
+      'enabled': serializer.toJson<bool>(enabled),
+      'paused': serializer.toJson<bool>(paused),
+      'reasonSnapshot': serializer.toJson<String>(reasonSnapshot),
+      'ruleId': serializer.toJson<String?>(ruleId),
+      'ruleVersion': serializer.toJson<String?>(ruleVersion),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CarePlan copyWith({
+    String? id,
+    String? petId,
+    String? candidateId,
+    String? careType,
+    String? title,
+    String? scheduleRule,
+    Value<DateTime?> nextDueAt = const Value.absent(),
+    bool? enabled,
+    bool? paused,
+    String? reasonSnapshot,
+    Value<String?> ruleId = const Value.absent(),
+    Value<String?> ruleVersion = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => CarePlan(
+    id: id ?? this.id,
+    petId: petId ?? this.petId,
+    candidateId: candidateId ?? this.candidateId,
+    careType: careType ?? this.careType,
+    title: title ?? this.title,
+    scheduleRule: scheduleRule ?? this.scheduleRule,
+    nextDueAt: nextDueAt.present ? nextDueAt.value : this.nextDueAt,
+    enabled: enabled ?? this.enabled,
+    paused: paused ?? this.paused,
+    reasonSnapshot: reasonSnapshot ?? this.reasonSnapshot,
+    ruleId: ruleId.present ? ruleId.value : this.ruleId,
+    ruleVersion: ruleVersion.present ? ruleVersion.value : this.ruleVersion,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CarePlan copyWithCompanion(CarePlansCompanion data) {
+    return CarePlan(
+      id: data.id.present ? data.id.value : this.id,
+      petId: data.petId.present ? data.petId.value : this.petId,
+      candidateId: data.candidateId.present
+          ? data.candidateId.value
+          : this.candidateId,
+      careType: data.careType.present ? data.careType.value : this.careType,
+      title: data.title.present ? data.title.value : this.title,
+      scheduleRule: data.scheduleRule.present
+          ? data.scheduleRule.value
+          : this.scheduleRule,
+      nextDueAt: data.nextDueAt.present ? data.nextDueAt.value : this.nextDueAt,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      paused: data.paused.present ? data.paused.value : this.paused,
+      reasonSnapshot: data.reasonSnapshot.present
+          ? data.reasonSnapshot.value
+          : this.reasonSnapshot,
+      ruleId: data.ruleId.present ? data.ruleId.value : this.ruleId,
+      ruleVersion: data.ruleVersion.present
+          ? data.ruleVersion.value
+          : this.ruleVersion,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CarePlan(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('candidateId: $candidateId, ')
+          ..write('careType: $careType, ')
+          ..write('title: $title, ')
+          ..write('scheduleRule: $scheduleRule, ')
+          ..write('nextDueAt: $nextDueAt, ')
+          ..write('enabled: $enabled, ')
+          ..write('paused: $paused, ')
+          ..write('reasonSnapshot: $reasonSnapshot, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('ruleVersion: $ruleVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    petId,
+    candidateId,
+    careType,
+    title,
+    scheduleRule,
+    nextDueAt,
+    enabled,
+    paused,
+    reasonSnapshot,
+    ruleId,
+    ruleVersion,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CarePlan &&
+          other.id == this.id &&
+          other.petId == this.petId &&
+          other.candidateId == this.candidateId &&
+          other.careType == this.careType &&
+          other.title == this.title &&
+          other.scheduleRule == this.scheduleRule &&
+          other.nextDueAt == this.nextDueAt &&
+          other.enabled == this.enabled &&
+          other.paused == this.paused &&
+          other.reasonSnapshot == this.reasonSnapshot &&
+          other.ruleId == this.ruleId &&
+          other.ruleVersion == this.ruleVersion &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CarePlansCompanion extends UpdateCompanion<CarePlan> {
+  final Value<String> id;
+  final Value<String> petId;
+  final Value<String> candidateId;
+  final Value<String> careType;
+  final Value<String> title;
+  final Value<String> scheduleRule;
+  final Value<DateTime?> nextDueAt;
+  final Value<bool> enabled;
+  final Value<bool> paused;
+  final Value<String> reasonSnapshot;
+  final Value<String?> ruleId;
+  final Value<String?> ruleVersion;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CarePlansCompanion({
+    this.id = const Value.absent(),
+    this.petId = const Value.absent(),
+    this.candidateId = const Value.absent(),
+    this.careType = const Value.absent(),
+    this.title = const Value.absent(),
+    this.scheduleRule = const Value.absent(),
+    this.nextDueAt = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.reasonSnapshot = const Value.absent(),
+    this.ruleId = const Value.absent(),
+    this.ruleVersion = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CarePlansCompanion.insert({
+    required String id,
+    required String petId,
+    required String candidateId,
+    required String careType,
+    required String title,
+    required String scheduleRule,
+    this.nextDueAt = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.reasonSnapshot = const Value.absent(),
+    this.ruleId = const Value.absent(),
+    this.ruleVersion = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       petId = Value(petId),
+       candidateId = Value(candidateId),
+       careType = Value(careType),
+       title = Value(title),
+       scheduleRule = Value(scheduleRule),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CarePlan> custom({
+    Expression<String>? id,
+    Expression<String>? petId,
+    Expression<String>? candidateId,
+    Expression<String>? careType,
+    Expression<String>? title,
+    Expression<String>? scheduleRule,
+    Expression<DateTime>? nextDueAt,
+    Expression<bool>? enabled,
+    Expression<bool>? paused,
+    Expression<String>? reasonSnapshot,
+    Expression<String>? ruleId,
+    Expression<String>? ruleVersion,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (petId != null) 'pet_id': petId,
+      if (candidateId != null) 'candidate_id': candidateId,
+      if (careType != null) 'care_type': careType,
+      if (title != null) 'title': title,
+      if (scheduleRule != null) 'schedule_rule': scheduleRule,
+      if (nextDueAt != null) 'next_due_at': nextDueAt,
+      if (enabled != null) 'enabled': enabled,
+      if (paused != null) 'paused': paused,
+      if (reasonSnapshot != null) 'reason_snapshot': reasonSnapshot,
+      if (ruleId != null) 'rule_id': ruleId,
+      if (ruleVersion != null) 'rule_version': ruleVersion,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CarePlansCompanion copyWith({
+    Value<String>? id,
+    Value<String>? petId,
+    Value<String>? candidateId,
+    Value<String>? careType,
+    Value<String>? title,
+    Value<String>? scheduleRule,
+    Value<DateTime?>? nextDueAt,
+    Value<bool>? enabled,
+    Value<bool>? paused,
+    Value<String>? reasonSnapshot,
+    Value<String?>? ruleId,
+    Value<String?>? ruleVersion,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CarePlansCompanion(
+      id: id ?? this.id,
+      petId: petId ?? this.petId,
+      candidateId: candidateId ?? this.candidateId,
+      careType: careType ?? this.careType,
+      title: title ?? this.title,
+      scheduleRule: scheduleRule ?? this.scheduleRule,
+      nextDueAt: nextDueAt ?? this.nextDueAt,
+      enabled: enabled ?? this.enabled,
+      paused: paused ?? this.paused,
+      reasonSnapshot: reasonSnapshot ?? this.reasonSnapshot,
+      ruleId: ruleId ?? this.ruleId,
+      ruleVersion: ruleVersion ?? this.ruleVersion,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (petId.present) {
+      map['pet_id'] = Variable<String>(petId.value);
+    }
+    if (candidateId.present) {
+      map['candidate_id'] = Variable<String>(candidateId.value);
+    }
+    if (careType.present) {
+      map['care_type'] = Variable<String>(careType.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (scheduleRule.present) {
+      map['schedule_rule'] = Variable<String>(scheduleRule.value);
+    }
+    if (nextDueAt.present) {
+      map['next_due_at'] = Variable<DateTime>(nextDueAt.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (paused.present) {
+      map['paused'] = Variable<bool>(paused.value);
+    }
+    if (reasonSnapshot.present) {
+      map['reason_snapshot'] = Variable<String>(reasonSnapshot.value);
+    }
+    if (ruleId.present) {
+      map['rule_id'] = Variable<String>(ruleId.value);
+    }
+    if (ruleVersion.present) {
+      map['rule_version'] = Variable<String>(ruleVersion.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CarePlansCompanion(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('candidateId: $candidateId, ')
+          ..write('careType: $careType, ')
+          ..write('title: $title, ')
+          ..write('scheduleRule: $scheduleRule, ')
+          ..write('nextDueAt: $nextDueAt, ')
+          ..write('enabled: $enabled, ')
+          ..write('paused: $paused, ')
+          ..write('reasonSnapshot: $reasonSnapshot, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('ruleVersion: $ruleVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CarePlanLogsTable extends CarePlanLogs
+    with TableInfo<$CarePlanLogsTable, CarePlanLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CarePlanLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _planIdMeta = const VerificationMeta('planId');
+  @override
+  late final GeneratedColumn<String> planId = GeneratedColumn<String>(
+    'plan_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES care_plans (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _petIdMeta = const VerificationMeta('petId');
+  @override
+  late final GeneratedColumn<String> petId = GeneratedColumn<String>(
+    'pet_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES pets (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actionMeta = const VerificationMeta('action');
+  @override
+  late final GeneratedColumn<String> action = GeneratedColumn<String>(
+    'action',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    planId,
+    petId,
+    occurredAt,
+    action,
+    note,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'care_plan_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CarePlanLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('plan_id')) {
+      context.handle(
+        _planIdMeta,
+        planId.isAcceptableOrUnknown(data['plan_id']!, _planIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_planIdMeta);
+    }
+    if (data.containsKey('pet_id')) {
+      context.handle(
+        _petIdMeta,
+        petId.isAcceptableOrUnknown(data['pet_id']!, _petIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_petIdMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('action')) {
+      context.handle(
+        _actionMeta,
+        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CarePlanLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CarePlanLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      planId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_id'],
+      )!,
+      petId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pet_id'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      action: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CarePlanLogsTable createAlias(String alias) {
+    return $CarePlanLogsTable(attachedDatabase, alias);
+  }
+}
+
+class CarePlanLog extends DataClass implements Insertable<CarePlanLog> {
+  final String id;
+  final String planId;
+  final String petId;
+  final DateTime occurredAt;
+  final String action;
+  final String note;
+  final DateTime createdAt;
+  const CarePlanLog({
+    required this.id,
+    required this.planId,
+    required this.petId,
+    required this.occurredAt,
+    required this.action,
+    required this.note,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['plan_id'] = Variable<String>(planId);
+    map['pet_id'] = Variable<String>(petId);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['action'] = Variable<String>(action);
+    map['note'] = Variable<String>(note);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CarePlanLogsCompanion toCompanion(bool nullToAbsent) {
+    return CarePlanLogsCompanion(
+      id: Value(id),
+      planId: Value(planId),
+      petId: Value(petId),
+      occurredAt: Value(occurredAt),
+      action: Value(action),
+      note: Value(note),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CarePlanLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CarePlanLog(
+      id: serializer.fromJson<String>(json['id']),
+      planId: serializer.fromJson<String>(json['planId']),
+      petId: serializer.fromJson<String>(json['petId']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      action: serializer.fromJson<String>(json['action']),
+      note: serializer.fromJson<String>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'planId': serializer.toJson<String>(planId),
+      'petId': serializer.toJson<String>(petId),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'action': serializer.toJson<String>(action),
+      'note': serializer.toJson<String>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CarePlanLog copyWith({
+    String? id,
+    String? planId,
+    String? petId,
+    DateTime? occurredAt,
+    String? action,
+    String? note,
+    DateTime? createdAt,
+  }) => CarePlanLog(
+    id: id ?? this.id,
+    planId: planId ?? this.planId,
+    petId: petId ?? this.petId,
+    occurredAt: occurredAt ?? this.occurredAt,
+    action: action ?? this.action,
+    note: note ?? this.note,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CarePlanLog copyWithCompanion(CarePlanLogsCompanion data) {
+    return CarePlanLog(
+      id: data.id.present ? data.id.value : this.id,
+      planId: data.planId.present ? data.planId.value : this.planId,
+      petId: data.petId.present ? data.petId.value : this.petId,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      action: data.action.present ? data.action.value : this.action,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CarePlanLog(')
+          ..write('id: $id, ')
+          ..write('planId: $planId, ')
+          ..write('petId: $petId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('action: $action, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, planId, petId, occurredAt, action, note, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CarePlanLog &&
+          other.id == this.id &&
+          other.planId == this.planId &&
+          other.petId == this.petId &&
+          other.occurredAt == this.occurredAt &&
+          other.action == this.action &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt);
+}
+
+class CarePlanLogsCompanion extends UpdateCompanion<CarePlanLog> {
+  final Value<String> id;
+  final Value<String> planId;
+  final Value<String> petId;
+  final Value<DateTime> occurredAt;
+  final Value<String> action;
+  final Value<String> note;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const CarePlanLogsCompanion({
+    this.id = const Value.absent(),
+    this.planId = const Value.absent(),
+    this.petId = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.action = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CarePlanLogsCompanion.insert({
+    required String id,
+    required String planId,
+    required String petId,
+    required DateTime occurredAt,
+    required String action,
+    this.note = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       planId = Value(planId),
+       petId = Value(petId),
+       occurredAt = Value(occurredAt),
+       action = Value(action),
+       createdAt = Value(createdAt);
+  static Insertable<CarePlanLog> custom({
+    Expression<String>? id,
+    Expression<String>? planId,
+    Expression<String>? petId,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? action,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (planId != null) 'plan_id': planId,
+      if (petId != null) 'pet_id': petId,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (action != null) 'action': action,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CarePlanLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? planId,
+    Value<String>? petId,
+    Value<DateTime>? occurredAt,
+    Value<String>? action,
+    Value<String>? note,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return CarePlanLogsCompanion(
+      id: id ?? this.id,
+      planId: planId ?? this.planId,
+      petId: petId ?? this.petId,
+      occurredAt: occurredAt ?? this.occurredAt,
+      action: action ?? this.action,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (planId.present) {
+      map['plan_id'] = Variable<String>(planId.value);
+    }
+    if (petId.present) {
+      map['pet_id'] = Variable<String>(petId.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CarePlanLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('planId: $planId, ')
+          ..write('petId: $petId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('action: $action, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RemindersTable extends Reminders
+    with TableInfo<$RemindersTable, Reminder> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RemindersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _petIdMeta = const VerificationMeta('petId');
+  @override
+  late final GeneratedColumn<String> petId = GeneratedColumn<String>(
+    'pet_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES pets (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta(
+    'sourceType',
+  );
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scheduledAtMeta = const VerificationMeta(
+    'scheduledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> scheduledAt = GeneratedColumn<DateTime>(
+    'scheduled_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _repeatRuleMeta = const VerificationMeta(
+    'repeatRule',
+  );
+  @override
+  late final GeneratedColumn<String> repeatRule = GeneratedColumn<String>(
+    'repeat_rule',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notificationIdMeta = const VerificationMeta(
+    'notificationId',
+  );
+  @override
+  late final GeneratedColumn<int> notificationId = GeneratedColumn<int>(
+    'notification_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _pausedMeta = const VerificationMeta('paused');
+  @override
+  late final GeneratedColumn<bool> paused = GeneratedColumn<bool>(
+    'paused',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("paused" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    petId,
+    sourceType,
+    sourceId,
+    title,
+    scheduledAt,
+    repeatRule,
+    notificationId,
+    enabled,
+    paused,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reminders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Reminder> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('pet_id')) {
+      context.handle(
+        _petIdMeta,
+        petId.isAcceptableOrUnknown(data['pet_id']!, _petIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_petIdMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+        _sourceTypeMeta,
+        sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('scheduled_at')) {
+      context.handle(
+        _scheduledAtMeta,
+        scheduledAt.isAcceptableOrUnknown(
+          data['scheduled_at']!,
+          _scheduledAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scheduledAtMeta);
+    }
+    if (data.containsKey('repeat_rule')) {
+      context.handle(
+        _repeatRuleMeta,
+        repeatRule.isAcceptableOrUnknown(data['repeat_rule']!, _repeatRuleMeta),
+      );
+    }
+    if (data.containsKey('notification_id')) {
+      context.handle(
+        _notificationIdMeta,
+        notificationId.isAcceptableOrUnknown(
+          data['notification_id']!,
+          _notificationIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    }
+    if (data.containsKey('paused')) {
+      context.handle(
+        _pausedMeta,
+        paused.isAcceptableOrUnknown(data['paused']!, _pausedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Reminder map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Reminder(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      petId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pet_id'],
+      )!,
+      sourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_type'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      scheduledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}scheduled_at'],
+      )!,
+      repeatRule: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}repeat_rule'],
+      ),
+      notificationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}notification_id'],
+      ),
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      paused: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}paused'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RemindersTable createAlias(String alias) {
+    return $RemindersTable(attachedDatabase, alias);
+  }
+}
+
+class Reminder extends DataClass implements Insertable<Reminder> {
+  final String id;
+  final String petId;
+  final String sourceType;
+  final String? sourceId;
+  final String title;
+  final DateTime scheduledAt;
+  final String? repeatRule;
+  final int? notificationId;
+  final bool enabled;
+  final bool paused;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Reminder({
+    required this.id,
+    required this.petId,
+    required this.sourceType,
+    this.sourceId,
+    required this.title,
+    required this.scheduledAt,
+    this.repeatRule,
+    this.notificationId,
+    required this.enabled,
+    required this.paused,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['pet_id'] = Variable<String>(petId);
+    map['source_type'] = Variable<String>(sourceType);
+    if (!nullToAbsent || sourceId != null) {
+      map['source_id'] = Variable<String>(sourceId);
+    }
+    map['title'] = Variable<String>(title);
+    map['scheduled_at'] = Variable<DateTime>(scheduledAt);
+    if (!nullToAbsent || repeatRule != null) {
+      map['repeat_rule'] = Variable<String>(repeatRule);
+    }
+    if (!nullToAbsent || notificationId != null) {
+      map['notification_id'] = Variable<int>(notificationId);
+    }
+    map['enabled'] = Variable<bool>(enabled);
+    map['paused'] = Variable<bool>(paused);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RemindersCompanion toCompanion(bool nullToAbsent) {
+    return RemindersCompanion(
+      id: Value(id),
+      petId: Value(petId),
+      sourceType: Value(sourceType),
+      sourceId: sourceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceId),
+      title: Value(title),
+      scheduledAt: Value(scheduledAt),
+      repeatRule: repeatRule == null && nullToAbsent
+          ? const Value.absent()
+          : Value(repeatRule),
+      notificationId: notificationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notificationId),
+      enabled: Value(enabled),
+      paused: Value(paused),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Reminder.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Reminder(
+      id: serializer.fromJson<String>(json['id']),
+      petId: serializer.fromJson<String>(json['petId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String?>(json['sourceId']),
+      title: serializer.fromJson<String>(json['title']),
+      scheduledAt: serializer.fromJson<DateTime>(json['scheduledAt']),
+      repeatRule: serializer.fromJson<String?>(json['repeatRule']),
+      notificationId: serializer.fromJson<int?>(json['notificationId']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      paused: serializer.fromJson<bool>(json['paused']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'petId': serializer.toJson<String>(petId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String?>(sourceId),
+      'title': serializer.toJson<String>(title),
+      'scheduledAt': serializer.toJson<DateTime>(scheduledAt),
+      'repeatRule': serializer.toJson<String?>(repeatRule),
+      'notificationId': serializer.toJson<int?>(notificationId),
+      'enabled': serializer.toJson<bool>(enabled),
+      'paused': serializer.toJson<bool>(paused),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Reminder copyWith({
+    String? id,
+    String? petId,
+    String? sourceType,
+    Value<String?> sourceId = const Value.absent(),
+    String? title,
+    DateTime? scheduledAt,
+    Value<String?> repeatRule = const Value.absent(),
+    Value<int?> notificationId = const Value.absent(),
+    bool? enabled,
+    bool? paused,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Reminder(
+    id: id ?? this.id,
+    petId: petId ?? this.petId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId.present ? sourceId.value : this.sourceId,
+    title: title ?? this.title,
+    scheduledAt: scheduledAt ?? this.scheduledAt,
+    repeatRule: repeatRule.present ? repeatRule.value : this.repeatRule,
+    notificationId: notificationId.present
+        ? notificationId.value
+        : this.notificationId,
+    enabled: enabled ?? this.enabled,
+    paused: paused ?? this.paused,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Reminder copyWithCompanion(RemindersCompanion data) {
+    return Reminder(
+      id: data.id.present ? data.id.value : this.id,
+      petId: data.petId.present ? data.petId.value : this.petId,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      title: data.title.present ? data.title.value : this.title,
+      scheduledAt: data.scheduledAt.present
+          ? data.scheduledAt.value
+          : this.scheduledAt,
+      repeatRule: data.repeatRule.present
+          ? data.repeatRule.value
+          : this.repeatRule,
+      notificationId: data.notificationId.present
+          ? data.notificationId.value
+          : this.notificationId,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      paused: data.paused.present ? data.paused.value : this.paused,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Reminder(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('title: $title, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('repeatRule: $repeatRule, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('enabled: $enabled, ')
+          ..write('paused: $paused, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    petId,
+    sourceType,
+    sourceId,
+    title,
+    scheduledAt,
+    repeatRule,
+    notificationId,
+    enabled,
+    paused,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Reminder &&
+          other.id == this.id &&
+          other.petId == this.petId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.title == this.title &&
+          other.scheduledAt == this.scheduledAt &&
+          other.repeatRule == this.repeatRule &&
+          other.notificationId == this.notificationId &&
+          other.enabled == this.enabled &&
+          other.paused == this.paused &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RemindersCompanion extends UpdateCompanion<Reminder> {
+  final Value<String> id;
+  final Value<String> petId;
+  final Value<String> sourceType;
+  final Value<String?> sourceId;
+  final Value<String> title;
+  final Value<DateTime> scheduledAt;
+  final Value<String?> repeatRule;
+  final Value<int?> notificationId;
+  final Value<bool> enabled;
+  final Value<bool> paused;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RemindersCompanion({
+    this.id = const Value.absent(),
+    this.petId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.scheduledAt = const Value.absent(),
+    this.repeatRule = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RemindersCompanion.insert({
+    required String id,
+    required String petId,
+    required String sourceType,
+    this.sourceId = const Value.absent(),
+    required String title,
+    required DateTime scheduledAt,
+    this.repeatRule = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.paused = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       petId = Value(petId),
+       sourceType = Value(sourceType),
+       title = Value(title),
+       scheduledAt = Value(scheduledAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Reminder> custom({
+    Expression<String>? id,
+    Expression<String>? petId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? title,
+    Expression<DateTime>? scheduledAt,
+    Expression<String>? repeatRule,
+    Expression<int>? notificationId,
+    Expression<bool>? enabled,
+    Expression<bool>? paused,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (petId != null) 'pet_id': petId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (title != null) 'title': title,
+      if (scheduledAt != null) 'scheduled_at': scheduledAt,
+      if (repeatRule != null) 'repeat_rule': repeatRule,
+      if (notificationId != null) 'notification_id': notificationId,
+      if (enabled != null) 'enabled': enabled,
+      if (paused != null) 'paused': paused,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RemindersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? petId,
+    Value<String>? sourceType,
+    Value<String?>? sourceId,
+    Value<String>? title,
+    Value<DateTime>? scheduledAt,
+    Value<String?>? repeatRule,
+    Value<int?>? notificationId,
+    Value<bool>? enabled,
+    Value<bool>? paused,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RemindersCompanion(
+      id: id ?? this.id,
+      petId: petId ?? this.petId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      title: title ?? this.title,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      repeatRule: repeatRule ?? this.repeatRule,
+      notificationId: notificationId ?? this.notificationId,
+      enabled: enabled ?? this.enabled,
+      paused: paused ?? this.paused,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (petId.present) {
+      map['pet_id'] = Variable<String>(petId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (scheduledAt.present) {
+      map['scheduled_at'] = Variable<DateTime>(scheduledAt.value);
+    }
+    if (repeatRule.present) {
+      map['repeat_rule'] = Variable<String>(repeatRule.value);
+    }
+    if (notificationId.present) {
+      map['notification_id'] = Variable<int>(notificationId.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (paused.present) {
+      map['paused'] = Variable<bool>(paused.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemindersCompanion(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('title: $title, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('repeatRule: $repeatRule, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('enabled: $enabled, ')
+          ..write('paused: $paused, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReminderLogsTable extends ReminderLogs
+    with TableInfo<$ReminderLogsTable, ReminderLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReminderLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reminderIdMeta = const VerificationMeta(
+    'reminderId',
+  );
+  @override
+  late final GeneratedColumn<String> reminderId = GeneratedColumn<String>(
+    'reminder_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES reminders (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actionMeta = const VerificationMeta('action');
+  @override
+  late final GeneratedColumn<String> action = GeneratedColumn<String>(
+    'action',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resultMeta = const VerificationMeta('result');
+  @override
+  late final GeneratedColumn<String> result = GeneratedColumn<String>(
+    'result',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    reminderId,
+    occurredAt,
+    action,
+    result,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reminder_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReminderLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('reminder_id')) {
+      context.handle(
+        _reminderIdMeta,
+        reminderId.isAcceptableOrUnknown(data['reminder_id']!, _reminderIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reminderIdMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('action')) {
+      context.handle(
+        _actionMeta,
+        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionMeta);
+    }
+    if (data.containsKey('result')) {
+      context.handle(
+        _resultMeta,
+        result.isAcceptableOrUnknown(data['result']!, _resultMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReminderLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReminderLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      reminderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reminder_id'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      action: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action'],
+      )!,
+      result: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}result'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ReminderLogsTable createAlias(String alias) {
+    return $ReminderLogsTable(attachedDatabase, alias);
+  }
+}
+
+class ReminderLog extends DataClass implements Insertable<ReminderLog> {
+  final String id;
+  final String reminderId;
+  final DateTime occurredAt;
+  final String action;
+  final String result;
+  final DateTime createdAt;
+  const ReminderLog({
+    required this.id,
+    required this.reminderId,
+    required this.occurredAt,
+    required this.action,
+    required this.result,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['reminder_id'] = Variable<String>(reminderId);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['action'] = Variable<String>(action);
+    map['result'] = Variable<String>(result);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ReminderLogsCompanion toCompanion(bool nullToAbsent) {
+    return ReminderLogsCompanion(
+      id: Value(id),
+      reminderId: Value(reminderId),
+      occurredAt: Value(occurredAt),
+      action: Value(action),
+      result: Value(result),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ReminderLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReminderLog(
+      id: serializer.fromJson<String>(json['id']),
+      reminderId: serializer.fromJson<String>(json['reminderId']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      action: serializer.fromJson<String>(json['action']),
+      result: serializer.fromJson<String>(json['result']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'reminderId': serializer.toJson<String>(reminderId),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'action': serializer.toJson<String>(action),
+      'result': serializer.toJson<String>(result),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ReminderLog copyWith({
+    String? id,
+    String? reminderId,
+    DateTime? occurredAt,
+    String? action,
+    String? result,
+    DateTime? createdAt,
+  }) => ReminderLog(
+    id: id ?? this.id,
+    reminderId: reminderId ?? this.reminderId,
+    occurredAt: occurredAt ?? this.occurredAt,
+    action: action ?? this.action,
+    result: result ?? this.result,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ReminderLog copyWithCompanion(ReminderLogsCompanion data) {
+    return ReminderLog(
+      id: data.id.present ? data.id.value : this.id,
+      reminderId: data.reminderId.present
+          ? data.reminderId.value
+          : this.reminderId,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      action: data.action.present ? data.action.value : this.action,
+      result: data.result.present ? data.result.value : this.result,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderLog(')
+          ..write('id: $id, ')
+          ..write('reminderId: $reminderId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('action: $action, ')
+          ..write('result: $result, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, reminderId, occurredAt, action, result, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReminderLog &&
+          other.id == this.id &&
+          other.reminderId == this.reminderId &&
+          other.occurredAt == this.occurredAt &&
+          other.action == this.action &&
+          other.result == this.result &&
+          other.createdAt == this.createdAt);
+}
+
+class ReminderLogsCompanion extends UpdateCompanion<ReminderLog> {
+  final Value<String> id;
+  final Value<String> reminderId;
+  final Value<DateTime> occurredAt;
+  final Value<String> action;
+  final Value<String> result;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ReminderLogsCompanion({
+    this.id = const Value.absent(),
+    this.reminderId = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.action = const Value.absent(),
+    this.result = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReminderLogsCompanion.insert({
+    required String id,
+    required String reminderId,
+    required DateTime occurredAt,
+    required String action,
+    this.result = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       reminderId = Value(reminderId),
+       occurredAt = Value(occurredAt),
+       action = Value(action),
+       createdAt = Value(createdAt);
+  static Insertable<ReminderLog> custom({
+    Expression<String>? id,
+    Expression<String>? reminderId,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? action,
+    Expression<String>? result,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reminderId != null) 'reminder_id': reminderId,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (action != null) 'action': action,
+      if (result != null) 'result': result,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReminderLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? reminderId,
+    Value<DateTime>? occurredAt,
+    Value<String>? action,
+    Value<String>? result,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ReminderLogsCompanion(
+      id: id ?? this.id,
+      reminderId: reminderId ?? this.reminderId,
+      occurredAt: occurredAt ?? this.occurredAt,
+      action: action ?? this.action,
+      result: result ?? this.result,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (reminderId.present) {
+      map['reminder_id'] = Variable<String>(reminderId.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (result.present) {
+      map['result'] = Variable<String>(result.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('reminderId: $reminderId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('action: $action, ')
+          ..write('result: $result, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3069,6 +5475,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HealthRecordsTable healthRecords = $HealthRecordsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $PetPhotosTable petPhotos = $PetPhotosTable(this);
+  late final $CarePlansTable carePlans = $CarePlansTable(this);
+  late final $CarePlanLogsTable carePlanLogs = $CarePlanLogsTable(this);
+  late final $RemindersTable reminders = $RemindersTable(this);
+  late final $ReminderLogsTable reminderLogs = $ReminderLogsTable(this);
   late final Index carePetOccurredAt = Index(
     'care_pet_occurred_at',
     'CREATE INDEX care_pet_occurred_at ON care_activities (pet_id, occurred_at)',
@@ -3076,6 +5486,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index carePetType = Index(
     'care_pet_type',
     'CREATE INDEX care_pet_type ON care_activities (pet_id, type)',
+  );
+  late final Index carePlansPetCandidateUnique = Index(
+    'care_plans_pet_candidate_unique',
+    'CREATE UNIQUE INDEX care_plans_pet_candidate_unique ON care_plans (pet_id, candidate_id)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -3087,8 +5501,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     healthRecords,
     appSettings,
     petPhotos,
+    carePlans,
+    carePlanLogs,
+    reminders,
+    reminderLogs,
     carePetOccurredAt,
     carePetType,
+    carePlansPetCandidateUnique,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3112,6 +5531,41 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('pet_photos', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'pets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_plans', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'care_plans',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_plan_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'pets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_plan_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'pets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('reminders', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'reminders',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('reminder_logs', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3204,6 +5658,60 @@ final class $$PetsTableReferences
     ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_petPhotosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CarePlansTable, List<CarePlan>>
+  _carePlansRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.carePlans,
+    aliasName: 'pets__id__care_plans__pet_id',
+  );
+
+  $$CarePlansTableProcessedTableManager get carePlansRefs {
+    final manager = $$CarePlansTableTableManager(
+      $_db,
+      $_db.carePlans,
+    ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_carePlansRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CarePlanLogsTable, List<CarePlanLog>>
+  _carePlanLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.carePlanLogs,
+    aliasName: 'pets__id__care_plan_logs__pet_id',
+  );
+
+  $$CarePlanLogsTableProcessedTableManager get carePlanLogsRefs {
+    final manager = $$CarePlanLogsTableTableManager(
+      $_db,
+      $_db.carePlanLogs,
+    ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_carePlanLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$RemindersTable, List<Reminder>>
+  _remindersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reminders,
+    aliasName: 'pets__id__reminders__pet_id',
+  );
+
+  $$RemindersTableProcessedTableManager get remindersRefs {
+    final manager = $$RemindersTableTableManager(
+      $_db,
+      $_db.reminders,
+    ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_remindersRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3349,6 +5857,81 @@ class $$PetsTableFilterComposer extends Composer<_$AppDatabase, $PetsTable> {
           }) => $$PetPhotosTableFilterComposer(
             $db: $db,
             $table: $db.petPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> carePlansRefs(
+    Expression<bool> Function($$CarePlansTableFilterComposer f) f,
+  ) {
+    final $$CarePlansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlans,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlansTableFilterComposer(
+            $db: $db,
+            $table: $db.carePlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> carePlanLogsRefs(
+    Expression<bool> Function($$CarePlanLogsTableFilterComposer f) f,
+  ) {
+    final $$CarePlanLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlanLogs,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlanLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.carePlanLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> remindersRefs(
+    Expression<bool> Function($$RemindersTableFilterComposer f) f,
+  ) {
+    final $$RemindersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminders,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RemindersTableFilterComposer(
+            $db: $db,
+            $table: $db.reminders,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3561,6 +6144,81 @@ class $$PetsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> carePlansRefs<T extends Object>(
+    Expression<T> Function($$CarePlansTableAnnotationComposer a) f,
+  ) {
+    final $$CarePlansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlans,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.carePlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> carePlanLogsRefs<T extends Object>(
+    Expression<T> Function($$CarePlanLogsTableAnnotationComposer a) f,
+  ) {
+    final $$CarePlanLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlanLogs,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlanLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.carePlanLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> remindersRefs<T extends Object>(
+    Expression<T> Function($$RemindersTableAnnotationComposer a) f,
+  ) {
+    final $$RemindersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminders,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RemindersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reminders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PetsTableTableManager
@@ -3580,6 +6238,9 @@ class $$PetsTableTableManager
             bool careActivitiesRefs,
             bool healthRecordsRefs,
             bool petPhotosRefs,
+            bool carePlansRefs,
+            bool carePlanLogsRefs,
+            bool remindersRefs,
           })
         > {
   $$PetsTableTableManager(_$AppDatabase db, $PetsTable table)
@@ -3668,6 +6329,9 @@ class $$PetsTableTableManager
                 careActivitiesRefs = false,
                 healthRecordsRefs = false,
                 petPhotosRefs = false,
+                carePlansRefs = false,
+                carePlanLogsRefs = false,
+                remindersRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -3675,6 +6339,9 @@ class $$PetsTableTableManager
                     if (careActivitiesRefs) db.careActivities,
                     if (healthRecordsRefs) db.healthRecords,
                     if (petPhotosRefs) db.petPhotos,
+                    if (carePlansRefs) db.carePlans,
+                    if (carePlanLogsRefs) db.carePlanLogs,
+                    if (remindersRefs) db.reminders,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3735,6 +6402,54 @@ class $$PetsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (carePlansRefs)
+                        await $_getPrefetchedData<Pet, $PetsTable, CarePlan>(
+                          currentTable: table,
+                          referencedTable: $$PetsTableReferences
+                              ._carePlansRefsTable(db),
+                          managerFromTypedResult: (p0) => $$PetsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).carePlansRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.petId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (carePlanLogsRefs)
+                        await $_getPrefetchedData<Pet, $PetsTable, CarePlanLog>(
+                          currentTable: table,
+                          referencedTable: $$PetsTableReferences
+                              ._carePlanLogsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$PetsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).carePlanLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.petId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (remindersRefs)
+                        await $_getPrefetchedData<Pet, $PetsTable, Reminder>(
+                          currentTable: table,
+                          referencedTable: $$PetsTableReferences
+                              ._remindersRefsTable(db),
+                          managerFromTypedResult: (p0) => $$PetsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).remindersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.petId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3759,6 +6474,9 @@ typedef $$PetsTableProcessedTableManager =
         bool careActivitiesRefs,
         bool healthRecordsRefs,
         bool petPhotosRefs,
+        bool carePlansRefs,
+        bool carePlanLogsRefs,
+        bool remindersRefs,
       })
     >;
 typedef $$CareActivitiesTableCreateCompanionBuilder =
@@ -5260,6 +7978,1917 @@ typedef $$PetPhotosTableProcessedTableManager =
       PetPhoto,
       PrefetchHooks Function({bool petId})
     >;
+typedef $$CarePlansTableCreateCompanionBuilder =
+    CarePlansCompanion Function({
+      required String id,
+      required String petId,
+      required String candidateId,
+      required String careType,
+      required String title,
+      required String scheduleRule,
+      Value<DateTime?> nextDueAt,
+      Value<bool> enabled,
+      Value<bool> paused,
+      Value<String> reasonSnapshot,
+      Value<String?> ruleId,
+      Value<String?> ruleVersion,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$CarePlansTableUpdateCompanionBuilder =
+    CarePlansCompanion Function({
+      Value<String> id,
+      Value<String> petId,
+      Value<String> candidateId,
+      Value<String> careType,
+      Value<String> title,
+      Value<String> scheduleRule,
+      Value<DateTime?> nextDueAt,
+      Value<bool> enabled,
+      Value<bool> paused,
+      Value<String> reasonSnapshot,
+      Value<String?> ruleId,
+      Value<String?> ruleVersion,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$CarePlansTableReferences
+    extends BaseReferences<_$AppDatabase, $CarePlansTable, CarePlan> {
+  $$CarePlansTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PetsTable _petIdTable(_$AppDatabase db) =>
+      db.pets.createAlias('care_plans__pet_id__pets__id');
+
+  $$PetsTableProcessedTableManager get petId {
+    final $_column = $_itemColumn<String>('pet_id')!;
+
+    final manager = $$PetsTableTableManager(
+      $_db,
+      $_db.pets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_petIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$CarePlanLogsTable, List<CarePlanLog>>
+  _carePlanLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.carePlanLogs,
+    aliasName: 'care_plans__id__care_plan_logs__plan_id',
+  );
+
+  $$CarePlanLogsTableProcessedTableManager get carePlanLogsRefs {
+    final manager = $$CarePlanLogsTableTableManager(
+      $_db,
+      $_db.carePlanLogs,
+    ).filter((f) => f.planId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_carePlanLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CarePlansTableFilterComposer
+    extends Composer<_$AppDatabase, $CarePlansTable> {
+  $$CarePlansTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get candidateId => $composableBuilder(
+    column: $table.candidateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get careType => $composableBuilder(
+    column: $table.careType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scheduleRule => $composableBuilder(
+    column: $table.scheduleRule,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextDueAt => $composableBuilder(
+    column: $table.nextDueAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reasonSnapshot => $composableBuilder(
+    column: $table.reasonSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleVersion => $composableBuilder(
+    column: $table.ruleVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PetsTableFilterComposer get petId {
+    final $$PetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableFilterComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> carePlanLogsRefs(
+    Expression<bool> Function($$CarePlanLogsTableFilterComposer f) f,
+  ) {
+    final $$CarePlanLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlanLogs,
+      getReferencedColumn: (t) => t.planId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlanLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.carePlanLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CarePlansTableOrderingComposer
+    extends Composer<_$AppDatabase, $CarePlansTable> {
+  $$CarePlansTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get candidateId => $composableBuilder(
+    column: $table.candidateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get careType => $composableBuilder(
+    column: $table.careType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scheduleRule => $composableBuilder(
+    column: $table.scheduleRule,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextDueAt => $composableBuilder(
+    column: $table.nextDueAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reasonSnapshot => $composableBuilder(
+    column: $table.reasonSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ruleVersion => $composableBuilder(
+    column: $table.ruleVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PetsTableOrderingComposer get petId {
+    final $$PetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CarePlansTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CarePlansTable> {
+  $$CarePlansTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get candidateId => $composableBuilder(
+    column: $table.candidateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get careType =>
+      $composableBuilder(column: $table.careType, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get scheduleRule => $composableBuilder(
+    column: $table.scheduleRule,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get nextDueAt =>
+      $composableBuilder(column: $table.nextDueAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get paused =>
+      $composableBuilder(column: $table.paused, builder: (column) => column);
+
+  GeneratedColumn<String> get reasonSnapshot => $composableBuilder(
+    column: $table.reasonSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ruleId =>
+      $composableBuilder(column: $table.ruleId, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleVersion => $composableBuilder(
+    column: $table.ruleVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$PetsTableAnnotationComposer get petId {
+    final $$PetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> carePlanLogsRefs<T extends Object>(
+    Expression<T> Function($$CarePlanLogsTableAnnotationComposer a) f,
+  ) {
+    final $$CarePlanLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.carePlanLogs,
+      getReferencedColumn: (t) => t.planId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlanLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.carePlanLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CarePlansTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CarePlansTable,
+          CarePlan,
+          $$CarePlansTableFilterComposer,
+          $$CarePlansTableOrderingComposer,
+          $$CarePlansTableAnnotationComposer,
+          $$CarePlansTableCreateCompanionBuilder,
+          $$CarePlansTableUpdateCompanionBuilder,
+          (CarePlan, $$CarePlansTableReferences),
+          CarePlan,
+          PrefetchHooks Function({bool petId, bool carePlanLogsRefs})
+        > {
+  $$CarePlansTableTableManager(_$AppDatabase db, $CarePlansTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CarePlansTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CarePlansTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CarePlansTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> petId = const Value.absent(),
+                Value<String> candidateId = const Value.absent(),
+                Value<String> careType = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> scheduleRule = const Value.absent(),
+                Value<DateTime?> nextDueAt = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<String> reasonSnapshot = const Value.absent(),
+                Value<String?> ruleId = const Value.absent(),
+                Value<String?> ruleVersion = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CarePlansCompanion(
+                id: id,
+                petId: petId,
+                candidateId: candidateId,
+                careType: careType,
+                title: title,
+                scheduleRule: scheduleRule,
+                nextDueAt: nextDueAt,
+                enabled: enabled,
+                paused: paused,
+                reasonSnapshot: reasonSnapshot,
+                ruleId: ruleId,
+                ruleVersion: ruleVersion,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String petId,
+                required String candidateId,
+                required String careType,
+                required String title,
+                required String scheduleRule,
+                Value<DateTime?> nextDueAt = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<String> reasonSnapshot = const Value.absent(),
+                Value<String?> ruleId = const Value.absent(),
+                Value<String?> ruleVersion = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CarePlansCompanion.insert(
+                id: id,
+                petId: petId,
+                candidateId: candidateId,
+                careType: careType,
+                title: title,
+                scheduleRule: scheduleRule,
+                nextDueAt: nextDueAt,
+                enabled: enabled,
+                paused: paused,
+                reasonSnapshot: reasonSnapshot,
+                ruleId: ruleId,
+                ruleVersion: ruleVersion,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CarePlansTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({petId = false, carePlanLogsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (carePlanLogsRefs) db.carePlanLogs],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (petId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.petId,
+                                referencedTable: $$CarePlansTableReferences
+                                    ._petIdTable(db),
+                                referencedColumn: $$CarePlansTableReferences
+                                    ._petIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (carePlanLogsRefs)
+                    await $_getPrefetchedData<
+                      CarePlan,
+                      $CarePlansTable,
+                      CarePlanLog
+                    >(
+                      currentTable: table,
+                      referencedTable: $$CarePlansTableReferences
+                          ._carePlanLogsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CarePlansTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).carePlanLogsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.planId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CarePlansTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CarePlansTable,
+      CarePlan,
+      $$CarePlansTableFilterComposer,
+      $$CarePlansTableOrderingComposer,
+      $$CarePlansTableAnnotationComposer,
+      $$CarePlansTableCreateCompanionBuilder,
+      $$CarePlansTableUpdateCompanionBuilder,
+      (CarePlan, $$CarePlansTableReferences),
+      CarePlan,
+      PrefetchHooks Function({bool petId, bool carePlanLogsRefs})
+    >;
+typedef $$CarePlanLogsTableCreateCompanionBuilder =
+    CarePlanLogsCompanion Function({
+      required String id,
+      required String planId,
+      required String petId,
+      required DateTime occurredAt,
+      required String action,
+      Value<String> note,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$CarePlanLogsTableUpdateCompanionBuilder =
+    CarePlanLogsCompanion Function({
+      Value<String> id,
+      Value<String> planId,
+      Value<String> petId,
+      Value<DateTime> occurredAt,
+      Value<String> action,
+      Value<String> note,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$CarePlanLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $CarePlanLogsTable, CarePlanLog> {
+  $$CarePlanLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CarePlansTable _planIdTable(_$AppDatabase db) =>
+      db.carePlans.createAlias('care_plan_logs__plan_id__care_plans__id');
+
+  $$CarePlansTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<String>('plan_id')!;
+
+    final manager = $$CarePlansTableTableManager(
+      $_db,
+      $_db.carePlans,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PetsTable _petIdTable(_$AppDatabase db) =>
+      db.pets.createAlias('care_plan_logs__pet_id__pets__id');
+
+  $$PetsTableProcessedTableManager get petId {
+    final $_column = $_itemColumn<String>('pet_id')!;
+
+    final manager = $$PetsTableTableManager(
+      $_db,
+      $_db.pets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_petIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CarePlanLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $CarePlanLogsTable> {
+  $$CarePlanLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CarePlansTableFilterComposer get planId {
+    final $$CarePlansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.carePlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlansTableFilterComposer(
+            $db: $db,
+            $table: $db.carePlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PetsTableFilterComposer get petId {
+    final $$PetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableFilterComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CarePlanLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CarePlanLogsTable> {
+  $$CarePlanLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CarePlansTableOrderingComposer get planId {
+    final $$CarePlansTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.carePlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlansTableOrderingComposer(
+            $db: $db,
+            $table: $db.carePlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PetsTableOrderingComposer get petId {
+    final $$PetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CarePlanLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CarePlanLogsTable> {
+  $$CarePlanLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get action =>
+      $composableBuilder(column: $table.action, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$CarePlansTableAnnotationComposer get planId {
+    final $$CarePlansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.carePlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CarePlansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.carePlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PetsTableAnnotationComposer get petId {
+    final $$PetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CarePlanLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CarePlanLogsTable,
+          CarePlanLog,
+          $$CarePlanLogsTableFilterComposer,
+          $$CarePlanLogsTableOrderingComposer,
+          $$CarePlanLogsTableAnnotationComposer,
+          $$CarePlanLogsTableCreateCompanionBuilder,
+          $$CarePlanLogsTableUpdateCompanionBuilder,
+          (CarePlanLog, $$CarePlanLogsTableReferences),
+          CarePlanLog,
+          PrefetchHooks Function({bool planId, bool petId})
+        > {
+  $$CarePlanLogsTableTableManager(_$AppDatabase db, $CarePlanLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CarePlanLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CarePlanLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CarePlanLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> planId = const Value.absent(),
+                Value<String> petId = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String> action = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CarePlanLogsCompanion(
+                id: id,
+                planId: planId,
+                petId: petId,
+                occurredAt: occurredAt,
+                action: action,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String planId,
+                required String petId,
+                required DateTime occurredAt,
+                required String action,
+                Value<String> note = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CarePlanLogsCompanion.insert(
+                id: id,
+                planId: planId,
+                petId: petId,
+                occurredAt: occurredAt,
+                action: action,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CarePlanLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({planId = false, petId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (planId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.planId,
+                                referencedTable: $$CarePlanLogsTableReferences
+                                    ._planIdTable(db),
+                                referencedColumn: $$CarePlanLogsTableReferences
+                                    ._planIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (petId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.petId,
+                                referencedTable: $$CarePlanLogsTableReferences
+                                    ._petIdTable(db),
+                                referencedColumn: $$CarePlanLogsTableReferences
+                                    ._petIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CarePlanLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CarePlanLogsTable,
+      CarePlanLog,
+      $$CarePlanLogsTableFilterComposer,
+      $$CarePlanLogsTableOrderingComposer,
+      $$CarePlanLogsTableAnnotationComposer,
+      $$CarePlanLogsTableCreateCompanionBuilder,
+      $$CarePlanLogsTableUpdateCompanionBuilder,
+      (CarePlanLog, $$CarePlanLogsTableReferences),
+      CarePlanLog,
+      PrefetchHooks Function({bool planId, bool petId})
+    >;
+typedef $$RemindersTableCreateCompanionBuilder =
+    RemindersCompanion Function({
+      required String id,
+      required String petId,
+      required String sourceType,
+      Value<String?> sourceId,
+      required String title,
+      required DateTime scheduledAt,
+      Value<String?> repeatRule,
+      Value<int?> notificationId,
+      Value<bool> enabled,
+      Value<bool> paused,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RemindersTableUpdateCompanionBuilder =
+    RemindersCompanion Function({
+      Value<String> id,
+      Value<String> petId,
+      Value<String> sourceType,
+      Value<String?> sourceId,
+      Value<String> title,
+      Value<DateTime> scheduledAt,
+      Value<String?> repeatRule,
+      Value<int?> notificationId,
+      Value<bool> enabled,
+      Value<bool> paused,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$RemindersTableReferences
+    extends BaseReferences<_$AppDatabase, $RemindersTable, Reminder> {
+  $$RemindersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PetsTable _petIdTable(_$AppDatabase db) =>
+      db.pets.createAlias('reminders__pet_id__pets__id');
+
+  $$PetsTableProcessedTableManager get petId {
+    final $_column = $_itemColumn<String>('pet_id')!;
+
+    final manager = $$PetsTableTableManager(
+      $_db,
+      $_db.pets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_petIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ReminderLogsTable, List<ReminderLog>>
+  _reminderLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reminderLogs,
+    aliasName: 'reminders__id__reminder_logs__reminder_id',
+  );
+
+  $$ReminderLogsTableProcessedTableManager get reminderLogsRefs {
+    final manager = $$ReminderLogsTableTableManager(
+      $_db,
+      $_db.reminderLogs,
+    ).filter((f) => f.reminderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_reminderLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$RemindersTableFilterComposer
+    extends Composer<_$AppDatabase, $RemindersTable> {
+  $$RemindersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get repeatRule => $composableBuilder(
+    column: $table.repeatRule,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PetsTableFilterComposer get petId {
+    final $$PetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableFilterComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> reminderLogsRefs(
+    Expression<bool> Function($$ReminderLogsTableFilterComposer f) f,
+  ) {
+    final $$ReminderLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderLogs,
+      getReferencedColumn: (t) => t.reminderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.reminderLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RemindersTableOrderingComposer
+    extends Composer<_$AppDatabase, $RemindersTable> {
+  $$RemindersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get repeatRule => $composableBuilder(
+    column: $table.repeatRule,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PetsTableOrderingComposer get petId {
+    final $$PetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RemindersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RemindersTable> {
+  $$RemindersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get repeatRule => $composableBuilder(
+    column: $table.repeatRule,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get paused =>
+      $composableBuilder(column: $table.paused, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$PetsTableAnnotationComposer get petId {
+    final $$PetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> reminderLogsRefs<T extends Object>(
+    Expression<T> Function($$ReminderLogsTableAnnotationComposer a) f,
+  ) {
+    final $$ReminderLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderLogs,
+      getReferencedColumn: (t) => t.reminderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reminderLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RemindersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RemindersTable,
+          Reminder,
+          $$RemindersTableFilterComposer,
+          $$RemindersTableOrderingComposer,
+          $$RemindersTableAnnotationComposer,
+          $$RemindersTableCreateCompanionBuilder,
+          $$RemindersTableUpdateCompanionBuilder,
+          (Reminder, $$RemindersTableReferences),
+          Reminder,
+          PrefetchHooks Function({bool petId, bool reminderLogsRefs})
+        > {
+  $$RemindersTableTableManager(_$AppDatabase db, $RemindersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RemindersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RemindersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RemindersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> petId = const Value.absent(),
+                Value<String> sourceType = const Value.absent(),
+                Value<String?> sourceId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<DateTime> scheduledAt = const Value.absent(),
+                Value<String?> repeatRule = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RemindersCompanion(
+                id: id,
+                petId: petId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                title: title,
+                scheduledAt: scheduledAt,
+                repeatRule: repeatRule,
+                notificationId: notificationId,
+                enabled: enabled,
+                paused: paused,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String petId,
+                required String sourceType,
+                Value<String?> sourceId = const Value.absent(),
+                required String title,
+                required DateTime scheduledAt,
+                Value<String?> repeatRule = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RemindersCompanion.insert(
+                id: id,
+                petId: petId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                title: title,
+                scheduledAt: scheduledAt,
+                repeatRule: repeatRule,
+                notificationId: notificationId,
+                enabled: enabled,
+                paused: paused,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RemindersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({petId = false, reminderLogsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (reminderLogsRefs) db.reminderLogs],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (petId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.petId,
+                                referencedTable: $$RemindersTableReferences
+                                    ._petIdTable(db),
+                                referencedColumn: $$RemindersTableReferences
+                                    ._petIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (reminderLogsRefs)
+                    await $_getPrefetchedData<
+                      Reminder,
+                      $RemindersTable,
+                      ReminderLog
+                    >(
+                      currentTable: table,
+                      referencedTable: $$RemindersTableReferences
+                          ._reminderLogsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$RemindersTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).reminderLogsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.reminderId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RemindersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RemindersTable,
+      Reminder,
+      $$RemindersTableFilterComposer,
+      $$RemindersTableOrderingComposer,
+      $$RemindersTableAnnotationComposer,
+      $$RemindersTableCreateCompanionBuilder,
+      $$RemindersTableUpdateCompanionBuilder,
+      (Reminder, $$RemindersTableReferences),
+      Reminder,
+      PrefetchHooks Function({bool petId, bool reminderLogsRefs})
+    >;
+typedef $$ReminderLogsTableCreateCompanionBuilder =
+    ReminderLogsCompanion Function({
+      required String id,
+      required String reminderId,
+      required DateTime occurredAt,
+      required String action,
+      Value<String> result,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$ReminderLogsTableUpdateCompanionBuilder =
+    ReminderLogsCompanion Function({
+      Value<String> id,
+      Value<String> reminderId,
+      Value<DateTime> occurredAt,
+      Value<String> action,
+      Value<String> result,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$ReminderLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $ReminderLogsTable, ReminderLog> {
+  $$ReminderLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $RemindersTable _reminderIdTable(_$AppDatabase db) =>
+      db.reminders.createAlias('reminder_logs__reminder_id__reminders__id');
+
+  $$RemindersTableProcessedTableManager get reminderId {
+    final $_column = $_itemColumn<String>('reminder_id')!;
+
+    final manager = $$RemindersTableTableManager(
+      $_db,
+      $_db.reminders,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_reminderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ReminderLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReminderLogsTable> {
+  $$ReminderLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get result => $composableBuilder(
+    column: $table.result,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RemindersTableFilterComposer get reminderId {
+    final $$RemindersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reminderId,
+      referencedTable: $db.reminders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RemindersTableFilterComposer(
+            $db: $db,
+            $table: $db.reminders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReminderLogsTable> {
+  $$ReminderLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get result => $composableBuilder(
+    column: $table.result,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RemindersTableOrderingComposer get reminderId {
+    final $$RemindersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reminderId,
+      referencedTable: $db.reminders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RemindersTableOrderingComposer(
+            $db: $db,
+            $table: $db.reminders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReminderLogsTable> {
+  $$ReminderLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get action =>
+      $composableBuilder(column: $table.action, builder: (column) => column);
+
+  GeneratedColumn<String> get result =>
+      $composableBuilder(column: $table.result, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$RemindersTableAnnotationComposer get reminderId {
+    final $$RemindersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reminderId,
+      referencedTable: $db.reminders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RemindersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reminders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReminderLogsTable,
+          ReminderLog,
+          $$ReminderLogsTableFilterComposer,
+          $$ReminderLogsTableOrderingComposer,
+          $$ReminderLogsTableAnnotationComposer,
+          $$ReminderLogsTableCreateCompanionBuilder,
+          $$ReminderLogsTableUpdateCompanionBuilder,
+          (ReminderLog, $$ReminderLogsTableReferences),
+          ReminderLog,
+          PrefetchHooks Function({bool reminderId})
+        > {
+  $$ReminderLogsTableTableManager(_$AppDatabase db, $ReminderLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReminderLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReminderLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReminderLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> reminderId = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String> action = const Value.absent(),
+                Value<String> result = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderLogsCompanion(
+                id: id,
+                reminderId: reminderId,
+                occurredAt: occurredAt,
+                action: action,
+                result: result,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String reminderId,
+                required DateTime occurredAt,
+                required String action,
+                Value<String> result = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderLogsCompanion.insert(
+                id: id,
+                reminderId: reminderId,
+                occurredAt: occurredAt,
+                action: action,
+                result: result,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ReminderLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reminderId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (reminderId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.reminderId,
+                                referencedTable: $$ReminderLogsTableReferences
+                                    ._reminderIdTable(db),
+                                referencedColumn: $$ReminderLogsTableReferences
+                                    ._reminderIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ReminderLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReminderLogsTable,
+      ReminderLog,
+      $$ReminderLogsTableFilterComposer,
+      $$ReminderLogsTableOrderingComposer,
+      $$ReminderLogsTableAnnotationComposer,
+      $$ReminderLogsTableCreateCompanionBuilder,
+      $$ReminderLogsTableUpdateCompanionBuilder,
+      (ReminderLog, $$ReminderLogsTableReferences),
+      ReminderLog,
+      PrefetchHooks Function({bool reminderId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5273,4 +9902,12 @@ class $AppDatabaseManager {
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$PetPhotosTableTableManager get petPhotos =>
       $$PetPhotosTableTableManager(_db, _db.petPhotos);
+  $$CarePlansTableTableManager get carePlans =>
+      $$CarePlansTableTableManager(_db, _db.carePlans);
+  $$CarePlanLogsTableTableManager get carePlanLogs =>
+      $$CarePlanLogsTableTableManager(_db, _db.carePlanLogs);
+  $$RemindersTableTableManager get reminders =>
+      $$RemindersTableTableManager(_db, _db.reminders);
+  $$ReminderLogsTableTableManager get reminderLogs =>
+      $$ReminderLogsTableTableManager(_db, _db.reminderLogs);
 }

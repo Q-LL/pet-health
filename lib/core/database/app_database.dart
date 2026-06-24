@@ -89,8 +89,91 @@ class PetPhotos extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@TableIndex(
+  name: 'care_plans_pet_candidate_unique',
+  columns: {#petId, #candidateId},
+  unique: true,
+)
+class CarePlans extends Table {
+  TextColumn get id => text()();
+  TextColumn get petId =>
+      text().references(Pets, #id, onDelete: KeyAction.cascade)();
+  TextColumn get candidateId => text()();
+  TextColumn get careType => text()();
+  TextColumn get title => text()();
+  TextColumn get scheduleRule => text()();
+  DateTimeColumn get nextDueAt => dateTime().nullable()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  BoolColumn get paused => boolean().withDefault(const Constant(false))();
+  TextColumn get reasonSnapshot => text().withDefault(const Constant(''))();
+  TextColumn get ruleId => text().nullable()();
+  TextColumn get ruleVersion => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class CarePlanLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get planId =>
+      text().references(CarePlans, #id, onDelete: KeyAction.cascade)();
+  TextColumn get petId =>
+      text().references(Pets, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get action => text()();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class Reminders extends Table {
+  TextColumn get id => text()();
+  TextColumn get petId =>
+      text().references(Pets, #id, onDelete: KeyAction.cascade)();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text().nullable()();
+  TextColumn get title => text()();
+  DateTimeColumn get scheduledAt => dateTime()();
+  TextColumn get repeatRule => text().nullable()();
+  IntColumn get notificationId => integer().nullable()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  BoolColumn get paused => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ReminderLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get reminderId =>
+      text().references(Reminders, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get action => text()();
+  TextColumn get result => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
-  tables: [Pets, CareActivities, HealthRecords, AppSettings, PetPhotos],
+  tables: [
+    Pets,
+    CareActivities,
+    HealthRecords,
+    AppSettings,
+    PetPhotos,
+    CarePlans,
+    CarePlanLogs,
+    Reminders,
+    ReminderLogs,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
@@ -107,7 +190,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,6 +204,19 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await migrator.createTable(petPhotos);
+      }
+      if (from < 4) {
+        await migrator.createTable(carePlans);
+        await migrator.createTable(carePlanLogs);
+        await migrator.createTable(reminders);
+        await migrator.createTable(reminderLogs);
+      }
+      if (from < 5) {
+        await _deduplicateCarePlans();
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS care_plans_pet_candidate_unique '
+          'ON care_plans (pet_id, candidate_id)',
+        );
       }
     },
     beforeOpen: (details) async {
@@ -145,6 +241,50 @@ class AppDatabase extends _$AppDatabase {
         'CREATE UNIQUE INDEX IF NOT EXISTS one_avatar_per_pet '
         'ON pet_photos (pet_id) WHERE is_avatar = 1',
       );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS care_plans_pet_enabled '
+        'ON care_plans (pet_id, enabled)',
+      );
+      await _deduplicateCarePlans();
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS care_plans_pet_candidate_unique '
+        'ON care_plans (pet_id, candidate_id)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS care_plan_logs_plan_occurred '
+        'ON care_plan_logs (plan_id, occurred_at DESC)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS reminders_pet_enabled '
+        'ON reminders (pet_id, enabled)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS reminders_scheduled '
+        'ON reminders (scheduled_at)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS reminder_logs_reminder_occurred '
+        'ON reminder_logs (reminder_id, occurred_at DESC)',
+      );
     },
   );
+
+  Future<void> _deduplicateCarePlans() async {
+    await customStatement('''
+DELETE FROM care_plans
+WHERE id NOT IN (
+  SELECT id
+  FROM (
+    SELECT
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY pet_id, candidate_id
+        ORDER BY enabled DESC, updated_at DESC, created_at DESC
+      ) AS row_number
+    FROM care_plans
+  )
+  WHERE row_number = 1
+)
+''');
+  }
 }
