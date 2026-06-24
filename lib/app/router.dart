@@ -45,12 +45,7 @@ final appRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/pets',
-              builder: (_, _) => const PetsPage(),
-            ),
-          ],
+          routes: [GoRoute(path: '/pets', builder: (_, _) => const PetsPage())],
         ),
         StatefulShellBranch(
           routes: [
