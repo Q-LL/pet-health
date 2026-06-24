@@ -24,6 +24,12 @@ final enabledCarePlanProvider = FutureProvider.autoDispose
           .findByCandidate(key.$1, key.$2);
     });
 
+/// 实时返回某个护理计划的完成/跳过日志。
+final carePlanLogsProvider = StreamProvider.autoDispose
+    .family<List<CarePlanLog>, String>((ref, planId) {
+      return ref.watch(carePlanRepositoryProvider).watchLogs(planId, limit: 20);
+    });
+
 class CarePlanRepository {
   CarePlanRepository(this._database) : _uuid = const Uuid();
 

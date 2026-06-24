@@ -5,6 +5,7 @@ import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
+import '../data/care_plan_repository.dart';
 import '../domain/care_models.dart';
 import '../domain/care_plan_models.dart';
 
@@ -306,32 +307,152 @@ CarePlanCandidate _candidateFromPlan(CarePlan plan) {
   );
 }
 
-class _EnabledPlanCard extends StatelessWidget {
+class _EnabledPlanCard extends ConsumerStatefulWidget {
   const _EnabledPlanCard({required this.candidate, required this.plan});
 
   final CarePlanCandidate candidate;
   final CarePlan plan;
 
   @override
+  ConsumerState<_EnabledPlanCard> createState() => _EnabledPlanCardState();
+}
+
+class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
+  var _isSaving = false;
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final logs = ref.watch(carePlanLogsProvider(widget.plan.id)).value;
+    final latestLog = logs?.firstOrNull;
+    final statusText = [
+      widget.plan.scheduleRule,
+      if (widget.plan.nextDueAt != null)
+        '下次 ${_formatDate(widget.plan.nextDueAt!)}',
+      if (widget.plan.paused) '已暂停',
+      if (latestLog != null)
+        '${_logActionLabel(latestLog.action)} ${_formatDateTime(latestLog.occurredAt)}',
+    ].join(' · ');
+
     return Card(
-      color: colors.primaryContainer,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 10,
+      color: widget.plan.paused
+          ? colors.surfaceContainerHigh
+          : colors.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: colors.surface.withValues(alpha: .72),
+                  child: Icon(
+                    _icon(widget.candidate.iconKey),
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.candidate.title,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        statusText,
+                        style: TextStyle(color: colors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: widget.plan.paused ? '恢复计划' : '暂停计划',
+                  onPressed: _isSaving ? null : _togglePaused,
+                  icon: Icon(
+                    widget.plan.paused
+                        ? Icons.play_arrow_rounded
+                        : Icons.pause_rounded,
+                  ),
+                ),
+                IconButton(
+                  tooltip: '调整计划',
+                  onPressed: _isSaving
+                      ? null
+                      : () =>
+                            showEnableCarePlanSheet(context, widget.candidate),
+                  icon: const Icon(Icons.tune_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _isSaving || widget.plan.paused
+                      ? null
+                      : () => _writeLog(completed: true),
+                  icon: const Icon(Icons.check_rounded),
+                  label: const Text('完成'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _isSaving || widget.plan.paused
+                      ? null
+                      : () => _writeLog(completed: false),
+                  icon: const Icon(Icons.next_plan_outlined),
+                  label: const Text('跳过'),
+                ),
+              ],
+            ),
+          ],
         ),
-        leading: CircleAvatar(
-          backgroundColor: colors.surface.withValues(alpha: .72),
-          child: Icon(_icon(candidate.iconKey), color: colors.primary),
-        ),
-        title: Text(candidate.title),
-        subtitle: Text(plan.scheduleRule),
-        trailing: const Icon(Icons.tune_rounded),
-        onTap: () => showEnableCarePlanSheet(context, candidate),
       ),
     );
+  }
+
+  Future<void> _togglePaused() async {
+    await _runMutation(() {
+      final controller = ref.read(carePlanControllerProvider.notifier);
+      return widget.plan.paused
+          ? controller.resume(widget.candidate.id)
+          : controller.pause(widget.candidate.id);
+    }, success: widget.plan.paused ? '已恢复计划' : '已暂停计划');
+  }
+
+  Future<void> _writeLog({required bool completed}) {
+    return _runMutation(() {
+      final controller = ref.read(carePlanControllerProvider.notifier);
+      return completed
+          ? controller.logCompletion(widget.candidate.id)
+          : controller.logSkip(widget.candidate.id);
+    }, success: completed ? '已记录完成' : '已记录跳过');
+  }
+
+  Future<void> _runMutation(
+    Future<void> Function() mutation, {
+    required String success,
+  }) async {
+    setState(() => _isSaving = true);
+    try {
+      await mutation();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(success)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 }
 
@@ -341,27 +462,57 @@ class _CareHistory extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(careControllerProvider);
-    final items = <Widget>[];
+    final planState = ref.watch(carePlanControllerProvider);
+    final candidates = ref.watch(carePlanCandidatesProvider);
+    final byId = {for (final candidate in candidates) candidate.id: candidate};
+    final items = <_HistoryItem>[];
     if (state.lastBath != null) {
       items.add(
-        _HistoryTile(
-          icon: Icons.bathtub_outlined,
-          title: '洗澡护理',
-          subtitle: state.lastBath!.place.isEmpty
-              ? '未填写地点'
-              : state.lastBath!.place,
+        _HistoryItem(
+          occurredAt: state.lastBath!.occurredAt,
+          child: _HistoryTile(
+            icon: Icons.bathtub_outlined,
+            title: '洗澡护理',
+            subtitle: state.lastBath!.place.isEmpty
+                ? '未填写地点'
+                : state.lastBath!.place,
+          ),
         ),
       );
     }
     for (final walk in state.walks) {
       items.add(
-        _HistoryTile(
-          icon: Icons.directions_walk_rounded,
-          title: '遛狗 · ${_formatWalkWindow(walk)}',
-          subtitle: walk.place.isEmpty ? '未填写场所' : walk.place,
+        _HistoryItem(
+          occurredAt: walk.startedAt,
+          child: _HistoryTile(
+            icon: Icons.directions_walk_rounded,
+            title: '遛狗 · ${_formatWalkWindow(walk)}',
+            subtitle: walk.place.isEmpty ? '未填写场所' : walk.place,
+          ),
         ),
       );
     }
+    for (final plan in planState.enabledPlans.values) {
+      final logs = ref.watch(carePlanLogsProvider(plan.id)).value ?? const [];
+      final candidate = byId[plan.candidateId] ?? _candidateFromPlan(plan);
+      for (final log in logs) {
+        items.add(
+          _HistoryItem(
+            occurredAt: log.occurredAt,
+            child: _HistoryTile(
+              icon: log.action == 'completed'
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.next_plan_outlined,
+              title: '${candidate.title} · ${_logActionLabel(log.action)}',
+              subtitle: log.note.isEmpty
+                  ? _formatDateTime(log.occurredAt)
+                  : '${_formatDateTime(log.occurredAt)} · ${log.note}',
+            ),
+          ),
+        );
+      }
+    }
+    items.sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
     if (items.isEmpty) {
       return const _EmptyState(
         icon: Icons.history_rounded,
@@ -369,8 +520,17 @@ class _CareHistory extends ConsumerWidget {
         message: '洗澡、遛狗和完成的护理计划会统一出现在这里。',
       );
     }
-    return Card(child: Column(children: items));
+    return Card(
+      child: Column(children: items.map((item) => item.child).toList()),
+    );
   }
+}
+
+class _HistoryItem {
+  const _HistoryItem({required this.occurredAt, required this.child});
+
+  final DateTime occurredAt;
+  final Widget child;
 }
 
 String _formatWalkWindow(WalkRecord walk) {
@@ -381,6 +541,22 @@ String _formatClock(DateTime date) {
   final local = date.toLocal();
   return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }
+
+String _formatDate(DateTime date) {
+  final local = date.toLocal();
+  return '${local.month}/${local.day}';
+}
+
+String _formatDateTime(DateTime date) {
+  final local = date.toLocal();
+  return '${local.month}/${local.day} ${_formatClock(local)}';
+}
+
+String _logActionLabel(String action) => switch (action) {
+  'completed' => '已完成',
+  'skipped' => '已跳过',
+  _ => action,
+};
 
 class _HistoryTile extends StatelessWidget {
   const _HistoryTile({

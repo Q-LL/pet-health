@@ -146,6 +146,18 @@ class CarePlanController extends Notifier<CarePlanState> {
     }
   }
 
+  Future<void> pause(String candidateId) async {
+    final plan = state.enabledPlans[candidateId];
+    if (plan == null) throw StateError('护理计划未开启：$candidateId');
+    await ref.read(carePlanRepositoryProvider).pause(plan.id);
+  }
+
+  Future<void> resume(String candidateId) async {
+    final plan = state.enabledPlans[candidateId];
+    if (plan == null) throw StateError('护理计划未开启：$candidateId');
+    await ref.read(carePlanRepositoryProvider).resume(plan.id);
+  }
+
   Future<void> dismiss(String candidateId) async {
     final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
     await ref.read(carePlanRepositoryProvider).dismiss(petId, candidateId);
