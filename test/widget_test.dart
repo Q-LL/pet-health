@@ -74,7 +74,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('护理中心'), findsAtLeastNWidgets(1));
-    expect(find.text('所有建议默认关闭'), findsOneWidget);
+    expect(find.text('已开启 0'), findsOneWidget);
+
+    await tester.tap(find.text('建议 10'));
+    await tester.pumpAndSettle();
 
     final oralCard = find.ancestor(
       of: find.text('口腔日常护理'),

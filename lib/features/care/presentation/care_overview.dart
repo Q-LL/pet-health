@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/motion.dart';
 import '../application/care_controller.dart';
+import '../application/care_coverage.dart';
 import '../application/care_plan_controller.dart';
+import '../application/care_recommendation.dart';
 import '../domain/care_models.dart';
 import 'care_sheets.dart';
 
@@ -14,87 +16,299 @@ class CareOverview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(careControllerProvider);
+    final recommendations = ref.watch(careRecommendationsProvider);
+    final coverage = ref.watch(careCoverageProvider);
+
     return Column(
       children: [
-        const _CarePlanPreview(),
-        const SizedBox(height: 14),
+        if (recommendations.isNotEmpty) ...[
+          _PlanRecommendationList(recommendations: recommendations),
+          const SizedBox(height: 14),
+        ],
+        if (coverage.value != null && coverage.value!.totalActivePlans > 0) ...[
+          _CareCoverageBadge(coverage: coverage.value!),
+          const SizedBox(height: 14),
+        ],
         _BathCard(record: state.lastBath),
         const SizedBox(height: 14),
         _WalkCard(state: state),
+        const SizedBox(height: 14),
+        _CareCenterLink(),
       ],
     );
   }
 }
 
-class _CarePlanPreview extends ConsumerWidget {
-  const _CarePlanPreview();
+class _PlanRecommendationList extends ConsumerWidget {
+  const _PlanRecommendationList({required this.recommendations});
+  final List<CareRecommendation> recommendations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final planState = ref.watch(carePlanControllerProvider);
-    final candidates = ref.watch(carePlanCandidatesProvider);
-    final pending = candidates
-        .where(
-          (candidate) =>
-              !planState.enabledPlans.containsKey(candidate.id) &&
-              !planState.dismissedCandidateIds.contains(candidate.id),
-        )
-        .length;
     final colors = Theme.of(context).colorScheme;
+    // 只显示推荐的计划（urgent + recommended）
+    final recommended = recommendations.where((r) => r.isRecommended).toList();
+    if (recommended.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return PressableScale(
-      child: Material(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(28),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => context.push('/home/care-plans'),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
+    return Material(
+      color: colors.surfaceContainer,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
+                Icon(Icons.auto_awesome_rounded, color: colors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  '推荐护理',
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Container(
-                  width: 54,
-                  height: 54,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: colors.surface.withValues(alpha: .72),
-                    borderRadius: BorderRadius.circular(19),
+                    color: colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    color: colors.primary,
+                  child: Text(
+                    '${recommended.length}',
+                    style: TextStyle(
+                      color: colors.onPrimaryContainer,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '护理计划',
-                        style: TextStyle(
-                          color: colors.onPrimaryContainer,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        planState.enabledPlans.isEmpty
-                            ? '$pending 条候选建议，全部由你决定是否开启'
-                            : '已开启 ${planState.enabledPlans.length} 项 · 还有 $pending 条候选',
-                        style: TextStyle(color: colors.onPrimaryContainer),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  color: colors.onPrimaryContainer,
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            for (var i = 0; i < recommended.take(3).length; i++) ...[
+              _RecommendationTile(recommendation: recommended[i]),
+              if (i < recommended.take(3).length - 1) const Divider(height: 16),
+            ],
+            if (recommended.length > 3) ...[
+              const SizedBox(height: 8),
+              Text(
+                '还有 ${recommended.length - 3} 项推荐护理',
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecommendationTile extends ConsumerWidget {
+  const _RecommendationTile({required this.recommendation});
+  final CareRecommendation recommendation;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final isUrgent = recommendation.urgencyLevel == 'urgent';
+    final tagColor = isUrgent ? colors.error : colors.tertiary;
+    final tagText = isUrgent ? '尽快' : '推荐';
+
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
           ),
+          child: Icon(
+            _iconForCareType(recommendation.plan.careType),
+            size: 20,
+            color: colors.primary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    recommendation.plan.title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: tagColor.withValues(alpha: .15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      tagText,
+                      style: TextStyle(
+                        color: tagColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                recommendation.recommendationText,
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        FilledButton.tonalIcon(
+          onPressed: () async {
+            try {
+              await ref
+                  .read(carePlanControllerProvider.notifier)
+                  .logCompletionWithActivity(recommendation.plan.candidateId);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('已完成「${recommendation.plan.title}」')),
+              );
+            } catch (error) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
+            }
+          },
+          icon: const Icon(Icons.check_rounded, size: 16),
+          label: const Text('完成'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CareCoverageBadge extends StatelessWidget {
+  const _CareCoverageBadge({required this.coverage});
+  final CareCoverage coverage;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final ratePercent = (coverage.weeklyRate * 100).round();
+
+    Color badgeColor;
+    String levelText;
+    IconData levelIcon;
+    switch (coverage.coverageLevel) {
+      case 'excellent':
+        badgeColor = colors.primary;
+        levelText = '护理达人';
+        levelIcon = Icons.emoji_events_rounded;
+        break;
+      case 'good':
+        badgeColor = colors.tertiary;
+        levelText = '状态良好';
+        levelIcon = Icons.thumb_up_rounded;
+        break;
+      default:
+        badgeColor = colors.onSurfaceVariant;
+        levelText = '继续加油';
+        levelIcon = Icons.fitness_center_rounded;
+    }
+
+    return Material(
+      color: colors.surfaceContainer,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/home/care-coverage'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: .15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(levelIcon, color: badgeColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$levelText · 本周覆盖率 $ratePercent%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '完成 ${coverage.completedThisWeek}/${coverage.expectedThisWeek} 项'
+                      '${coverage.currentStreak > 0 ? ' · 连续达标 ${coverage.currentStreak} 周' : ''}',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: colors.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CareCenterLink extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => context.push('/home/care-plans'),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.tune_rounded, size: 18, color: colors.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(
+              '护理计划',
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 12,
+              color: colors.onSurfaceVariant,
+            ),
+          ],
         ),
       ),
     );
@@ -381,3 +595,17 @@ String _formatClock(DateTime date) {
   final local = date.toLocal();
   return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }
+
+IconData _iconForCareType(String careType) => switch (careType) {
+  'oral' => Icons.auto_fix_high_rounded,
+  'paw' => Icons.pets_rounded,
+  'bath' => Icons.bathtub_outlined,
+  'combing' => Icons.brush_rounded,
+  'nail' => Icons.content_cut_rounded,
+  'ear' => Icons.hearing_rounded,
+  'eye' => Icons.visibility_outlined,
+  'styling' => Icons.content_cut_rounded,
+  'environment' => Icons.cleaning_services_outlined,
+  'deworming' => Icons.bug_report_outlined,
+  _ => Icons.health_and_safety_outlined,
+};

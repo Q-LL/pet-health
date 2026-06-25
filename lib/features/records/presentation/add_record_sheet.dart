@@ -869,13 +869,15 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
     try {
       final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
       final isWalk = _type == 'walk';
+      final bathAtHome =
+          _type == 'bath' && _detailControllers['method']?.text == '家里洗澡';
       final draft = CareActivityDraft(
         petId: widget.activity?.petId ?? petId,
         type: _type,
         occurredAt: isWalk ? _startedAt : _occurredAt,
         startedAt: isWalk ? _startedAt : null,
         endedAt: isWalk ? _endedAt : null,
-        place: _place.text,
+        place: bathAtHome ? '' : _place.text,
         note: _note.text,
         details: _collectCareDetails(),
         routeFilePath: widget.activity?.routeFilePath,
@@ -905,6 +907,8 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   Widget build(BuildContext context) {
     final showWalkFields = _type == 'walk';
     final spec = careActivitySpecFor(_type);
+    final bathAtHome =
+        _type == 'bath' && _detailControllers['method']?.text == '家里洗澡';
     final typeEntries = careActivityLabels.entries.where(
       (entry) => entry.key != 'walk' || widget.initialType == 'walk',
     );
@@ -959,21 +963,25 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
                 _CareDetailField(
                   spec: field,
                   controller: _detailControllers[field.key]!,
+                  onChanged: () => setState(() {}),
                 ),
                 const SizedBox(height: 12),
               ],
-            TextFormField(
-              controller: _place,
-              decoration: InputDecoration(
-                labelText: showWalkFields ? '遛狗地点（可选）' : spec.placeLabel,
-                prefixIcon: Icon(
-                  showWalkFields
-                      ? Icons.park_outlined
-                      : Icons.location_on_outlined,
+            if (!bathAtHome) ...[
+              TextFormField(
+                controller: _place,
+                decoration: InputDecoration(
+                  labelText: showWalkFields ? '遛狗地点（可选）' : spec.placeLabel,
+                  hintText: _type == 'bath' ? '例如：暖爪护理店、宠物医院' : null,
+                  prefixIcon: Icon(
+                    showWalkFields
+                        ? Icons.park_outlined
+                        : Icons.location_on_outlined,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
+            ],
             TextFormField(
               controller: _note,
               maxLines: 3,
@@ -1034,32 +1042,94 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   }
 }
 
-class _CareDetailField extends StatelessWidget {
-  const _CareDetailField({required this.spec, required this.controller});
+class _CareDetailField extends StatefulWidget {
+  const _CareDetailField({
+    required this.spec,
+    required this.controller,
+    required this.onChanged,
+  });
 
   final CareActivityFieldSpec spec;
   final TextEditingController controller;
+  final VoidCallback onChanged;
+
+  @override
+  State<_CareDetailField> createState() => _CareDetailFieldState();
+}
+
+class _CareDetailFieldState extends State<_CareDetailField> {
+  static const _otherValue = '__other__';
+  late String? _selectedValue;
+
+  CareActivityFieldSpec get spec => widget.spec;
+  TextEditingController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedValue = _initialSelectedValue();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CareDetailField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spec.key != widget.spec.key) {
+      _selectedValue = _initialSelectedValue();
+    }
+  }
+
+  String? _initialSelectedValue() {
+    if (!spec.isChoice) return null;
+    if (controller.text.isEmpty) return '';
+    if (spec.options.contains(controller.text)) return controller.text;
+    if (spec.options.contains('其他')) return _otherValue;
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     if (spec.isChoice) {
-      final currentValue = spec.options.contains(controller.text)
-          ? controller.text
-          : null;
-      return DropdownButtonFormField<String>(
-        initialValue: currentValue,
-        decoration: InputDecoration(
-          labelText: '${spec.label}${spec.required ? ' *' : ''}',
-        ),
-        items: [
-          const DropdownMenuItem(value: '', child: Text('未填写')),
-          for (final option in spec.options)
-            DropdownMenuItem(value: option, child: Text(option)),
+      final showOther = _selectedValue == _otherValue;
+      return Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _selectedValue,
+            decoration: InputDecoration(
+              labelText: '${spec.label}${spec.required ? ' *' : ''}',
+            ),
+            items: [
+              const DropdownMenuItem(value: '', child: Text('未填写')),
+              for (final option in spec.options)
+                DropdownMenuItem(
+                  value: option == '其他' ? _otherValue : option,
+                  child: Text(option),
+                ),
+            ],
+            validator: (value) =>
+                spec.required && (value == null || value.isEmpty)
+                ? '请选择${spec.label}'
+                : null,
+            onChanged: (value) {
+              setState(() => _selectedValue = value ?? '');
+              if (value == _otherValue) {
+                controller.text = '';
+              } else {
+                controller.text = value ?? '';
+              }
+              widget.onChanged();
+            },
+          ),
+          if (showOther) ...[
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: controller,
+              decoration: InputDecoration(labelText: '填写${spec.label}'),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? '请填写${spec.label}'
+                  : null,
+            ),
+          ],
         ],
-        validator: (value) => spec.required && (value == null || value.isEmpty)
-            ? '请选择${spec.label}'
-            : null,
-        onChanged: (value) => controller.text = value ?? '',
       );
     }
     return TextFormField(
@@ -1174,6 +1244,7 @@ IconData _careIcon(String type) => switch (type) {
   'eye' => Icons.visibility_outlined,
   'paw' => Icons.pets_outlined,
   'environment' => Icons.cleaning_services_outlined,
+  'deworming' => Icons.bug_report_outlined,
   _ => Icons.note_add_outlined,
 };
 

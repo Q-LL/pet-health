@@ -15,6 +15,8 @@ const walkNotificationId = 9001;
 const walkFinishActionId = 'walk_finish';
 const walkFinishPayload = 'walk:finish';
 
+const carePlanNotificationBaseId = 20000;
+
 final notificationService = NotificationService();
 
 @pragma('vm:entry-point')
@@ -103,7 +105,9 @@ class NotificationService {
   }
 
   Future<void> scheduleReminder(Reminder reminder) async {
-    if (kIsWeb || !reminder.enabled || reminder.paused) return;
+    if (kIsWeb || !_initialized || !reminder.enabled || reminder.paused) {
+      return;
+    }
     final id =
         reminder.notificationId ?? notificationIdForReminder(reminder.id);
     final scheduledAt = reminder.scheduledAt.toLocal();
@@ -122,7 +126,7 @@ class NotificationService {
   }
 
   Future<void> cancelReminder(Reminder reminder) async {
-    if (kIsWeb) return;
+    if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancel(
         id: reminder.notificationId ?? notificationIdForReminder(reminder.id),
@@ -134,7 +138,7 @@ class NotificationService {
     required DateTime startedAt,
     String? petName,
   }) async {
-    if (kIsWeb) return;
+    if (kIsWeb || !_initialized) return;
     try {
       await _plugin.show(
         id: walkNotificationId,
@@ -177,9 +181,64 @@ class NotificationService {
   }
 
   Future<void> cancelWalkTimer() async {
-    if (kIsWeb) return;
+    if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancel(id: walkNotificationId);
+    } catch (_) {}
+  }
+
+  /// 调度护理计划到期通知。
+  Future<void> scheduleCarePlanDue({
+    required String planId,
+    required String title,
+    required DateTime dueAt,
+    String? petName,
+  }) async {
+    if (kIsWeb || !_initialized) return;
+    final scheduledAt = dueAt.toLocal();
+    if (!scheduledAt.isAfter(DateTime.now())) return;
+    final id = notificationIdForCarePlan(planId);
+    try {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: '该护理了：$title',
+        body: petName == null || petName.isEmpty
+            ? '已经到了推荐护理时间，点击查看详情'
+            : '$petName 的$title已经到了推荐护理时间',
+        scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
+        notificationDetails: _carePlanDueDetails(),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: 'care_plan:$planId',
+      );
+    } catch (_) {}
+  }
+
+  /// 取消护理计划到期通知。
+  Future<void> cancelCarePlanDue(String planId) async {
+    if (kIsWeb || !_initialized) return;
+    try {
+      await _plugin.cancel(id: notificationIdForCarePlan(planId));
+    } catch (_) {}
+  }
+
+  /// 立即显示护理计划到期通知（App 前台时使用）。
+  Future<void> showCarePlanDueNow({
+    required String planId,
+    required String title,
+    String? petName,
+  }) async {
+    if (kIsWeb || !_initialized) return;
+    final id = notificationIdForCarePlan(planId);
+    try {
+      await _plugin.show(
+        id: id,
+        title: '该护理了：$title',
+        body: petName == null || petName.isEmpty
+            ? '已经到了推荐护理时间'
+            : '$petName 的$title已经到了推荐护理时间',
+        notificationDetails: _carePlanDueDetails(),
+        payload: 'care_plan:$planId',
+      );
     } catch (_) {}
   }
 
@@ -195,6 +254,28 @@ class NotificationService {
 
 int notificationIdForReminder(String id) {
   return 10000 + (id.hashCode & 0x3fffffff);
+}
+
+int notificationIdForCarePlan(String planId) {
+  return carePlanNotificationBaseId + (planId.hashCode & 0x3fffffff);
+}
+
+NotificationDetails _carePlanDueDetails() {
+  return const NotificationDetails(
+    android: AndroidNotificationDetails(
+      'care_plan_due',
+      '护理提醒',
+      channelDescription: '护理计划到期时提醒',
+      importance: Importance.high,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.reminder,
+    ),
+    iOS: DarwinNotificationDetails(
+      presentBanner: true,
+      presentList: true,
+      presentSound: true,
+    ),
+  );
 }
 
 NotificationDetails _reminderDetails(Reminder reminder) {

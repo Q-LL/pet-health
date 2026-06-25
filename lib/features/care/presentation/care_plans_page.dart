@@ -6,6 +6,7 @@ import '../../../core/widgets/page_frame.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
 import '../data/care_plan_repository.dart';
+import '../domain/care_activity_spec.dart';
 import '../domain/care_models.dart';
 import '../domain/care_plan_models.dart';
 
@@ -26,29 +27,26 @@ class _CarePlansPageState extends ConsumerState<CarePlansPage> {
 
     return PageFrame(
       title: '护理中心',
-      subtitle: '建议由你决定是否开启，护理和健康一起形成长期履历。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _ControlBanner(),
-          const SizedBox(height: 20),
           SegmentedButton<int>(
             showSelectedIcon: false,
             segments: [
               ButtonSegment(
                 value: 0,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                label: Text('建议 ${_visibleCount(candidates, planState)}'),
-              ),
-              ButtonSegment(
-                value: 1,
                 icon: const Icon(Icons.event_available_outlined),
                 label: Text('已开启 ${planState.enabledPlans.length}'),
               ),
               const ButtonSegment(
-                value: 2,
+                value: 1,
                 icon: Icon(Icons.history_rounded),
                 label: Text('记录'),
+              ),
+              ButtonSegment(
+                value: 2,
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: Text('建议 ${_visibleCount(candidates, planState)}'),
               ),
             ],
             selected: {_selectedSegment},
@@ -61,19 +59,27 @@ class _CarePlansPageState extends ConsumerState<CarePlansPage> {
             duration: AppMotion.medium,
             switchInCurve: AppMotion.emphasized,
             child: switch (_selectedSegment) {
-              0 => _CandidateList(
-                key: const ValueKey('candidates'),
-                candidates: candidates,
-                state: planState,
-              ),
-              1 => _EnabledList(
+              0 => _EnabledList(
                 key: const ValueKey('enabled'),
                 candidates: candidates,
                 state: planState,
               ),
-              _ => const _CareHistory(key: ValueKey('history')),
+              1 => const _CareHistory(key: ValueKey('history')),
+              _ => _CandidateList(
+                key: const ValueKey('candidates'),
+                candidates: candidates,
+                state: planState,
+              ),
             },
           ),
+          if (_selectedSegment == 0) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => showCreateCustomPlanSheet(context),
+              icon: const Icon(Icons.add_circle_outline_rounded),
+              label: const Text('自建计划'),
+            ),
+          ],
         ],
       ),
     );
@@ -88,50 +94,6 @@ int _visibleCount(List<CarePlanCandidate> candidates, CarePlanState state) {
             !state.enabledPlans.containsKey(candidate.id),
       )
       .length;
-}
-
-class _ControlBanner extends StatelessWidget {
-  const _ControlBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.secondaryContainer,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colors.surface.withValues(alpha: .72),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.tune_rounded, color: colors.primary),
-          ),
-          const SizedBox(width: 15),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '所有建议默认关闭',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                ),
-                SizedBox(height: 5),
-                Text('开启前可以查看原因并调整周期；之后也能暂停或关闭。'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _CandidateList extends StatelessWidget {
@@ -294,15 +256,21 @@ class _EnabledList extends StatelessWidget {
 }
 
 CarePlanCandidate _candidateFromPlan(CarePlan plan) {
-  final schedule = plan.scheduleRule.isEmpty ? '每天' : plan.scheduleRule;
+  final rule = scheduleRuleCodec.decodeAny(plan.scheduleRule);
   return CarePlanCandidate(
     id: plan.candidateId,
     title: plan.title.isEmpty ? '护理计划' : plan.title,
     summary: '已保存的护理计划',
     reason: plan.reasonSnapshot.isEmpty ? '这是已保存的护理计划。' : plan.reasonSnapshot,
     source: CareSuggestionSource.general,
-    scheduleOptions: [schedule, '每天', '每周 1 次', '每 2 周', '每 4 周'],
-    defaultSchedule: schedule,
+    scheduleOptions: [
+      ?rule,
+      const DailyRule(),
+      const WeeklyTimesRule(1),
+      const CustomCycleRule(14),
+      const CustomCycleRule(28),
+    ],
+    defaultSchedule: rule ?? const CustomCycleRule(14),
     iconKey: plan.careType,
   );
 }
@@ -326,7 +294,7 @@ class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
     final logs = ref.watch(carePlanLogsProvider(widget.plan.id)).value;
     final latestLog = logs?.firstOrNull;
     final statusText = [
-      widget.plan.scheduleRule,
+      _scheduleLabel(widget.plan.scheduleRule),
       if (widget.plan.nextDueAt != null)
         '下次 ${_formatDate(widget.plan.nextDueAt!)}',
       if (widget.plan.paused) '已暂停',
@@ -429,7 +397,7 @@ class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
     return _runMutation(() {
       final controller = ref.read(carePlanControllerProvider.notifier);
       return completed
-          ? controller.logCompletion(widget.candidate.id)
+          ? controller.logCompletionWithActivity(widget.candidate.id)
           : controller.logSkip(widget.candidate.id);
     }, success: completed ? '已记录完成' : '已记录跳过');
   }
@@ -558,6 +526,10 @@ String _logActionLabel(String action) => switch (action) {
   _ => action,
 };
 
+String _scheduleLabel(String raw) {
+  return scheduleRuleCodec.decodeAny(raw)?.toString() ?? raw;
+}
+
 class _HistoryTile extends StatelessWidget {
   const _HistoryTile({
     required this.icon,
@@ -637,8 +609,10 @@ class _EnableCarePlanSheet extends ConsumerStatefulWidget {
 }
 
 class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
-  late String _schedule;
+  late ScheduleRule _schedule;
+  late final TextEditingController _customDaysController;
   var _isSaving = false;
+  var _usingCustomSchedule = false;
 
   @override
   void initState() {
@@ -646,7 +620,28 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
     final enabled = ref
         .read(carePlanControllerProvider)
         .enabledPlans[widget.candidate.id];
-    _schedule = enabled?.scheduleRule ?? widget.candidate.defaultSchedule;
+    if (enabled != null) {
+      _schedule =
+          scheduleRuleCodec.decodeAny(enabled.scheduleRule) ??
+          widget.candidate.defaultSchedule;
+    } else {
+      _schedule = widget.candidate.defaultSchedule;
+    }
+    final optionCodes = widget.candidate.scheduleOptions
+        .map(scheduleRuleCodec.encode)
+        .toSet();
+    _usingCustomSchedule = !optionCodes.contains(
+      scheduleRuleCodec.encode(_schedule),
+    );
+    _customDaysController = TextEditingController(
+      text: (_schedule.intervalDays ?? 14).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _customDaysController.dispose();
+    super.dispose();
   }
 
   @override
@@ -683,12 +678,43 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
             children: [
               for (final option in widget.candidate.scheduleOptions)
                 ChoiceChip(
-                  label: Text(option),
-                  selected: _schedule == option,
-                  onSelected: (_) => setState(() => _schedule = option),
+                  label: Text(option.toString()),
+                  selected:
+                      !_usingCustomSchedule &&
+                      scheduleRuleCodec.encode(_schedule) ==
+                          scheduleRuleCodec.encode(option),
+                  onSelected: (_) => setState(() {
+                    _usingCustomSchedule = false;
+                    _schedule = option;
+                    final days = option.intervalDays;
+                    if (days != null) _customDaysController.text = '$days';
+                  }),
                 ),
+              ChoiceChip(
+                label: const Text('自定义'),
+                selected: _usingCustomSchedule,
+                onSelected: (_) => setState(() {
+                  _usingCustomSchedule = true;
+                  _schedule = CustomCycleRule(_customCycleDays);
+                }),
+              ),
             ],
           ),
+          if (_usingCustomSchedule) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _customDaysController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: '自定义频率',
+                prefixIcon: Icon(Icons.repeat_rounded),
+                suffixText: '天一次',
+              ),
+              onChanged: (_) {
+                setState(() => _schedule = CustomCycleRule(_customCycleDays));
+              },
+            ),
+          ],
           const SizedBox(height: 22),
           FilledButton.icon(
             onPressed: _isSaving ? null : _savePlan,
@@ -715,7 +741,7 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
     return _runMutation(
       () => ref
           .read(carePlanControllerProvider.notifier)
-          .enable(widget.candidate, _schedule),
+          .enable(widget.candidate, _selectedSchedule),
     );
   }
 
@@ -749,6 +775,15 @@ class _EnableCarePlanSheetState extends ConsumerState<_EnableCarePlanSheet> {
       ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
     }
   }
+
+  int get _customCycleDays {
+    final parsed = int.tryParse(_customDaysController.text.trim());
+    if (parsed == null) return 14;
+    return parsed.clamp(1, 365).toInt();
+  }
+
+  ScheduleRule get _selectedSchedule =>
+      _usingCustomSchedule ? CustomCycleRule(_customCycleDays) : _schedule;
 }
 
 String _sourceLabel(CareSuggestionSource source) => switch (source) {
@@ -766,6 +801,10 @@ IconData _icon(String key) => switch (key) {
   'combing' => Icons.brush_rounded,
   'nail' => Icons.content_cut_rounded,
   'ear' => Icons.hearing_rounded,
+  'eye' => Icons.visibility_outlined,
+  'styling' => Icons.content_cut_rounded,
+  'environment' => Icons.cleaning_services_outlined,
+  'deworming' => Icons.bug_report_outlined,
   _ => Icons.health_and_safety_outlined,
 };
 
@@ -782,4 +821,157 @@ Color _containerColor(CarePlanCandidate candidate, ColorScheme colors) {
     CareSuggestionSource.event => colors.tertiaryContainer,
     CareSuggestionSource.general => colors.surfaceContainerHighest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 自建计划 Sheet
+// ---------------------------------------------------------------------------
+
+Future<void> showCreateCustomPlanSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: AppMotion.medium,
+      reverseDuration: AppMotion.fast,
+    ),
+    builder: (_) => const _CreateCustomPlanSheet(),
+  );
+}
+
+class _CreateCustomPlanSheet extends ConsumerStatefulWidget {
+  const _CreateCustomPlanSheet();
+
+  @override
+  ConsumerState<_CreateCustomPlanSheet> createState() =>
+      _CreateCustomPlanSheetState();
+}
+
+class _CreateCustomPlanSheetState
+    extends ConsumerState<_CreateCustomPlanSheet> {
+  final _titleController = TextEditingController();
+  String _careType = 'oral';
+  int _cycleDays = 7;
+  var _isSaving = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        4,
+        20,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('自建护理计划', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 6),
+          Text(
+            '创建自定义的护理计划，周期由你决定。',
+            style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _titleController,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: '计划名称',
+              hintText: '例如：每月体检、换季护理',
+              prefixIcon: Icon(Icons.edit_note_rounded),
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _careType,
+            decoration: const InputDecoration(labelText: '护理类型'),
+            items: careActivityLabels.entries
+                .where((entry) => entry.key != 'walk')
+                .map(
+                  (entry) => DropdownMenuItem(
+                    value: entry.key,
+                    child: Text(entry.value),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _careType = value!),
+          ),
+          const SizedBox(height: 16),
+          Text('护理周期', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Expanded(child: Text('每隔多少天护理一次')),
+              IconButton(
+                tooltip: '减少',
+                onPressed: _cycleDays <= 1
+                    ? null
+                    : () => setState(() => _cycleDays--),
+                icon: const Icon(Icons.remove_rounded),
+              ),
+              Text(
+                '$_cycleDays 天',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+              IconButton(
+                tooltip: '增加',
+                onPressed: () => setState(() => _cycleDays++),
+                icon: const Icon(Icons.add_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: _isSaving ? null : _save,
+            icon: const Icon(Icons.add_task_rounded),
+            label: Text(_isSaving ? '创建中...' : '创建计划'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save() async {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请填写计划名称')));
+      return;
+    }
+    setState(() => _isSaving = true);
+    try {
+      await ref
+          .read(carePlanControllerProvider.notifier)
+          .createCustomPlan(
+            title: title,
+            careType: _careType,
+            cycleDays: _cycleDays,
+          );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('已创建「$title」')));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('创建失败：$error')));
+    }
+  }
 }
