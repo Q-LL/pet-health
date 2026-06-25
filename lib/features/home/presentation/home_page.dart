@@ -8,6 +8,7 @@ import '../../../core/notifications/notification_service.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../../care/application/care_controller.dart';
+import '../../care/application/care_recommendation.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
@@ -96,11 +97,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       title: '毛健康',
       subtitle: '专为狗狗记录每一天的小变化。',
       actions: [
-        IconButton.filledTonal(
-          tooltip: '通知',
-          onPressed: () {},
-          icon: const Badge(child: Icon(Icons.notifications_none_rounded)),
-        ),
+        _NotificationButton(),
         const SizedBox(width: 12),
       ],
       child: const Column(
@@ -1925,6 +1922,23 @@ class _InsightCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NotificationButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dueCount = ref.watch(dueRecommendationCountProvider);
+    return IconButton.filledTonal(
+      tooltip: '通知中心',
+      onPressed: () => context.push('/home/notifications'),
+      icon: dueCount > 0
+          ? Badge(
+              label: Text('$dueCount'),
+              child: const Icon(Icons.notifications_none_rounded),
+            )
+          : const Icon(Icons.notifications_none_rounded),
     );
   }
 }

@@ -9,6 +9,7 @@ const careActivityLabels = <String, String>{
   'eye': '眼部护理',
   'paw': '足爪护理',
   'environment': '用品 / 环境清洁',
+  'deworming': '驱虫护理',
   'custom': '自定义护理',
 };
 
@@ -56,20 +57,24 @@ const careActivityTypeSpecs = <String, CareActivityTypeSpec>{
   'bath': CareActivityTypeSpec(
     type: 'bath',
     label: '洗澡',
-    placeLabel: '地点（家里 / 宠物店，可选）',
+    placeLabel: '具体地点（可选）',
     noteLabel: '洗澡情况、皮肤状态、吹干情况（可选）',
     fields: [
       CareActivityFieldSpec.choice(
         key: 'method',
-        label: '方式',
+        label: '洗澡方式',
         options: ['家里洗澡', '宠物店洗澡', '医院护理', '其他'],
+      ),
+      CareActivityFieldSpec.choice(
+        key: 'products',
+        label: '洗护用品',
+        options: ['沐浴露', '沐浴露 + 护毛素', '药浴', '免洗清洁', '未使用', '其他'],
       ),
       CareActivityFieldSpec.choice(
         key: 'coatDry',
         label: '吹干情况',
         options: ['完全吹干', '基本吹干', '局部潮湿', '未确认'],
       ),
-      CareActivityFieldSpec.text(key: 'products', label: '洗护用品'),
     ],
   ),
   'oral': CareActivityTypeSpec(
@@ -210,6 +215,20 @@ const careActivityTypeSpecs = <String, CareActivityTypeSpec>{
         label: '清洁方式',
         options: ['清洗', '消毒', '更换', '晾晒', '深度清洁'],
       ),
+    ],
+  ),
+  'deworming': CareActivityTypeSpec(
+    type: 'deworming',
+    label: '驱虫护理',
+    placeLabel: '地点（可选）',
+    noteLabel: '药品、剂量、反应观察（可选）',
+    fields: [
+      CareActivityFieldSpec.choice(
+        key: 'method',
+        label: '驱虫类型',
+        options: ['体外驱虫', '体内驱虫', '体内外同驱', '其他'],
+      ),
+      CareActivityFieldSpec.text(key: 'product', label: '药品名称'),
     ],
   ),
   'custom': CareActivityTypeSpec(

@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/motion.dart';
+import '../../records/presentation/add_record_sheet.dart';
 import '../application/care_controller.dart';
+import '../application/care_plan_controller.dart';
 
 Future<void> showBathRecordSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    sheetAnimationStyle: const AnimationStyle(
-      duration: AppMotion.medium,
-      reverseDuration: AppMotion.fast,
-    ),
-    builder: (_) => const _BathRecordSheet(),
-  );
+  return showCareActivitySheet(context, type: 'bath');
 }
 
 Future<void> showFinishWalkSheet(BuildContext context) {
@@ -28,75 +21,6 @@ Future<void> showFinishWalkSheet(BuildContext context) {
     ),
     builder: (_) => const _FinishWalkSheet(),
   );
-}
-
-class _BathRecordSheet extends ConsumerStatefulWidget {
-  const _BathRecordSheet();
-
-  @override
-  ConsumerState<_BathRecordSheet> createState() => _BathRecordSheetState();
-}
-
-class _BathRecordSheetState extends ConsumerState<_BathRecordSheet> {
-  final _placeController = TextEditingController();
-  var _date = DateTime.now();
-
-  @override
-  void dispose() {
-    _placeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final result = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (result != null && mounted) setState(() => _date = result);
-  }
-
-  Future<void> _save() async {
-    await ref
-        .read(careControllerProvider.notifier)
-        .recordBath(occurredAt: _date, place: _placeController.text);
-    if (mounted) Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _SheetFrame(
-      title: '记录洗澡',
-      subtitle: '以后可以快速看到距离上次洗澡多久、在哪里洗的。',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          OutlinedButton.icon(
-            onPressed: _pickDate,
-            icon: const Icon(Icons.calendar_today_rounded),
-            label: Text(_formatDate(_date)),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _placeController,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(
-              labelText: '洗澡地点（可选）',
-              hintText: '例如：家里、暖爪护理店',
-              prefixIcon: Icon(Icons.location_on_outlined),
-            ),
-          ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: _save,
-            icon: const Icon(Icons.check_rounded),
-            label: const Text('保存洗澡记录'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _FinishWalkSheet extends ConsumerStatefulWidget {
@@ -120,6 +44,14 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
         .read(careControllerProvider.notifier)
         .finishWalk(place: _placeController.text);
     if (mounted) Navigator.pop(context);
+
+    // 检查是否开启了 paw_after_walk 护理计划
+    if (!mounted) return;
+    final planState = ref.read(carePlanControllerProvider);
+    final pawPlan = planState.enabledPlans['paw_after_walk'];
+    if (pawPlan != null && !pawPlan.paused) {
+      _showPawCheckDialog(context, ref, pawPlan.candidateId);
+    }
   }
 
   @override
@@ -226,5 +158,38 @@ String formatDuration(Duration duration) {
   return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
 }
 
-String _formatDate(DateTime date) =>
-    '${date.year} 年 ${date.month} 月 ${date.day} 日';
+void _showPawCheckDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String pawCandidateId,
+) {
+  showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('检查足爪'),
+      content: const Text('遛狗结束啦，是否现在检查一下足爪？'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('稍后再说'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('检查足爪'),
+        ),
+      ],
+    ),
+  ).then((confirmed) async {
+    if (confirmed != true || !context.mounted) return;
+    // 记录足爪护理计划完成
+    try {
+      await ref
+          .read(carePlanControllerProvider.notifier)
+          .logCompletionWithActivity(pawCandidateId);
+    } catch (_) {}
+    // 打开足爪护理记录表单
+    if (context.mounted) {
+      await showCareActivitySheet(context, type: 'paw');
+    }
+  });
+}

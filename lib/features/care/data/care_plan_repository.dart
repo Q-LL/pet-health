@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
+import '../application/care_reminder_engine.dart';
 import '../domain/care_plan_models.dart';
 
 final carePlanRepositoryProvider = Provider<CarePlanRepository>((ref) {
@@ -276,35 +277,37 @@ class CarePlanRepository {
     );
   }
 
-  Future<List<CarePlanLog>> findLogs(String planId, {int? limit}) {
-    return watchLogs(planId, limit: limit).first;
+  Future<List<CarePlanLog>> findLogs(String planId, {int? limit}) async {
+    final query = _database.select(_database.carePlanLogs)
+      ..where((log) => log.planId.equals(planId))
+      ..orderBy([(log) => OrderingTerm.desc(log.occurredAt)]);
+    if (limit != null) query.limit(limit);
+    final rows = await query.get();
+    return rows.map(_logFromRow).toList(growable: false);
   }
 
   // ---------------------------------------------------------------------------
   // 到期计算
   // ---------------------------------------------------------------------------
 
-  /// 根据最近一次完成日志重新计算下次到期时间。
+  /// 根据最近日志重新计算下次到期时间。
   Future<void> recalculateNextDue(String planId) async {
     final plan = await getById(planId);
     if (plan == null) throw StateError('护理计划不存在：$planId');
 
-    final lastLog =
-        await (_database.select(_database.carePlanLogs)
-              ..where(
-                (log) =>
-                    log.planId.equals(planId) & log.action.equals('completed'),
-              )
-              ..orderBy([(log) => OrderingTerm.desc(log.occurredAt)])
-              ..limit(1))
-            .getSingleOrNull();
+    final rule = scheduleRuleCodec.decodeAny(plan.scheduleRule);
+    if (rule == null || rule.isEventDriven) return;
 
-    if (lastLog == null) return;
+    final logs = await findLogs(plan.id);
+    final nextDue = careReminderEngine.nextDueAfterLogs(
+      rule: rule,
+      careType: plan.careType,
+      logs: logs,
+      now: DateTime.now(),
+      fallbackDueAt: plan.nextDueAt,
+    );
+    if (nextDue == null) return;
 
-    final rule = _parseScheduleRule(plan.scheduleRule);
-    if (rule == null) return;
-
-    final nextDue = rule.nextOccurrence(lastLog.occurredAt);
     await (_database.update(
       _database.carePlans,
     )..where((plan) => plan.id.equals(planId))).write(
@@ -385,41 +388,5 @@ class CarePlanRepository {
       note: row.note,
       createdAt: row.createdAt.toUtc(),
     );
-  }
-
-  _ScheduleRule? _parseScheduleRule(String rule) {
-    final normalized = rule.trim();
-    if (normalized == '每天') return const _ScheduleRule(intervalDays: 1);
-
-    final intervalMatch = RegExp(r'^每\s*(\d+)\s*(周|天)').firstMatch(normalized);
-    if (intervalMatch != null) {
-      final n = int.tryParse(intervalMatch.group(1)!) ?? 1;
-      final unit = intervalMatch.group(2);
-      return _ScheduleRule(intervalDays: unit == '周' ? n * 7 : n);
-    }
-
-    final weeklyTimesMatch = RegExp(r'^每周\s*(\d+)\s*次$').firstMatch(normalized);
-    if (weeklyTimesMatch != null) {
-      final times = int.tryParse(weeklyTimesMatch.group(1)!) ?? 1;
-      if (times <= 0) return null;
-      return _ScheduleRule(intervalDays: (7 / times).ceil());
-    }
-
-    if (normalized == '每周一次' ||
-        normalized == '每周 1 次' ||
-        normalized == '每周观察') {
-      return const _ScheduleRule(intervalDays: 7);
-    }
-    return null;
-  }
-}
-
-/// 内部调度规则辅助，用于到期计算。
-class _ScheduleRule {
-  const _ScheduleRule({required this.intervalDays});
-  final int intervalDays;
-
-  DateTime nextOccurrence(DateTime from) {
-    return from.add(Duration(days: intervalDays));
   }
 }

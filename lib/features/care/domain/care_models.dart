@@ -11,6 +11,7 @@ const careActivityTypes = {
   'eye',
   'paw',
   'environment',
+  'deworming',
   'custom',
 };
 

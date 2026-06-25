@@ -1,9 +1,11 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet_health/core/database/app_database.dart';
+import 'package:pet_health/core/database/app_database.dart'
+    hide CarePlan, CarePlanLog;
 import 'package:pet_health/core/database/database_provider.dart';
 import 'package:pet_health/features/care/application/care_plan_controller.dart';
+import 'package:pet_health/features/care/application/care_reminder_engine.dart';
 import 'package:pet_health/features/care/data/care_plan_repository.dart';
 import 'package:pet_health/features/care/domain/care_plan_models.dart';
 import 'package:pet_health/features/pets/data/pet_repository.dart';
@@ -222,7 +224,66 @@ void main() {
     await repo.recalculateNextDue(plan.id);
 
     final updated = await repo.getById(plan.id);
-    expect(updated?.nextDueAt, log.occurredAt.add(const Duration(days: 3)));
+    final nextDue = updated?.nextDueAt?.toLocal();
+    final expectedDay = log.occurredAt.toLocal().add(const Duration(days: 3));
+    expect(nextDue?.year, expectedDay.year);
+    expect(nextDue?.month, expectedDay.month);
+    expect(nextDue?.day, expectedDay.day);
+    expect(nextDue?.hour, 20);
+  });
+
+  test('care reminder engine learns from completion history', () {
+    final now = DateTime(2026, 6, 25, 10);
+    final logs = [
+      _carePlanLog('1', DateTime(2026, 5, 1, 9)),
+      _carePlanLog('2', DateTime(2026, 5, 21, 9)),
+      _carePlanLog('3', DateTime(2026, 6, 10, 9)),
+    ];
+
+    final interval = careReminderEngine.effectiveIntervalDays(
+      rule: const CustomCycleRule(14),
+      careType: 'bath',
+      logs: logs,
+    );
+    final decision = careReminderEngine.evaluate(
+      plan: _carePlan(
+        scheduleRule: scheduleRuleCodec.encode(const CustomCycleRule(14)),
+      ),
+      logs: logs,
+      now: now,
+    );
+
+    expect(interval, 18);
+    expect(decision.effectiveIntervalDays, 18);
+    expect(decision.isRecommended, isFalse);
+  });
+
+  test('care reminder engine follows up sooner after skips', () {
+    final skippedAt = DateTime(2026, 6, 24, 9);
+    final now = DateTime(2026, 6, 25, 10);
+    final logs = [
+      _carePlanLog('1', DateTime(2026, 6, 10, 9)),
+      _carePlanLog('2', skippedAt, action: 'skipped'),
+    ];
+
+    final nextDue = careReminderEngine.nextDueAfterLogs(
+      rule: const CustomCycleRule(14),
+      careType: 'bath',
+      logs: logs,
+      now: now,
+    );
+    final decision = careReminderEngine.evaluate(
+      plan: _carePlan(
+        scheduleRule: scheduleRuleCodec.encode(const CustomCycleRule(14)),
+      ),
+      logs: logs,
+      now: now,
+    );
+
+    expect(nextDue?.toLocal().day, 26);
+    expect(decision.recentSkipCount, 1);
+    expect(decision.daysUntilDue, 1);
+    expect(decision.isRecommended, isTrue);
   });
 
   test('findForPet with enabled filter', () async {
@@ -294,4 +355,34 @@ void main() {
       throwsFormatException,
     );
   });
+}
+
+CarePlan _carePlan({required String scheduleRule}) {
+  final now = DateTime(2026, 6, 1);
+  return CarePlan(
+    id: 'plan',
+    petId: 'pet',
+    candidateId: 'bath_history',
+    careType: 'bath',
+    title: '洗澡计划',
+    scheduleRule: scheduleRule,
+    enabled: true,
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+CarePlanLog _carePlanLog(
+  String id,
+  DateTime occurredAt, {
+  String action = 'completed',
+}) {
+  return CarePlanLog(
+    id: id,
+    planId: 'plan',
+    petId: 'pet',
+    occurredAt: occurredAt,
+    action: action,
+    createdAt: occurredAt,
+  );
 }

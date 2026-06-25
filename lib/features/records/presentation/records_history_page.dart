@@ -520,6 +520,8 @@ class _RecordDetailSheet extends ConsumerWidget {
     BuildContext pageContext,
     WidgetRef ref,
   ) async {
+    final healthRepository = ref.read(healthRecordRepositoryProvider);
+    final careRepository = ref.read(careRepositoryProvider);
     Navigator.pop(sheetContext);
     if (!pageContext.mounted) return;
     final confirmed = await showDialog<bool>(
@@ -540,10 +542,19 @@ class _RecordDetailSheet extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    if (entry.health != null) {
-      await ref.read(healthRecordRepositoryProvider).delete(entry.health!.id);
-    } else {
-      await ref.read(careRepositoryProvider).delete(entry.care!.id);
+    try {
+      final deleted = entry.health != null
+          ? await healthRepository.delete(entry.health!.id)
+          : await careRepository.delete(entry.care!.id);
+      if (!pageContext.mounted) return;
+      ScaffoldMessenger.of(
+        pageContext,
+      ).showSnackBar(SnackBar(content: Text(deleted ? '已删除记录' : '这条记录已经不存在')));
+    } on Object catch (error) {
+      if (!pageContext.mounted) return;
+      ScaffoldMessenger.of(
+        pageContext,
+      ).showSnackBar(SnackBar(content: Text('删除失败：$error')));
     }
   }
 }
@@ -729,5 +740,6 @@ IconData _careIcon(String type) => switch (type) {
   'eye' => Icons.visibility_outlined,
   'paw' => Icons.pets_outlined,
   'environment' => Icons.cleaning_services_outlined,
+  'deworming' => Icons.bug_report_outlined,
   _ => Icons.note_add_outlined,
 };

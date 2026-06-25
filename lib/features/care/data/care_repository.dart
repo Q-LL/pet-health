@@ -135,6 +135,20 @@ class CareRepository {
     return row == null ? null : _activityFromRow(row);
   }
 
+  Future<CareActivity?> findLatestByType(String petId, String type) async {
+    _validateQuery(type: type, from: null, to: null, limit: 1, offset: 0);
+    final row =
+        await (_database.select(_database.careActivities)
+              ..where(
+                (activity) =>
+                    activity.petId.equals(petId) & activity.type.equals(type),
+              )
+              ..orderBy([(activity) => OrderingTerm.desc(activity.occurredAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : _activityFromRow(row);
+  }
+
   Future<CareActivity?> getActiveWalk(String petId) async {
     final row =
         await (_database.select(_database.careActivities)
