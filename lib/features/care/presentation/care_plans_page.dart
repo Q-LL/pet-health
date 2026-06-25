@@ -6,6 +6,7 @@ import '../../../core/widgets/page_frame.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
 import '../data/care_plan_repository.dart';
+import '../../records/presentation/add_record_sheet.dart';
 import '../domain/care_activity_spec.dart';
 import '../domain/care_models.dart';
 import '../domain/care_plan_models.dart';
@@ -365,7 +366,7 @@ class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
                 FilledButton.tonalIcon(
                   onPressed: _isSaving || widget.plan.paused
                       ? null
-                      : () => _writeLog(completed: true),
+                      : _completeWithDetails,
                   icon: const Icon(Icons.check_rounded),
                   label: const Text('完成'),
                 ),
@@ -391,6 +392,32 @@ class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
           ? controller.resume(widget.candidate.id)
           : controller.pause(widget.candidate.id);
     }, success: widget.plan.paused ? '已恢复计划' : '已暂停计划');
+  }
+
+  Future<void> _completeWithDetails() async {
+    if (!careActivityTypes.contains(widget.plan.careType) ||
+        widget.plan.careType == 'walk') {
+      return _writeLog(completed: true);
+    }
+    var completed = false;
+    await showCareActivitySheet(
+      context,
+      type: widget.plan.careType,
+      beforeSave: (draft) async {
+        await ref
+            .read(carePlanControllerProvider.notifier)
+            .logCompletionWithActivity(
+              widget.candidate.id,
+              activityDraft: draft,
+            );
+        completed = true;
+        return null;
+      },
+    );
+    if (!mounted || !completed) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('已记录完成')));
   }
 
   Future<void> _writeLog({required bool completed}) {

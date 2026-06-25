@@ -5,6 +5,7 @@ import '../../../core/widgets/page_frame.dart';
 import '../../care/application/care_plan_controller.dart';
 import '../../care/application/care_recommendation.dart';
 import '../../pets/data/pet_repository.dart';
+import '../../records/presentation/add_record_sheet.dart';
 import '../../reminders/data/reminder_repository.dart';
 import '../../reminders/domain/reminder_models.dart';
 
@@ -167,14 +168,23 @@ class _CarePlanNotificationCard extends ConsumerWidget {
               const SizedBox(width: 8),
               FilledButton.tonalIcon(
                 onPressed: () async {
-                  final controller = ref.read(
-                    carePlanControllerProvider.notifier,
-                  );
                   try {
-                    await controller.logCompletionWithActivity(
-                      recommendation.plan.candidateId,
+                    var completed = false;
+                    await showCareActivitySheet(
+                      context,
+                      type: recommendation.plan.careType,
+                      beforeSave: (draft) async {
+                        await ref
+                            .read(carePlanControllerProvider.notifier)
+                            .logCompletionWithActivity(
+                              recommendation.plan.candidateId,
+                              activityDraft: draft,
+                            );
+                        completed = true;
+                        return null;
+                      },
                     );
-                    if (!context.mounted) return;
+                    if (!context.mounted || !completed) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('已完成「${recommendation.plan.title}」'),

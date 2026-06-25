@@ -10,6 +10,8 @@ import '../domain/care_plan_models.dart';
 import 'care_reminder_engine.dart';
 
 const _uuid = Uuid();
+const carePlanLogDetailKey = '_carePlanLogId';
+const carePlanIdDetailKey = '_carePlanId';
 
 /// 静态护理候选列表，不入库。
 final carePlanCandidatesProvider = Provider<List<CarePlanCandidate>>((ref) {
@@ -359,6 +361,7 @@ class CarePlanController extends Notifier<CarePlanState> {
   Future<CarePlanLog> logCompletionWithActivity(
     String candidateId, {
     String note = '',
+    CareActivityDraft? activityDraft,
   }) async {
     final plan = state.enabledPlans[candidateId];
     if (plan == null) throw StateError('护理计划未开启：$candidateId');
@@ -374,13 +377,31 @@ class CarePlanController extends Notifier<CarePlanState> {
     final careRepo = ref.read(careRepositoryProvider);
     final activityType = plan.careType;
     if (careActivityTypes.contains(activityType) && activityType != 'walk') {
+      final details = {
+        if (activityDraft != null) ...activityDraft.details,
+        carePlanLogDetailKey: log.id,
+        carePlanIdDetailKey: plan.id,
+      };
       await careRepo.create(
-        CareActivityDraft(
-          petId: plan.petId,
-          type: activityType,
-          occurredAt: DateTime.now(),
-          note: note,
-        ),
+        activityDraft == null
+            ? CareActivityDraft(
+                petId: plan.petId,
+                type: activityType,
+                occurredAt: DateTime.now(),
+                note: note,
+                details: details,
+              )
+            : CareActivityDraft(
+                petId: activityDraft.petId,
+                type: activityDraft.type,
+                occurredAt: activityDraft.occurredAt,
+                startedAt: activityDraft.startedAt,
+                endedAt: activityDraft.endedAt,
+                place: activityDraft.place,
+                note: activityDraft.note,
+                details: details,
+                routeFilePath: activityDraft.routeFilePath,
+              ),
       );
     }
 

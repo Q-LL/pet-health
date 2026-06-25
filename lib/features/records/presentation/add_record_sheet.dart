@@ -51,6 +51,7 @@ Future<void> showCareActivitySheet(
   String type = 'custom',
   CareActivity? activity,
   CareActivityPrefill? prefill,
+  Future<CareActivity?> Function(CareActivityDraft draft)? beforeSave,
   Future<void> Function(CareActivity activity)? afterSave,
 }) {
   return showModalBottomSheet<void>(
@@ -61,6 +62,7 @@ Future<void> showCareActivitySheet(
       initialType: type,
       activity: activity,
       prefill: prefill,
+      beforeSave: beforeSave,
       afterSave: afterSave,
     ),
   );
@@ -813,12 +815,14 @@ class _CareActivitySheet extends ConsumerStatefulWidget {
     required this.initialType,
     this.activity,
     this.prefill,
+    this.beforeSave,
     this.afterSave,
   });
 
   final String initialType;
   final CareActivity? activity;
   final CareActivityPrefill? prefill;
+  final Future<CareActivity?> Function(CareActivityDraft draft)? beforeSave;
   final Future<void> Function(CareActivity activity)? afterSave;
 
   @override
@@ -830,6 +834,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   final _place = TextEditingController();
   final _note = TextEditingController();
   final _detailControllers = <String, TextEditingController>{};
+  var _hiddenDetails = const <String, String>{};
   late String _type;
   var _occurredAt = DateTime.now();
   late DateTime _startedAt;
@@ -884,7 +889,16 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
       );
       final repository = ref.read(careRepositoryProvider);
       late final CareActivity saved;
-      if (widget.activity == null) {
+      if (widget.beforeSave != null) {
+        final intercepted = await widget.beforeSave!.call(draft);
+        if (intercepted != null) {
+          await widget.afterSave?.call(intercepted);
+        }
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        return;
+      } else if (widget.activity == null) {
         saved = await repository.create(draft);
       } else {
         saved = await repository.update(widget.activity!.id, draft);
@@ -1019,6 +1033,10 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   void _syncCareDetailControllers(Map<String, String> values) {
     final spec = careActivitySpecFor(_type);
     final nextKeys = spec.fields.map((field) => field.key).toSet();
+    _hiddenDetails = {
+      for (final entry in values.entries)
+        if (!nextKeys.contains(entry.key)) entry.key: entry.value,
+    };
     for (final key in _detailControllers.keys.toList()) {
       if (!nextKeys.contains(key)) {
         _detailControllers.remove(key)?.dispose();
@@ -1035,6 +1053,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
 
   Map<String, String> _collectCareDetails() {
     return {
+      ..._hiddenDetails,
       for (final entry in _detailControllers.entries)
         if (entry.value.text.trim().isNotEmpty)
           entry.key: entry.value.text.trim(),

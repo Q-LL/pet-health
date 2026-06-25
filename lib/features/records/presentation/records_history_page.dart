@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/page_frame.dart';
+import '../../care/application/care_plan_controller.dart';
+import '../../care/data/care_plan_repository.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_filter.dart';
 import '../../care/domain/care_activity_spec.dart';
@@ -522,6 +524,7 @@ class _RecordDetailSheet extends ConsumerWidget {
   ) async {
     final healthRepository = ref.read(healthRecordRepositoryProvider);
     final careRepository = ref.read(careRepositoryProvider);
+    final carePlanRepository = ref.read(carePlanRepositoryProvider);
     Navigator.pop(sheetContext);
     if (!pageContext.mounted) return;
     final confirmed = await showDialog<bool>(
@@ -545,7 +548,11 @@ class _RecordDetailSheet extends ConsumerWidget {
     try {
       final deleted = entry.health != null
           ? await healthRepository.delete(entry.health!.id)
-          : await careRepository.delete(entry.care!.id);
+          : await _deleteCareActivityAndLinkedPlanLog(
+              activity: entry.care!,
+              careRepository: careRepository,
+              carePlanRepository: carePlanRepository,
+            );
       if (!pageContext.mounted) return;
       ScaffoldMessenger.of(
         pageContext,
@@ -556,6 +563,25 @@ class _RecordDetailSheet extends ConsumerWidget {
         pageContext,
       ).showSnackBar(SnackBar(content: Text('删除失败：$error')));
     }
+  }
+
+  Future<bool> _deleteCareActivityAndLinkedPlanLog({
+    required CareActivity activity,
+    required CareRepository careRepository,
+    required CarePlanRepository carePlanRepository,
+  }) async {
+    final logId = activity.details[carePlanLogDetailKey];
+    final planId = activity.details[carePlanIdDetailKey];
+    final deleted = await careRepository.delete(activity.id);
+    if (deleted && logId != null && logId.isNotEmpty) {
+      final log = await carePlanRepository.getLogById(logId);
+      await carePlanRepository.deleteLog(logId);
+      final targetPlanId = planId ?? log?.planId;
+      if (targetPlanId != null && targetPlanId.isNotEmpty) {
+        await carePlanRepository.recalculateNextDue(targetPlanId);
+      }
+    }
+    return deleted;
   }
 }
 

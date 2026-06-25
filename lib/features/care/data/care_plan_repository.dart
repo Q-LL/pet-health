@@ -286,6 +286,15 @@ class CarePlanRepository {
     return rows.map(_logFromRow).toList(growable: false);
   }
 
+  Future<CarePlanLog?> getLogById(String id) => _getLogById(id);
+
+  Future<bool> deleteLog(String id) async {
+    final deleted = await (_database.delete(
+      _database.carePlanLogs,
+    )..where((log) => log.id.equals(id))).go();
+    return deleted > 0;
+  }
+
   // ---------------------------------------------------------------------------
   // 到期计算
   // ---------------------------------------------------------------------------
@@ -304,7 +313,7 @@ class CarePlanRepository {
       careType: plan.careType,
       logs: logs,
       now: DateTime.now(),
-      fallbackDueAt: plan.nextDueAt,
+      fallbackDueAt: logs.isEmpty ? null : plan.nextDueAt,
     );
     if (nextDue == null) return;
 
