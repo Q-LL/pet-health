@@ -167,21 +167,24 @@ class _CarePlanNotificationCard extends ConsumerWidget {
               const SizedBox(width: 8),
               FilledButton.tonalIcon(
                 onPressed: () async {
-                  final controller =
-                      ref.read(carePlanControllerProvider.notifier);
+                  final controller = ref.read(
+                    carePlanControllerProvider.notifier,
+                  );
                   try {
                     await controller.logCompletionWithActivity(
                       recommendation.plan.candidateId,
                     );
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('已完成「${recommendation.plan.title}」')),
+                      SnackBar(
+                        content: Text('已完成「${recommendation.plan.title}」'),
+                      ),
                     );
                   } catch (error) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('操作失败：$error')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
                   }
                 },
                 icon: const Icon(Icons.check_rounded, size: 18),
@@ -264,10 +267,7 @@ class _EmptyNotification extends StatelessWidget {
               color: colors.primary,
             ),
             const SizedBox(height: 16),
-            Text(
-              '暂时没有新通知',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('暂时没有新通知', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               '护理计划到期和系统提醒都会出现在这里',
