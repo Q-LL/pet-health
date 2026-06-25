@@ -31,12 +31,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
   }
 
-  testWidgets('shows the four primary destinations', (tester) async {
+  testWidgets('shows the five primary destinations', (tester) async {
     await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
     expect(find.text('首页'), findsOneWidget);
     expect(find.text('日历'), findsOneWidget);
+    expect(find.text('记录'), findsOneWidget);
     expect(find.text('狗狗'), findsOneWidget);
     expect(find.text('设置'), findsOneWidget);
     expect(find.text('毛健康'), findsAtLeastNWidgets(1));
@@ -107,9 +108,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(completeButton);
     await tester.pumpAndSettle();
+    expect(find.text('新增护理记录'), findsOneWidget);
+    final saveCareRecord = find.text('保存护理记录');
+    await tester.ensureVisible(saveCareRecord);
+    await tester.pumpAndSettle();
+    await tester.tap(saveCareRecord);
+    await tester.pumpAndSettle();
     expect(find.text('已记录完成'), findsOneWidget);
 
-    final historySegment = find.text('记录');
+    final historySegment = find.text('记录').first;
     await tester.ensureVisible(historySegment);
     await tester.pumpAndSettle();
     await tester.tap(historySegment);

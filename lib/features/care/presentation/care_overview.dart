@@ -8,6 +8,7 @@ import '../application/care_coverage.dart';
 import '../application/care_plan_controller.dart';
 import '../application/care_recommendation.dart';
 import '../domain/care_models.dart';
+import '../../records/presentation/add_record_sheet.dart';
 import 'care_sheets.dart';
 
 class CareOverview extends ConsumerWidget {
@@ -181,10 +182,22 @@ class _RecommendationTile extends ConsumerWidget {
         FilledButton.tonalIcon(
           onPressed: () async {
             try {
-              await ref
-                  .read(carePlanControllerProvider.notifier)
-                  .logCompletionWithActivity(recommendation.plan.candidateId);
-              if (!context.mounted) return;
+              var completed = false;
+              await showCareActivitySheet(
+                context,
+                type: recommendation.plan.careType,
+                beforeSave: (draft) async {
+                  await ref
+                      .read(carePlanControllerProvider.notifier)
+                      .logCompletionWithActivity(
+                        recommendation.plan.candidateId,
+                        activityDraft: draft,
+                      );
+                  completed = true;
+                  return null;
+                },
+              );
+              if (!context.mounted || !completed) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('已完成「${recommendation.plan.title}」')),
               );

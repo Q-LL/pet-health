@@ -74,20 +74,24 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = navigationShell.currentIndex >= 2
+        ? navigationShell.currentIndex + 1
+        : navigationShell.currentIndex;
     return Scaffold(
       body: navigationShell,
-      floatingActionButton: FloatingActionButton(
-        tooltip: '新增记录',
-        onPressed: () => showAddRecordSheet(context),
-        child: const Icon(Icons.add_rounded),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
-        ),
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) {
+          if (index == 2) {
+            showAddRecordSheet(context);
+            return;
+          }
+          final branchIndex = index > 2 ? index - 1 : index;
+          navigationShell.goBranch(
+            branchIndex,
+            initialLocation: branchIndex == navigationShell.currentIndex,
+          );
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -98,6 +102,11 @@ class AppShell extends StatelessWidget {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month_rounded),
             label: '日历',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline_rounded),
+            selectedIcon: Icon(Icons.add_circle_rounded),
+            label: '记录',
           ),
           NavigationDestination(
             icon: Icon(Icons.pets_outlined),
