@@ -4,11 +4,28 @@ import 'package:flutter/foundation.dart';
 const reminderSourceTypes = {
   'care_plan',
   'manual',
+  'food',
+  'water',
+  'symptom',
+  'bath',
+  'oral',
+  'combing',
+  'styling',
+  'nail',
+  'ear',
+  'eye',
+  'paw',
+  'environment',
   'visit',
   'medication',
   'vaccine',
   'deworming',
 };
+
+/// 完成提醒后的记录行为。
+const reminderCompletionModes = {'none', 'ask_record', 'auto_record'};
+
+const reminderCompletionTargets = {'health', 'care'};
 
 /// 提醒执行日志动作。
 const reminderLogActions = {
@@ -34,6 +51,18 @@ class Reminder {
     this.sourceId,
     this.repeatRule,
     this.notificationId,
+    this.completionMode = 'none',
+    this.completionTarget = 'health',
+    this.recordType,
+    this.recordTitle,
+    this.recordNumericValue,
+    this.recordUnit,
+    this.recordNote = '',
+    this.recordDetails = const {},
+    this.careType,
+    this.carePlace = '',
+    this.careNote = '',
+    this.careDetails = const {},
     this.paused = false,
   });
 
@@ -45,6 +74,18 @@ class Reminder {
   final DateTime scheduledAt;
   final String? repeatRule;
   final int? notificationId;
+  final String completionMode;
+  final String completionTarget;
+  final String? recordType;
+  final String? recordTitle;
+  final double? recordNumericValue;
+  final String? recordUnit;
+  final String recordNote;
+  final Map<String, String> recordDetails;
+  final String? careType;
+  final String carePlace;
+  final String careNote;
+  final Map<String, String> careDetails;
   final bool enabled;
   final bool paused;
   final DateTime createdAt;
@@ -62,6 +103,18 @@ class ReminderDraft {
     this.sourceId,
     this.repeatRule,
     this.notificationId,
+    this.completionMode = 'none',
+    this.completionTarget = 'health',
+    this.recordType,
+    this.recordTitle,
+    this.recordNumericValue,
+    this.recordUnit,
+    this.recordNote = '',
+    this.recordDetails = const {},
+    this.careType,
+    this.carePlace = '',
+    this.careNote = '',
+    this.careDetails = const {},
     this.enabled = true,
     this.paused = false,
   });
@@ -73,6 +126,18 @@ class ReminderDraft {
   final DateTime scheduledAt;
   final String? repeatRule;
   final int? notificationId;
+  final String completionMode;
+  final String completionTarget;
+  final String? recordType;
+  final String? recordTitle;
+  final double? recordNumericValue;
+  final String? recordUnit;
+  final String recordNote;
+  final Map<String, String> recordDetails;
+  final String? careType;
+  final String carePlace;
+  final String careNote;
+  final Map<String, String> careDetails;
   final bool enabled;
   final bool paused;
 }
@@ -118,6 +183,7 @@ class ReminderLogDraft {
 /// 规则格式：
 /// - `daily` — 每天
 /// - `weekly:N` — 每周 N 次（均匀分布）
+/// - `weekly_days:1,3,5` — 每周指定星期，1 表示周一，7 表示周日
 /// - `interval:Nd` — 每 N 天
 /// - `interval:Nw` — 每 N 周
 /// - `monthly` — 每月
@@ -141,6 +207,24 @@ class ReminderRepeatRule {
       final n = int.tryParse(raw.substring(7));
       if (n != null && n > 0) {
         return ReminderRepeatRule._(type: 'weekly', value: n);
+      }
+    }
+    if (raw.startsWith('weekly_days:')) {
+      final days =
+          raw
+              .substring(12)
+              .split(',')
+              .map((part) => int.tryParse(part.trim()))
+              .whereType<int>()
+              .where((day) => day >= 1 && day <= 7)
+              .toSet()
+              .toList()
+            ..sort();
+      if (days.isNotEmpty) {
+        return ReminderRepeatRule._(
+          type: 'weekly_days',
+          value: _encodeWeekdays(days),
+        );
       }
     }
     if (raw.startsWith('interval:')) {
@@ -167,6 +251,7 @@ class ReminderRepeatRule {
       'daily' => 'daily',
       'monthly' => 'monthly',
       'weekly' => 'weekly:$value',
+      'weekly_days' => 'weekly_days:${_decodeWeekdays(value).join(',')}',
       'interval_d' => 'interval:${value}d',
       'interval_w' => 'interval:${value}w',
       _ => 'daily',
@@ -185,6 +270,7 @@ class ReminderRepeatRule {
         from.minute,
       ),
       'weekly' => from.add(Duration(days: (7 / value).ceil())),
+      'weekly_days' => _nextWeeklyDay(from, _decodeWeekdays(value)),
       'interval_d' => from.add(Duration(days: value)),
       'interval_w' => from.add(Duration(days: value * 7)),
       _ => from.add(const Duration(days: 1)),
@@ -201,4 +287,25 @@ class ReminderRepeatRule {
 
   @override
   int get hashCode => Object.hash(type, value);
+}
+
+int _encodeWeekdays(List<int> days) {
+  return days.fold<int>(0, (mask, day) => mask | (1 << day));
+}
+
+List<int> _decodeWeekdays(int value) {
+  return [
+    for (var day = 1; day <= 7; day++)
+      if ((value & (1 << day)) != 0) day,
+  ];
+}
+
+DateTime _nextWeeklyDay(DateTime from, List<int> days) {
+  for (var offset = 1; offset <= 7; offset++) {
+    final candidate = from.add(Duration(days: offset));
+    if (days.contains(candidate.weekday)) {
+      return candidate;
+    }
+  }
+  return from.add(const Duration(days: 7));
 }

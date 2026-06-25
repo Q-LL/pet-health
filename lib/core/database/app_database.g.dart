@@ -865,6 +865,18 @@ class $CareActivitiesTable extends CareActivities
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _detailsJsonMeta = const VerificationMeta(
+    'detailsJson',
+  );
+  @override
+  late final GeneratedColumn<String> detailsJson = GeneratedColumn<String>(
+    'details_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
   static const VerificationMeta _routeFilePathMeta = const VerificationMeta(
     'routeFilePath',
   );
@@ -909,6 +921,7 @@ class $CareActivitiesTable extends CareActivities
     durationSeconds,
     place,
     note,
+    detailsJson,
     routeFilePath,
     createdAt,
     updatedAt,
@@ -987,6 +1000,15 @@ class $CareActivitiesTable extends CareActivities
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('details_json')) {
+      context.handle(
+        _detailsJsonMeta,
+        detailsJson.isAcceptableOrUnknown(
+          data['details_json']!,
+          _detailsJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('route_file_path')) {
       context.handle(
         _routeFilePathMeta,
@@ -1057,6 +1079,10 @@ class $CareActivitiesTable extends CareActivities
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       )!,
+      detailsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}details_json'],
+      )!,
       routeFilePath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}route_file_path'],
@@ -1088,6 +1114,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
   final int? durationSeconds;
   final String place;
   final String note;
+  final String detailsJson;
   final String? routeFilePath;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -1101,6 +1128,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
     this.durationSeconds,
     required this.place,
     required this.note,
+    required this.detailsJson,
     this.routeFilePath,
     required this.createdAt,
     required this.updatedAt,
@@ -1123,6 +1151,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
     }
     map['place'] = Variable<String>(place);
     map['note'] = Variable<String>(note);
+    map['details_json'] = Variable<String>(detailsJson);
     if (!nullToAbsent || routeFilePath != null) {
       map['route_file_path'] = Variable<String>(routeFilePath);
     }
@@ -1148,6 +1177,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
           : Value(durationSeconds),
       place: Value(place),
       note: Value(note),
+      detailsJson: Value(detailsJson),
       routeFilePath: routeFilePath == null && nullToAbsent
           ? const Value.absent()
           : Value(routeFilePath),
@@ -1171,6 +1201,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       place: serializer.fromJson<String>(json['place']),
       note: serializer.fromJson<String>(json['note']),
+      detailsJson: serializer.fromJson<String>(json['detailsJson']),
       routeFilePath: serializer.fromJson<String?>(json['routeFilePath']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1189,6 +1220,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'place': serializer.toJson<String>(place),
       'note': serializer.toJson<String>(note),
+      'detailsJson': serializer.toJson<String>(detailsJson),
       'routeFilePath': serializer.toJson<String?>(routeFilePath),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1205,6 +1237,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
     Value<int?> durationSeconds = const Value.absent(),
     String? place,
     String? note,
+    String? detailsJson,
     Value<String?> routeFilePath = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1220,6 +1253,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
         : this.durationSeconds,
     place: place ?? this.place,
     note: note ?? this.note,
+    detailsJson: detailsJson ?? this.detailsJson,
     routeFilePath: routeFilePath.present
         ? routeFilePath.value
         : this.routeFilePath,
@@ -1241,6 +1275,9 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
           : this.durationSeconds,
       place: data.place.present ? data.place.value : this.place,
       note: data.note.present ? data.note.value : this.note,
+      detailsJson: data.detailsJson.present
+          ? data.detailsJson.value
+          : this.detailsJson,
       routeFilePath: data.routeFilePath.present
           ? data.routeFilePath.value
           : this.routeFilePath,
@@ -1261,6 +1298,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('place: $place, ')
           ..write('note: $note, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('routeFilePath: $routeFilePath, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1279,6 +1317,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
     durationSeconds,
     place,
     note,
+    detailsJson,
     routeFilePath,
     createdAt,
     updatedAt,
@@ -1296,6 +1335,7 @@ class CareActivity extends DataClass implements Insertable<CareActivity> {
           other.durationSeconds == this.durationSeconds &&
           other.place == this.place &&
           other.note == this.note &&
+          other.detailsJson == this.detailsJson &&
           other.routeFilePath == this.routeFilePath &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -1311,6 +1351,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
   final Value<int?> durationSeconds;
   final Value<String> place;
   final Value<String> note;
+  final Value<String> detailsJson;
   final Value<String?> routeFilePath;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1325,6 +1366,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
     this.durationSeconds = const Value.absent(),
     this.place = const Value.absent(),
     this.note = const Value.absent(),
+    this.detailsJson = const Value.absent(),
     this.routeFilePath = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1340,6 +1382,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
     this.durationSeconds = const Value.absent(),
     this.place = const Value.absent(),
     this.note = const Value.absent(),
+    this.detailsJson = const Value.absent(),
     this.routeFilePath = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1360,6 +1403,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
     Expression<int>? durationSeconds,
     Expression<String>? place,
     Expression<String>? note,
+    Expression<String>? detailsJson,
     Expression<String>? routeFilePath,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1375,6 +1419,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (place != null) 'place': place,
       if (note != null) 'note': note,
+      if (detailsJson != null) 'details_json': detailsJson,
       if (routeFilePath != null) 'route_file_path': routeFilePath,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1392,6 +1437,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
     Value<int?>? durationSeconds,
     Value<String>? place,
     Value<String>? note,
+    Value<String>? detailsJson,
     Value<String?>? routeFilePath,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1407,6 +1453,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       place: place ?? this.place,
       note: note ?? this.note,
+      detailsJson: detailsJson ?? this.detailsJson,
       routeFilePath: routeFilePath ?? this.routeFilePath,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1444,6 +1491,9 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (detailsJson.present) {
+      map['details_json'] = Variable<String>(detailsJson.value);
+    }
     if (routeFilePath.present) {
       map['route_file_path'] = Variable<String>(routeFilePath.value);
     }
@@ -1471,6 +1521,7 @@ class CareActivitiesCompanion extends UpdateCompanion<CareActivity> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('place: $place, ')
           ..write('note: $note, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('routeFilePath: $routeFilePath, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1577,6 +1628,18 @@ class $HealthRecordsTable extends HealthRecords
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _detailsJsonMeta = const VerificationMeta(
+    'detailsJson',
+  );
+  @override
+  late final GeneratedColumn<String> detailsJson = GeneratedColumn<String>(
+    'details_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1610,6 +1673,7 @@ class $HealthRecordsTable extends HealthRecords
     numericValue,
     unit,
     severity,
+    detailsJson,
     createdAt,
     updatedAt,
   ];
@@ -1689,6 +1753,15 @@ class $HealthRecordsTable extends HealthRecords
         severity.isAcceptableOrUnknown(data['severity']!, _severityMeta),
       );
     }
+    if (data.containsKey('details_json')) {
+      context.handle(
+        _detailsJsonMeta,
+        detailsJson.isAcceptableOrUnknown(
+          data['details_json']!,
+          _detailsJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1750,6 +1823,10 @@ class $HealthRecordsTable extends HealthRecords
         DriftSqlType.int,
         data['${effectivePrefix}severity'],
       ),
+      detailsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}details_json'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1777,6 +1854,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
   final double? numericValue;
   final String? unit;
   final int? severity;
+  final String detailsJson;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HealthRecord({
@@ -1789,6 +1867,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
     this.numericValue,
     this.unit,
     this.severity,
+    required this.detailsJson,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1810,6 +1889,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
     if (!nullToAbsent || severity != null) {
       map['severity'] = Variable<int>(severity);
     }
+    map['details_json'] = Variable<String>(detailsJson);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1830,6 +1910,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
       severity: severity == null && nullToAbsent
           ? const Value.absent()
           : Value(severity),
+      detailsJson: Value(detailsJson),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1850,6 +1931,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
       numericValue: serializer.fromJson<double?>(json['numericValue']),
       unit: serializer.fromJson<String?>(json['unit']),
       severity: serializer.fromJson<int?>(json['severity']),
+      detailsJson: serializer.fromJson<String>(json['detailsJson']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1867,6 +1949,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
       'numericValue': serializer.toJson<double?>(numericValue),
       'unit': serializer.toJson<String?>(unit),
       'severity': serializer.toJson<int?>(severity),
+      'detailsJson': serializer.toJson<String>(detailsJson),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1882,6 +1965,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
     Value<double?> numericValue = const Value.absent(),
     Value<String?> unit = const Value.absent(),
     Value<int?> severity = const Value.absent(),
+    String? detailsJson,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HealthRecord(
@@ -1894,6 +1978,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
     numericValue: numericValue.present ? numericValue.value : this.numericValue,
     unit: unit.present ? unit.value : this.unit,
     severity: severity.present ? severity.value : this.severity,
+    detailsJson: detailsJson ?? this.detailsJson,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1912,6 +1997,9 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
           : this.numericValue,
       unit: data.unit.present ? data.unit.value : this.unit,
       severity: data.severity.present ? data.severity.value : this.severity,
+      detailsJson: data.detailsJson.present
+          ? data.detailsJson.value
+          : this.detailsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1929,6 +2017,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
           ..write('numericValue: $numericValue, ')
           ..write('unit: $unit, ')
           ..write('severity: $severity, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1946,6 +2035,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
     numericValue,
     unit,
     severity,
+    detailsJson,
     createdAt,
     updatedAt,
   );
@@ -1962,6 +2052,7 @@ class HealthRecord extends DataClass implements Insertable<HealthRecord> {
           other.numericValue == this.numericValue &&
           other.unit == this.unit &&
           other.severity == this.severity &&
+          other.detailsJson == this.detailsJson &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1976,6 +2067,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
   final Value<double?> numericValue;
   final Value<String?> unit;
   final Value<int?> severity;
+  final Value<String> detailsJson;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1989,6 +2081,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
     this.numericValue = const Value.absent(),
     this.unit = const Value.absent(),
     this.severity = const Value.absent(),
+    this.detailsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2003,6 +2096,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
     this.numericValue = const Value.absent(),
     this.unit = const Value.absent(),
     this.severity = const Value.absent(),
+    this.detailsJson = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -2023,6 +2117,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
     Expression<double>? numericValue,
     Expression<String>? unit,
     Expression<int>? severity,
+    Expression<String>? detailsJson,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -2037,6 +2132,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
       if (numericValue != null) 'numeric_value': numericValue,
       if (unit != null) 'unit': unit,
       if (severity != null) 'severity': severity,
+      if (detailsJson != null) 'details_json': detailsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2053,6 +2149,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
     Value<double?>? numericValue,
     Value<String?>? unit,
     Value<int?>? severity,
+    Value<String>? detailsJson,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -2067,6 +2164,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
       numericValue: numericValue ?? this.numericValue,
       unit: unit ?? this.unit,
       severity: severity ?? this.severity,
+      detailsJson: detailsJson ?? this.detailsJson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2103,6 +2201,9 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
     if (severity.present) {
       map['severity'] = Variable<int>(severity.value);
     }
+    if (detailsJson.present) {
+      map['details_json'] = Variable<String>(detailsJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2127,6 +2228,7 @@ class HealthRecordsCompanion extends UpdateCompanion<HealthRecord> {
           ..write('numericValue: $numericValue, ')
           ..write('unit: $unit, ')
           ..write('severity: $severity, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -4425,6 +4527,146 @@ class $RemindersTable extends Reminders
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _completionModeMeta = const VerificationMeta(
+    'completionMode',
+  );
+  @override
+  late final GeneratedColumn<String> completionMode = GeneratedColumn<String>(
+    'completion_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('none'),
+  );
+  static const VerificationMeta _completionTargetMeta = const VerificationMeta(
+    'completionTarget',
+  );
+  @override
+  late final GeneratedColumn<String> completionTarget = GeneratedColumn<String>(
+    'completion_target',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('health'),
+  );
+  static const VerificationMeta _recordTypeMeta = const VerificationMeta(
+    'recordType',
+  );
+  @override
+  late final GeneratedColumn<String> recordType = GeneratedColumn<String>(
+    'record_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordTitleMeta = const VerificationMeta(
+    'recordTitle',
+  );
+  @override
+  late final GeneratedColumn<String> recordTitle = GeneratedColumn<String>(
+    'record_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordNumericValueMeta =
+      const VerificationMeta('recordNumericValue');
+  @override
+  late final GeneratedColumn<double> recordNumericValue =
+      GeneratedColumn<double>(
+        'record_numeric_value',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _recordUnitMeta = const VerificationMeta(
+    'recordUnit',
+  );
+  @override
+  late final GeneratedColumn<String> recordUnit = GeneratedColumn<String>(
+    'record_unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordNoteMeta = const VerificationMeta(
+    'recordNote',
+  );
+  @override
+  late final GeneratedColumn<String> recordNote = GeneratedColumn<String>(
+    'record_note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _recordDetailsJsonMeta = const VerificationMeta(
+    'recordDetailsJson',
+  );
+  @override
+  late final GeneratedColumn<String> recordDetailsJson =
+      GeneratedColumn<String>(
+        'record_details_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('{}'),
+      );
+  static const VerificationMeta _careTypeMeta = const VerificationMeta(
+    'careType',
+  );
+  @override
+  late final GeneratedColumn<String> careType = GeneratedColumn<String>(
+    'care_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _carePlaceMeta = const VerificationMeta(
+    'carePlace',
+  );
+  @override
+  late final GeneratedColumn<String> carePlace = GeneratedColumn<String>(
+    'care_place',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _careNoteMeta = const VerificationMeta(
+    'careNote',
+  );
+  @override
+  late final GeneratedColumn<String> careNote = GeneratedColumn<String>(
+    'care_note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _careDetailsJsonMeta = const VerificationMeta(
+    'careDetailsJson',
+  );
+  @override
+  late final GeneratedColumn<String> careDetailsJson = GeneratedColumn<String>(
+    'care_details_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
   static const VerificationMeta _enabledMeta = const VerificationMeta(
     'enabled',
   );
@@ -4485,6 +4727,18 @@ class $RemindersTable extends Reminders
     scheduledAt,
     repeatRule,
     notificationId,
+    completionMode,
+    completionTarget,
+    recordType,
+    recordTitle,
+    recordNumericValue,
+    recordUnit,
+    recordNote,
+    recordDetailsJson,
+    careType,
+    carePlace,
+    careNote,
+    careDetailsJson,
     enabled,
     paused,
     createdAt,
@@ -4563,6 +4817,96 @@ class $RemindersTable extends Reminders
         ),
       );
     }
+    if (data.containsKey('completion_mode')) {
+      context.handle(
+        _completionModeMeta,
+        completionMode.isAcceptableOrUnknown(
+          data['completion_mode']!,
+          _completionModeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('completion_target')) {
+      context.handle(
+        _completionTargetMeta,
+        completionTarget.isAcceptableOrUnknown(
+          data['completion_target']!,
+          _completionTargetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('record_type')) {
+      context.handle(
+        _recordTypeMeta,
+        recordType.isAcceptableOrUnknown(data['record_type']!, _recordTypeMeta),
+      );
+    }
+    if (data.containsKey('record_title')) {
+      context.handle(
+        _recordTitleMeta,
+        recordTitle.isAcceptableOrUnknown(
+          data['record_title']!,
+          _recordTitleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('record_numeric_value')) {
+      context.handle(
+        _recordNumericValueMeta,
+        recordNumericValue.isAcceptableOrUnknown(
+          data['record_numeric_value']!,
+          _recordNumericValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('record_unit')) {
+      context.handle(
+        _recordUnitMeta,
+        recordUnit.isAcceptableOrUnknown(data['record_unit']!, _recordUnitMeta),
+      );
+    }
+    if (data.containsKey('record_note')) {
+      context.handle(
+        _recordNoteMeta,
+        recordNote.isAcceptableOrUnknown(data['record_note']!, _recordNoteMeta),
+      );
+    }
+    if (data.containsKey('record_details_json')) {
+      context.handle(
+        _recordDetailsJsonMeta,
+        recordDetailsJson.isAcceptableOrUnknown(
+          data['record_details_json']!,
+          _recordDetailsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('care_type')) {
+      context.handle(
+        _careTypeMeta,
+        careType.isAcceptableOrUnknown(data['care_type']!, _careTypeMeta),
+      );
+    }
+    if (data.containsKey('care_place')) {
+      context.handle(
+        _carePlaceMeta,
+        carePlace.isAcceptableOrUnknown(data['care_place']!, _carePlaceMeta),
+      );
+    }
+    if (data.containsKey('care_note')) {
+      context.handle(
+        _careNoteMeta,
+        careNote.isAcceptableOrUnknown(data['care_note']!, _careNoteMeta),
+      );
+    }
+    if (data.containsKey('care_details_json')) {
+      context.handle(
+        _careDetailsJsonMeta,
+        careDetailsJson.isAcceptableOrUnknown(
+          data['care_details_json']!,
+          _careDetailsJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('enabled')) {
       context.handle(
         _enabledMeta,
@@ -4632,6 +4976,54 @@ class $RemindersTable extends Reminders
         DriftSqlType.int,
         data['${effectivePrefix}notification_id'],
       ),
+      completionMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}completion_mode'],
+      )!,
+      completionTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}completion_target'],
+      )!,
+      recordType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_type'],
+      ),
+      recordTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_title'],
+      ),
+      recordNumericValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}record_numeric_value'],
+      ),
+      recordUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_unit'],
+      ),
+      recordNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_note'],
+      )!,
+      recordDetailsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_details_json'],
+      )!,
+      careType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}care_type'],
+      ),
+      carePlace: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}care_place'],
+      )!,
+      careNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}care_note'],
+      )!,
+      careDetailsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}care_details_json'],
+      )!,
       enabled: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}enabled'],
@@ -4666,6 +5058,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final DateTime scheduledAt;
   final String? repeatRule;
   final int? notificationId;
+  final String completionMode;
+  final String completionTarget;
+  final String? recordType;
+  final String? recordTitle;
+  final double? recordNumericValue;
+  final String? recordUnit;
+  final String recordNote;
+  final String recordDetailsJson;
+  final String? careType;
+  final String carePlace;
+  final String careNote;
+  final String careDetailsJson;
   final bool enabled;
   final bool paused;
   final DateTime createdAt;
@@ -4679,6 +5083,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     required this.scheduledAt,
     this.repeatRule,
     this.notificationId,
+    required this.completionMode,
+    required this.completionTarget,
+    this.recordType,
+    this.recordTitle,
+    this.recordNumericValue,
+    this.recordUnit,
+    required this.recordNote,
+    required this.recordDetailsJson,
+    this.careType,
+    required this.carePlace,
+    required this.careNote,
+    required this.careDetailsJson,
     required this.enabled,
     required this.paused,
     required this.createdAt,
@@ -4701,6 +5117,28 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     if (!nullToAbsent || notificationId != null) {
       map['notification_id'] = Variable<int>(notificationId);
     }
+    map['completion_mode'] = Variable<String>(completionMode);
+    map['completion_target'] = Variable<String>(completionTarget);
+    if (!nullToAbsent || recordType != null) {
+      map['record_type'] = Variable<String>(recordType);
+    }
+    if (!nullToAbsent || recordTitle != null) {
+      map['record_title'] = Variable<String>(recordTitle);
+    }
+    if (!nullToAbsent || recordNumericValue != null) {
+      map['record_numeric_value'] = Variable<double>(recordNumericValue);
+    }
+    if (!nullToAbsent || recordUnit != null) {
+      map['record_unit'] = Variable<String>(recordUnit);
+    }
+    map['record_note'] = Variable<String>(recordNote);
+    map['record_details_json'] = Variable<String>(recordDetailsJson);
+    if (!nullToAbsent || careType != null) {
+      map['care_type'] = Variable<String>(careType);
+    }
+    map['care_place'] = Variable<String>(carePlace);
+    map['care_note'] = Variable<String>(careNote);
+    map['care_details_json'] = Variable<String>(careDetailsJson);
     map['enabled'] = Variable<bool>(enabled);
     map['paused'] = Variable<bool>(paused);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -4724,6 +5162,28 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       notificationId: notificationId == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationId),
+      completionMode: Value(completionMode),
+      completionTarget: Value(completionTarget),
+      recordType: recordType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordType),
+      recordTitle: recordTitle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordTitle),
+      recordNumericValue: recordNumericValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordNumericValue),
+      recordUnit: recordUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordUnit),
+      recordNote: Value(recordNote),
+      recordDetailsJson: Value(recordDetailsJson),
+      careType: careType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(careType),
+      carePlace: Value(carePlace),
+      careNote: Value(careNote),
+      careDetailsJson: Value(careDetailsJson),
       enabled: Value(enabled),
       paused: Value(paused),
       createdAt: Value(createdAt),
@@ -4745,6 +5205,20 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       scheduledAt: serializer.fromJson<DateTime>(json['scheduledAt']),
       repeatRule: serializer.fromJson<String?>(json['repeatRule']),
       notificationId: serializer.fromJson<int?>(json['notificationId']),
+      completionMode: serializer.fromJson<String>(json['completionMode']),
+      completionTarget: serializer.fromJson<String>(json['completionTarget']),
+      recordType: serializer.fromJson<String?>(json['recordType']),
+      recordTitle: serializer.fromJson<String?>(json['recordTitle']),
+      recordNumericValue: serializer.fromJson<double?>(
+        json['recordNumericValue'],
+      ),
+      recordUnit: serializer.fromJson<String?>(json['recordUnit']),
+      recordNote: serializer.fromJson<String>(json['recordNote']),
+      recordDetailsJson: serializer.fromJson<String>(json['recordDetailsJson']),
+      careType: serializer.fromJson<String?>(json['careType']),
+      carePlace: serializer.fromJson<String>(json['carePlace']),
+      careNote: serializer.fromJson<String>(json['careNote']),
+      careDetailsJson: serializer.fromJson<String>(json['careDetailsJson']),
       enabled: serializer.fromJson<bool>(json['enabled']),
       paused: serializer.fromJson<bool>(json['paused']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -4763,6 +5237,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       'scheduledAt': serializer.toJson<DateTime>(scheduledAt),
       'repeatRule': serializer.toJson<String?>(repeatRule),
       'notificationId': serializer.toJson<int?>(notificationId),
+      'completionMode': serializer.toJson<String>(completionMode),
+      'completionTarget': serializer.toJson<String>(completionTarget),
+      'recordType': serializer.toJson<String?>(recordType),
+      'recordTitle': serializer.toJson<String?>(recordTitle),
+      'recordNumericValue': serializer.toJson<double?>(recordNumericValue),
+      'recordUnit': serializer.toJson<String?>(recordUnit),
+      'recordNote': serializer.toJson<String>(recordNote),
+      'recordDetailsJson': serializer.toJson<String>(recordDetailsJson),
+      'careType': serializer.toJson<String?>(careType),
+      'carePlace': serializer.toJson<String>(carePlace),
+      'careNote': serializer.toJson<String>(careNote),
+      'careDetailsJson': serializer.toJson<String>(careDetailsJson),
       'enabled': serializer.toJson<bool>(enabled),
       'paused': serializer.toJson<bool>(paused),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -4779,6 +5265,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     DateTime? scheduledAt,
     Value<String?> repeatRule = const Value.absent(),
     Value<int?> notificationId = const Value.absent(),
+    String? completionMode,
+    String? completionTarget,
+    Value<String?> recordType = const Value.absent(),
+    Value<String?> recordTitle = const Value.absent(),
+    Value<double?> recordNumericValue = const Value.absent(),
+    Value<String?> recordUnit = const Value.absent(),
+    String? recordNote,
+    String? recordDetailsJson,
+    Value<String?> careType = const Value.absent(),
+    String? carePlace,
+    String? careNote,
+    String? careDetailsJson,
     bool? enabled,
     bool? paused,
     DateTime? createdAt,
@@ -4794,6 +5292,20 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     notificationId: notificationId.present
         ? notificationId.value
         : this.notificationId,
+    completionMode: completionMode ?? this.completionMode,
+    completionTarget: completionTarget ?? this.completionTarget,
+    recordType: recordType.present ? recordType.value : this.recordType,
+    recordTitle: recordTitle.present ? recordTitle.value : this.recordTitle,
+    recordNumericValue: recordNumericValue.present
+        ? recordNumericValue.value
+        : this.recordNumericValue,
+    recordUnit: recordUnit.present ? recordUnit.value : this.recordUnit,
+    recordNote: recordNote ?? this.recordNote,
+    recordDetailsJson: recordDetailsJson ?? this.recordDetailsJson,
+    careType: careType.present ? careType.value : this.careType,
+    carePlace: carePlace ?? this.carePlace,
+    careNote: careNote ?? this.careNote,
+    careDetailsJson: careDetailsJson ?? this.careDetailsJson,
     enabled: enabled ?? this.enabled,
     paused: paused ?? this.paused,
     createdAt: createdAt ?? this.createdAt,
@@ -4817,6 +5329,36 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       notificationId: data.notificationId.present
           ? data.notificationId.value
           : this.notificationId,
+      completionMode: data.completionMode.present
+          ? data.completionMode.value
+          : this.completionMode,
+      completionTarget: data.completionTarget.present
+          ? data.completionTarget.value
+          : this.completionTarget,
+      recordType: data.recordType.present
+          ? data.recordType.value
+          : this.recordType,
+      recordTitle: data.recordTitle.present
+          ? data.recordTitle.value
+          : this.recordTitle,
+      recordNumericValue: data.recordNumericValue.present
+          ? data.recordNumericValue.value
+          : this.recordNumericValue,
+      recordUnit: data.recordUnit.present
+          ? data.recordUnit.value
+          : this.recordUnit,
+      recordNote: data.recordNote.present
+          ? data.recordNote.value
+          : this.recordNote,
+      recordDetailsJson: data.recordDetailsJson.present
+          ? data.recordDetailsJson.value
+          : this.recordDetailsJson,
+      careType: data.careType.present ? data.careType.value : this.careType,
+      carePlace: data.carePlace.present ? data.carePlace.value : this.carePlace,
+      careNote: data.careNote.present ? data.careNote.value : this.careNote,
+      careDetailsJson: data.careDetailsJson.present
+          ? data.careDetailsJson.value
+          : this.careDetailsJson,
       enabled: data.enabled.present ? data.enabled.value : this.enabled,
       paused: data.paused.present ? data.paused.value : this.paused,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -4835,6 +5377,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ..write('scheduledAt: $scheduledAt, ')
           ..write('repeatRule: $repeatRule, ')
           ..write('notificationId: $notificationId, ')
+          ..write('completionMode: $completionMode, ')
+          ..write('completionTarget: $completionTarget, ')
+          ..write('recordType: $recordType, ')
+          ..write('recordTitle: $recordTitle, ')
+          ..write('recordNumericValue: $recordNumericValue, ')
+          ..write('recordUnit: $recordUnit, ')
+          ..write('recordNote: $recordNote, ')
+          ..write('recordDetailsJson: $recordDetailsJson, ')
+          ..write('careType: $careType, ')
+          ..write('carePlace: $carePlace, ')
+          ..write('careNote: $careNote, ')
+          ..write('careDetailsJson: $careDetailsJson, ')
           ..write('enabled: $enabled, ')
           ..write('paused: $paused, ')
           ..write('createdAt: $createdAt, ')
@@ -4844,7 +5398,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     petId,
     sourceType,
@@ -4853,11 +5407,23 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     scheduledAt,
     repeatRule,
     notificationId,
+    completionMode,
+    completionTarget,
+    recordType,
+    recordTitle,
+    recordNumericValue,
+    recordUnit,
+    recordNote,
+    recordDetailsJson,
+    careType,
+    carePlace,
+    careNote,
+    careDetailsJson,
     enabled,
     paused,
     createdAt,
     updatedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4870,6 +5436,18 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.scheduledAt == this.scheduledAt &&
           other.repeatRule == this.repeatRule &&
           other.notificationId == this.notificationId &&
+          other.completionMode == this.completionMode &&
+          other.completionTarget == this.completionTarget &&
+          other.recordType == this.recordType &&
+          other.recordTitle == this.recordTitle &&
+          other.recordNumericValue == this.recordNumericValue &&
+          other.recordUnit == this.recordUnit &&
+          other.recordNote == this.recordNote &&
+          other.recordDetailsJson == this.recordDetailsJson &&
+          other.careType == this.careType &&
+          other.carePlace == this.carePlace &&
+          other.careNote == this.careNote &&
+          other.careDetailsJson == this.careDetailsJson &&
           other.enabled == this.enabled &&
           other.paused == this.paused &&
           other.createdAt == this.createdAt &&
@@ -4885,6 +5463,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<DateTime> scheduledAt;
   final Value<String?> repeatRule;
   final Value<int?> notificationId;
+  final Value<String> completionMode;
+  final Value<String> completionTarget;
+  final Value<String?> recordType;
+  final Value<String?> recordTitle;
+  final Value<double?> recordNumericValue;
+  final Value<String?> recordUnit;
+  final Value<String> recordNote;
+  final Value<String> recordDetailsJson;
+  final Value<String?> careType;
+  final Value<String> carePlace;
+  final Value<String> careNote;
+  final Value<String> careDetailsJson;
   final Value<bool> enabled;
   final Value<bool> paused;
   final Value<DateTime> createdAt;
@@ -4899,6 +5489,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.scheduledAt = const Value.absent(),
     this.repeatRule = const Value.absent(),
     this.notificationId = const Value.absent(),
+    this.completionMode = const Value.absent(),
+    this.completionTarget = const Value.absent(),
+    this.recordType = const Value.absent(),
+    this.recordTitle = const Value.absent(),
+    this.recordNumericValue = const Value.absent(),
+    this.recordUnit = const Value.absent(),
+    this.recordNote = const Value.absent(),
+    this.recordDetailsJson = const Value.absent(),
+    this.careType = const Value.absent(),
+    this.carePlace = const Value.absent(),
+    this.careNote = const Value.absent(),
+    this.careDetailsJson = const Value.absent(),
     this.enabled = const Value.absent(),
     this.paused = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -4914,6 +5516,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     required DateTime scheduledAt,
     this.repeatRule = const Value.absent(),
     this.notificationId = const Value.absent(),
+    this.completionMode = const Value.absent(),
+    this.completionTarget = const Value.absent(),
+    this.recordType = const Value.absent(),
+    this.recordTitle = const Value.absent(),
+    this.recordNumericValue = const Value.absent(),
+    this.recordUnit = const Value.absent(),
+    this.recordNote = const Value.absent(),
+    this.recordDetailsJson = const Value.absent(),
+    this.careType = const Value.absent(),
+    this.carePlace = const Value.absent(),
+    this.careNote = const Value.absent(),
+    this.careDetailsJson = const Value.absent(),
     this.enabled = const Value.absent(),
     this.paused = const Value.absent(),
     required DateTime createdAt,
@@ -4935,6 +5549,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Expression<DateTime>? scheduledAt,
     Expression<String>? repeatRule,
     Expression<int>? notificationId,
+    Expression<String>? completionMode,
+    Expression<String>? completionTarget,
+    Expression<String>? recordType,
+    Expression<String>? recordTitle,
+    Expression<double>? recordNumericValue,
+    Expression<String>? recordUnit,
+    Expression<String>? recordNote,
+    Expression<String>? recordDetailsJson,
+    Expression<String>? careType,
+    Expression<String>? carePlace,
+    Expression<String>? careNote,
+    Expression<String>? careDetailsJson,
     Expression<bool>? enabled,
     Expression<bool>? paused,
     Expression<DateTime>? createdAt,
@@ -4950,6 +5576,19 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       if (scheduledAt != null) 'scheduled_at': scheduledAt,
       if (repeatRule != null) 'repeat_rule': repeatRule,
       if (notificationId != null) 'notification_id': notificationId,
+      if (completionMode != null) 'completion_mode': completionMode,
+      if (completionTarget != null) 'completion_target': completionTarget,
+      if (recordType != null) 'record_type': recordType,
+      if (recordTitle != null) 'record_title': recordTitle,
+      if (recordNumericValue != null)
+        'record_numeric_value': recordNumericValue,
+      if (recordUnit != null) 'record_unit': recordUnit,
+      if (recordNote != null) 'record_note': recordNote,
+      if (recordDetailsJson != null) 'record_details_json': recordDetailsJson,
+      if (careType != null) 'care_type': careType,
+      if (carePlace != null) 'care_place': carePlace,
+      if (careNote != null) 'care_note': careNote,
+      if (careDetailsJson != null) 'care_details_json': careDetailsJson,
       if (enabled != null) 'enabled': enabled,
       if (paused != null) 'paused': paused,
       if (createdAt != null) 'created_at': createdAt,
@@ -4967,6 +5606,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Value<DateTime>? scheduledAt,
     Value<String?>? repeatRule,
     Value<int?>? notificationId,
+    Value<String>? completionMode,
+    Value<String>? completionTarget,
+    Value<String?>? recordType,
+    Value<String?>? recordTitle,
+    Value<double?>? recordNumericValue,
+    Value<String?>? recordUnit,
+    Value<String>? recordNote,
+    Value<String>? recordDetailsJson,
+    Value<String?>? careType,
+    Value<String>? carePlace,
+    Value<String>? careNote,
+    Value<String>? careDetailsJson,
     Value<bool>? enabled,
     Value<bool>? paused,
     Value<DateTime>? createdAt,
@@ -4982,6 +5633,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       scheduledAt: scheduledAt ?? this.scheduledAt,
       repeatRule: repeatRule ?? this.repeatRule,
       notificationId: notificationId ?? this.notificationId,
+      completionMode: completionMode ?? this.completionMode,
+      completionTarget: completionTarget ?? this.completionTarget,
+      recordType: recordType ?? this.recordType,
+      recordTitle: recordTitle ?? this.recordTitle,
+      recordNumericValue: recordNumericValue ?? this.recordNumericValue,
+      recordUnit: recordUnit ?? this.recordUnit,
+      recordNote: recordNote ?? this.recordNote,
+      recordDetailsJson: recordDetailsJson ?? this.recordDetailsJson,
+      careType: careType ?? this.careType,
+      carePlace: carePlace ?? this.carePlace,
+      careNote: careNote ?? this.careNote,
+      careDetailsJson: careDetailsJson ?? this.careDetailsJson,
       enabled: enabled ?? this.enabled,
       paused: paused ?? this.paused,
       createdAt: createdAt ?? this.createdAt,
@@ -5017,6 +5680,42 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (notificationId.present) {
       map['notification_id'] = Variable<int>(notificationId.value);
     }
+    if (completionMode.present) {
+      map['completion_mode'] = Variable<String>(completionMode.value);
+    }
+    if (completionTarget.present) {
+      map['completion_target'] = Variable<String>(completionTarget.value);
+    }
+    if (recordType.present) {
+      map['record_type'] = Variable<String>(recordType.value);
+    }
+    if (recordTitle.present) {
+      map['record_title'] = Variable<String>(recordTitle.value);
+    }
+    if (recordNumericValue.present) {
+      map['record_numeric_value'] = Variable<double>(recordNumericValue.value);
+    }
+    if (recordUnit.present) {
+      map['record_unit'] = Variable<String>(recordUnit.value);
+    }
+    if (recordNote.present) {
+      map['record_note'] = Variable<String>(recordNote.value);
+    }
+    if (recordDetailsJson.present) {
+      map['record_details_json'] = Variable<String>(recordDetailsJson.value);
+    }
+    if (careType.present) {
+      map['care_type'] = Variable<String>(careType.value);
+    }
+    if (carePlace.present) {
+      map['care_place'] = Variable<String>(carePlace.value);
+    }
+    if (careNote.present) {
+      map['care_note'] = Variable<String>(careNote.value);
+    }
+    if (careDetailsJson.present) {
+      map['care_details_json'] = Variable<String>(careDetailsJson.value);
+    }
     if (enabled.present) {
       map['enabled'] = Variable<bool>(enabled.value);
     }
@@ -5046,6 +5745,18 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
           ..write('scheduledAt: $scheduledAt, ')
           ..write('repeatRule: $repeatRule, ')
           ..write('notificationId: $notificationId, ')
+          ..write('completionMode: $completionMode, ')
+          ..write('completionTarget: $completionTarget, ')
+          ..write('recordType: $recordType, ')
+          ..write('recordTitle: $recordTitle, ')
+          ..write('recordNumericValue: $recordNumericValue, ')
+          ..write('recordUnit: $recordUnit, ')
+          ..write('recordNote: $recordNote, ')
+          ..write('recordDetailsJson: $recordDetailsJson, ')
+          ..write('careType: $careType, ')
+          ..write('carePlace: $carePlace, ')
+          ..write('careNote: $careNote, ')
+          ..write('careDetailsJson: $careDetailsJson, ')
           ..write('enabled: $enabled, ')
           ..write('paused: $paused, ')
           ..write('createdAt: $createdAt, ')
@@ -6490,6 +7201,7 @@ typedef $$CareActivitiesTableCreateCompanionBuilder =
       Value<int?> durationSeconds,
       Value<String> place,
       Value<String> note,
+      Value<String> detailsJson,
       Value<String?> routeFilePath,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -6506,6 +7218,7 @@ typedef $$CareActivitiesTableUpdateCompanionBuilder =
       Value<int?> durationSeconds,
       Value<String> place,
       Value<String> note,
+      Value<String> detailsJson,
       Value<String?> routeFilePath,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -6584,6 +7297,11 @@ class $$CareActivitiesTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6675,6 +7393,11 @@ class $$CareActivitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get routeFilePath => $composableBuilder(
     column: $table.routeFilePath,
     builder: (column) => ColumnOrderings(column),
@@ -6751,6 +7474,11 @@ class $$CareActivitiesTableAnnotationComposer
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
+  GeneratedColumn<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get routeFilePath => $composableBuilder(
     column: $table.routeFilePath,
     builder: (column) => column,
@@ -6825,6 +7553,7 @@ class $$CareActivitiesTableTableManager
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String> place = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<String> detailsJson = const Value.absent(),
                 Value<String?> routeFilePath = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6839,6 +7568,7 @@ class $$CareActivitiesTableTableManager
                 durationSeconds: durationSeconds,
                 place: place,
                 note: note,
+                detailsJson: detailsJson,
                 routeFilePath: routeFilePath,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6855,6 +7585,7 @@ class $$CareActivitiesTableTableManager
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String> place = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<String> detailsJson = const Value.absent(),
                 Value<String?> routeFilePath = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -6869,6 +7600,7 @@ class $$CareActivitiesTableTableManager
                 durationSeconds: durationSeconds,
                 place: place,
                 note: note,
+                detailsJson: detailsJson,
                 routeFilePath: routeFilePath,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6953,6 +7685,7 @@ typedef $$HealthRecordsTableCreateCompanionBuilder =
       Value<double?> numericValue,
       Value<String?> unit,
       Value<int?> severity,
+      Value<String> detailsJson,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -6968,6 +7701,7 @@ typedef $$HealthRecordsTableUpdateCompanionBuilder =
       Value<double?> numericValue,
       Value<String?> unit,
       Value<int?> severity,
+      Value<String> detailsJson,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -7045,6 +7779,11 @@ class $$HealthRecordsTableFilterComposer
 
   ColumnFilters<int> get severity => $composableBuilder(
     column: $table.severity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7131,6 +7870,11 @@ class $$HealthRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -7202,6 +7946,11 @@ class $$HealthRecordsTableAnnotationComposer
   GeneratedColumn<int> get severity =>
       $composableBuilder(column: $table.severity, builder: (column) => column);
 
+  GeneratedColumn<String> get detailsJson => $composableBuilder(
+    column: $table.detailsJson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -7269,6 +8018,7 @@ class $$HealthRecordsTableTableManager
                 Value<double?> numericValue = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
                 Value<int?> severity = const Value.absent(),
+                Value<String> detailsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -7282,6 +8032,7 @@ class $$HealthRecordsTableTableManager
                 numericValue: numericValue,
                 unit: unit,
                 severity: severity,
+                detailsJson: detailsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -7297,6 +8048,7 @@ class $$HealthRecordsTableTableManager
                 Value<double?> numericValue = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
                 Value<int?> severity = const Value.absent(),
+                Value<String> detailsJson = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -7310,6 +8062,7 @@ class $$HealthRecordsTableTableManager
                 numericValue: numericValue,
                 unit: unit,
                 severity: severity,
+                detailsJson: detailsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -9015,6 +9768,18 @@ typedef $$RemindersTableCreateCompanionBuilder =
       required DateTime scheduledAt,
       Value<String?> repeatRule,
       Value<int?> notificationId,
+      Value<String> completionMode,
+      Value<String> completionTarget,
+      Value<String?> recordType,
+      Value<String?> recordTitle,
+      Value<double?> recordNumericValue,
+      Value<String?> recordUnit,
+      Value<String> recordNote,
+      Value<String> recordDetailsJson,
+      Value<String?> careType,
+      Value<String> carePlace,
+      Value<String> careNote,
+      Value<String> careDetailsJson,
       Value<bool> enabled,
       Value<bool> paused,
       required DateTime createdAt,
@@ -9031,6 +9796,18 @@ typedef $$RemindersTableUpdateCompanionBuilder =
       Value<DateTime> scheduledAt,
       Value<String?> repeatRule,
       Value<int?> notificationId,
+      Value<String> completionMode,
+      Value<String> completionTarget,
+      Value<String?> recordType,
+      Value<String?> recordTitle,
+      Value<double?> recordNumericValue,
+      Value<String?> recordUnit,
+      Value<String> recordNote,
+      Value<String> recordDetailsJson,
+      Value<String?> careType,
+      Value<String> carePlace,
+      Value<String> careNote,
+      Value<String> careDetailsJson,
       Value<bool> enabled,
       Value<bool> paused,
       Value<DateTime> createdAt,
@@ -9119,6 +9896,66 @@ class $$RemindersTableFilterComposer
 
   ColumnFilters<int> get notificationId => $composableBuilder(
     column: $table.notificationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get completionMode => $composableBuilder(
+    column: $table.completionMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get completionTarget => $composableBuilder(
+    column: $table.completionTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordType => $composableBuilder(
+    column: $table.recordType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordTitle => $composableBuilder(
+    column: $table.recordTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get recordNumericValue => $composableBuilder(
+    column: $table.recordNumericValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordUnit => $composableBuilder(
+    column: $table.recordUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordNote => $composableBuilder(
+    column: $table.recordNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordDetailsJson => $composableBuilder(
+    column: $table.recordDetailsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get careType => $composableBuilder(
+    column: $table.careType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get carePlace => $composableBuilder(
+    column: $table.carePlace,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get careNote => $composableBuilder(
+    column: $table.careNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get careDetailsJson => $composableBuilder(
+    column: $table.careDetailsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9235,6 +10072,66 @@ class $$RemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get completionMode => $composableBuilder(
+    column: $table.completionMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get completionTarget => $composableBuilder(
+    column: $table.completionTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordType => $composableBuilder(
+    column: $table.recordType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordTitle => $composableBuilder(
+    column: $table.recordTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get recordNumericValue => $composableBuilder(
+    column: $table.recordNumericValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordUnit => $composableBuilder(
+    column: $table.recordUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordNote => $composableBuilder(
+    column: $table.recordNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordDetailsJson => $composableBuilder(
+    column: $table.recordDetailsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get careType => $composableBuilder(
+    column: $table.careType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get carePlace => $composableBuilder(
+    column: $table.carePlace,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get careNote => $composableBuilder(
+    column: $table.careNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get careDetailsJson => $composableBuilder(
+    column: $table.careDetailsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get enabled => $composableBuilder(
     column: $table.enabled,
     builder: (column) => ColumnOrderings(column),
@@ -9314,6 +10211,60 @@ class $$RemindersTableAnnotationComposer
 
   GeneratedColumn<int> get notificationId => $composableBuilder(
     column: $table.notificationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get completionMode => $composableBuilder(
+    column: $table.completionMode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get completionTarget => $composableBuilder(
+    column: $table.completionTarget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordType => $composableBuilder(
+    column: $table.recordType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordTitle => $composableBuilder(
+    column: $table.recordTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get recordNumericValue => $composableBuilder(
+    column: $table.recordNumericValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordUnit => $composableBuilder(
+    column: $table.recordUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordNote => $composableBuilder(
+    column: $table.recordNote,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordDetailsJson => $composableBuilder(
+    column: $table.recordDetailsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get careType =>
+      $composableBuilder(column: $table.careType, builder: (column) => column);
+
+  GeneratedColumn<String> get carePlace =>
+      $composableBuilder(column: $table.carePlace, builder: (column) => column);
+
+  GeneratedColumn<String> get careNote =>
+      $composableBuilder(column: $table.careNote, builder: (column) => column);
+
+  GeneratedColumn<String> get careDetailsJson => $composableBuilder(
+    column: $table.careDetailsJson,
     builder: (column) => column,
   );
 
@@ -9414,6 +10365,18 @@ class $$RemindersTableTableManager
                 Value<DateTime> scheduledAt = const Value.absent(),
                 Value<String?> repeatRule = const Value.absent(),
                 Value<int?> notificationId = const Value.absent(),
+                Value<String> completionMode = const Value.absent(),
+                Value<String> completionTarget = const Value.absent(),
+                Value<String?> recordType = const Value.absent(),
+                Value<String?> recordTitle = const Value.absent(),
+                Value<double?> recordNumericValue = const Value.absent(),
+                Value<String?> recordUnit = const Value.absent(),
+                Value<String> recordNote = const Value.absent(),
+                Value<String> recordDetailsJson = const Value.absent(),
+                Value<String?> careType = const Value.absent(),
+                Value<String> carePlace = const Value.absent(),
+                Value<String> careNote = const Value.absent(),
+                Value<String> careDetailsJson = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
                 Value<bool> paused = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -9428,6 +10391,18 @@ class $$RemindersTableTableManager
                 scheduledAt: scheduledAt,
                 repeatRule: repeatRule,
                 notificationId: notificationId,
+                completionMode: completionMode,
+                completionTarget: completionTarget,
+                recordType: recordType,
+                recordTitle: recordTitle,
+                recordNumericValue: recordNumericValue,
+                recordUnit: recordUnit,
+                recordNote: recordNote,
+                recordDetailsJson: recordDetailsJson,
+                careType: careType,
+                carePlace: carePlace,
+                careNote: careNote,
+                careDetailsJson: careDetailsJson,
                 enabled: enabled,
                 paused: paused,
                 createdAt: createdAt,
@@ -9444,6 +10419,18 @@ class $$RemindersTableTableManager
                 required DateTime scheduledAt,
                 Value<String?> repeatRule = const Value.absent(),
                 Value<int?> notificationId = const Value.absent(),
+                Value<String> completionMode = const Value.absent(),
+                Value<String> completionTarget = const Value.absent(),
+                Value<String?> recordType = const Value.absent(),
+                Value<String?> recordTitle = const Value.absent(),
+                Value<double?> recordNumericValue = const Value.absent(),
+                Value<String?> recordUnit = const Value.absent(),
+                Value<String> recordNote = const Value.absent(),
+                Value<String> recordDetailsJson = const Value.absent(),
+                Value<String?> careType = const Value.absent(),
+                Value<String> carePlace = const Value.absent(),
+                Value<String> careNote = const Value.absent(),
+                Value<String> careDetailsJson = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
                 Value<bool> paused = const Value.absent(),
                 required DateTime createdAt,
@@ -9458,6 +10445,18 @@ class $$RemindersTableTableManager
                 scheduledAt: scheduledAt,
                 repeatRule: repeatRule,
                 notificationId: notificationId,
+                completionMode: completionMode,
+                completionTarget: completionTarget,
+                recordType: recordType,
+                recordTitle: recordTitle,
+                recordNumericValue: recordNumericValue,
+                recordUnit: recordUnit,
+                recordNote: recordNote,
+                recordDetailsJson: recordDetailsJson,
+                careType: careType,
+                carePlace: carePlace,
+                careNote: careNote,
+                careDetailsJson: careDetailsJson,
                 enabled: enabled,
                 paused: paused,
                 createdAt: createdAt,

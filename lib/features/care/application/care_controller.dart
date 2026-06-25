@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/notifications/notification_service.dart';
 import '../data/care_repository.dart';
 import '../domain/care_models.dart';
 import '../../pets/data/pet_repository.dart';
@@ -61,6 +62,7 @@ class CareController extends Notifier<CareState> {
     final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
     final startedAt = await repository.startWalk(petId: petId, at: at);
     state = state.copyWith(activeWalkStartedAt: startedAt);
+    await notificationService.showWalkTimer(startedAt: startedAt);
   }
 
   Future<WalkRecord?> finishWalk({required String place, DateTime? at}) async {
@@ -77,6 +79,7 @@ class CareController extends Notifier<CareState> {
       clearActiveWalk: true,
       walks: [record, ...state.walks],
     );
+    await notificationService.cancelWalkTimer();
     return record;
   }
 }

@@ -1,9 +1,15 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
+import '../../care/domain/care_activity_spec.dart';
+import '../../care/domain/care_models.dart';
+import '../../records/domain/health_record.dart';
+import '../../records/domain/health_record_spec.dart';
 import '../domain/reminder_filter.dart';
 import '../domain/reminder_models.dart';
 
@@ -160,6 +166,18 @@ class ReminderRepository {
             scheduledAt: draft.scheduledAt.toUtc(),
             repeatRule: Value(draft.repeatRule),
             notificationId: Value(draft.notificationId),
+            completionMode: Value(draft.completionMode),
+            completionTarget: Value(draft.completionTarget),
+            recordType: Value(_trimmedOrNull(draft.recordType)),
+            recordTitle: Value(_trimmedOrNull(draft.recordTitle)),
+            recordNumericValue: Value(draft.recordNumericValue),
+            recordUnit: Value(_trimmedOrNull(draft.recordUnit)),
+            recordNote: Value(draft.recordNote.trim()),
+            recordDetailsJson: Value(_encodeDetails(draft.recordDetails)),
+            careType: Value(_trimmedOrNull(draft.careType)),
+            carePlace: Value(draft.carePlace.trim()),
+            careNote: Value(draft.careNote.trim()),
+            careDetailsJson: Value(_encodeDetails(draft.careDetails)),
             enabled: Value(draft.enabled),
             paused: Value(draft.paused),
             createdAt: now,
@@ -185,6 +203,18 @@ class ReminderRepository {
         scheduledAt: Value(draft.scheduledAt.toUtc()),
         repeatRule: Value(draft.repeatRule),
         notificationId: Value(draft.notificationId),
+        completionMode: Value(draft.completionMode),
+        completionTarget: Value(draft.completionTarget),
+        recordType: Value(_trimmedOrNull(draft.recordType)),
+        recordTitle: Value(_trimmedOrNull(draft.recordTitle)),
+        recordNumericValue: Value(draft.recordNumericValue),
+        recordUnit: Value(_trimmedOrNull(draft.recordUnit)),
+        recordNote: Value(draft.recordNote.trim()),
+        recordDetailsJson: Value(_encodeDetails(draft.recordDetails)),
+        careType: Value(_trimmedOrNull(draft.careType)),
+        carePlace: Value(draft.carePlace.trim()),
+        careNote: Value(draft.careNote.trim()),
+        careDetailsJson: Value(_encodeDetails(draft.careDetails)),
         enabled: Value(draft.enabled),
         paused: Value(draft.paused),
         updatedAt: Value(now),
@@ -299,6 +329,24 @@ class ReminderRepository {
         ReminderRepeatRule.parse(draft.repeatRule) == null) {
       throw FormatException('不支持的重复规则：${draft.repeatRule}');
     }
+    if (!reminderCompletionModes.contains(draft.completionMode)) {
+      throw FormatException('不支持的提醒完成方式：${draft.completionMode}');
+    }
+    if (!reminderCompletionTargets.contains(draft.completionTarget)) {
+      throw FormatException('不支持的提醒绑定目标：${draft.completionTarget}');
+    }
+    if (draft.completionMode != 'none') {
+      if (draft.completionTarget == 'health') {
+        _validateHealthTemplate(draft);
+      } else {
+        _validateCareTemplate(draft);
+      }
+    }
+    for (final entry in draft.recordDetails.entries) {
+      if (entry.key.trim().isEmpty) {
+        throw const FormatException('提醒记录模板字段名不能为空');
+      }
+    }
   }
 
   void _validateQuery({
@@ -332,6 +380,18 @@ class ReminderRepository {
       scheduledAt: row.scheduledAt.toUtc(),
       repeatRule: row.repeatRule,
       notificationId: row.notificationId,
+      completionMode: row.completionMode,
+      completionTarget: row.completionTarget,
+      recordType: row.recordType,
+      recordTitle: row.recordTitle,
+      recordNumericValue: row.recordNumericValue,
+      recordUnit: row.recordUnit,
+      recordNote: row.recordNote,
+      recordDetails: _decodeDetails(row.recordDetailsJson),
+      careType: row.careType,
+      carePlace: row.carePlace,
+      careNote: row.careNote,
+      careDetails: _decodeDetails(row.careDetailsJson),
       enabled: row.enabled,
       paused: row.paused,
       createdAt: row.createdAt.toUtc(),
@@ -348,5 +408,76 @@ class ReminderRepository {
       result: row.result,
       createdAt: row.createdAt.toUtc(),
     );
+  }
+}
+
+void _validateHealthTemplate(ReminderDraft draft) {
+  final recordType = draft.recordType?.trim();
+  if (recordType == null || recordType.isEmpty) {
+    throw const FormatException('绑定健康记录的提醒必须选择记录类型');
+  }
+  if (!healthRecordTypes.contains(recordType)) {
+    throw FormatException('不支持的绑定健康记录类型：$recordType');
+  }
+  final spec = healthRecordSpecFor(recordType);
+  if (draft.completionMode == 'auto_record' &&
+      spec.hasNumericValue &&
+      draft.recordNumericValue == null) {
+    throw FormatException('自动生成${spec.label}记录必须预填写${spec.numericLabel}');
+  }
+  if (draft.completionMode == 'auto_record') {
+    for (final field in spec.fields.where((field) => field.required)) {
+      final value = draft.recordDetails[field.key]?.trim();
+      if (value == null || value.isEmpty) {
+        throw FormatException('自动生成${spec.label}记录必须预填写${field.label}');
+      }
+    }
+  }
+}
+
+void _validateCareTemplate(ReminderDraft draft) {
+  final careType = draft.careType?.trim();
+  if (careType == null || careType.isEmpty) {
+    throw const FormatException('绑定护理记录的提醒必须选择护理类型');
+  }
+  if (!careActivityTypes.contains(careType) || careType == 'walk') {
+    throw FormatException('不支持的绑定护理记录类型：$careType');
+  }
+  if (draft.completionMode == 'auto_record') {
+    final spec = careActivitySpecFor(careType);
+    for (final field in spec.fields.where((field) => field.required)) {
+      final value = draft.careDetails[field.key]?.trim();
+      if (value == null || value.isEmpty) {
+        throw FormatException('自动生成${spec.label}记录必须预填写${field.label}');
+      }
+    }
+  }
+}
+
+String? _trimmedOrNull(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+String _encodeDetails(Map<String, String> details) {
+  final cleaned = <String, String>{};
+  for (final entry in details.entries) {
+    final key = entry.key.trim();
+    final value = entry.value.trim();
+    if (key.isNotEmpty && value.isNotEmpty) cleaned[key] = value;
+  }
+  return jsonEncode(cleaned);
+}
+
+Map<String, String> _decodeDetails(String raw) {
+  if (raw.trim().isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) return const {};
+    return decoded.map(
+      (key, value) => MapEntry(key.toString(), value.toString()),
+    );
+  } on FormatException {
+    return const {};
   }
 }

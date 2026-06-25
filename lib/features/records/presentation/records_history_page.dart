@@ -7,11 +7,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/page_frame.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_filter.dart';
+import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
 import '../../pets/data/pet_repository.dart';
 import '../data/health_record_repository.dart';
 import '../domain/health_record.dart';
 import '../domain/health_record_filter.dart';
+import '../domain/health_record_spec.dart';
 import 'add_record_sheet.dart';
 
 const _pageStep = 20;

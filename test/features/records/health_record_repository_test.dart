@@ -61,6 +61,27 @@ void main() {
     expect(updated.numericValue, 4.9);
   });
 
+  test('persists structured details for typed records', () async {
+    final food = await records.create(
+      HealthRecordDraft(
+        petId: petId,
+        type: 'food',
+        occurredAt: DateTime.utc(2026, 6, 24, 8),
+        title: '早餐',
+        numericValue: 80,
+        unit: 'g',
+        details: const {'foodName': '低敏犬粮', 'meal': '早餐', 'appetite': '正常吃完'},
+      ),
+    );
+
+    final found = await records.getById(food.id);
+
+    expect(found?.numericValue, 80);
+    expect(found?.unit, 'g');
+    expect(found?.details['foodName'], '低敏犬粮');
+    expect(found?.details['appetite'], '正常吃完');
+  });
+
   test('searches by keyword and supports pagination', () async {
     for (var index = 0; index < 3; index++) {
       await records.create(

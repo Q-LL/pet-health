@@ -6,12 +6,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/page_frame.dart';
 import '../../care/data/care_repository.dart';
+import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
 import '../../memories/presentation/memories_page.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../records/data/health_record_repository.dart';
 import '../../records/domain/health_record.dart';
-import '../../records/presentation/add_record_sheet.dart';
+import '../../records/domain/health_record_spec.dart';
 
 typedef _DayQuery = ({String petId, DateTime day});
 
@@ -85,21 +86,6 @@ class _CalendarPageState extends ConsumerState<CalendarPage>
                       icon: const Icon(Icons.list_alt_rounded),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  '记录回看与成长时光。',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
                 ),
               ),
             ),

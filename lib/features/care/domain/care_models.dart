@@ -28,6 +28,7 @@ class CareActivity {
     this.duration,
     this.place = '',
     this.note = '',
+    this.details = const {},
     this.routeFilePath,
   });
 
@@ -40,6 +41,7 @@ class CareActivity {
   final Duration? duration;
   final String place;
   final String note;
+  final Map<String, String> details;
   final String? routeFilePath;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -55,6 +57,7 @@ class CareActivityDraft {
     this.endedAt,
     this.place = '',
     this.note = '',
+    this.details = const {},
     this.routeFilePath,
   });
 
@@ -65,7 +68,37 @@ class CareActivityDraft {
   final DateTime? endedAt;
   final String place;
   final String note;
+  final Map<String, String> details;
   final String? routeFilePath;
+}
+
+@immutable
+class CareActivityPrefill {
+  const CareActivityPrefill({
+    this.place = '',
+    this.note = '',
+    this.details = const {},
+  });
+
+  final String place;
+  final String note;
+  final Map<String, String> details;
+}
+
+CareActivityDraft careActivityDraftFromPrefill({
+  required String petId,
+  required String type,
+  required DateTime occurredAt,
+  required CareActivityPrefill prefill,
+}) {
+  return CareActivityDraft(
+    petId: petId,
+    type: type,
+    occurredAt: occurredAt,
+    place: prefill.place,
+    note: prefill.note,
+    details: prefill.details,
+  );
 }
 
 @immutable

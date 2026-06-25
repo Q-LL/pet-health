@@ -36,6 +36,7 @@ class CareActivities extends Table {
   IntColumn get durationSeconds => integer().nullable()();
   TextColumn get place => text().withDefault(const Constant(''))();
   TextColumn get note => text().withDefault(const Constant(''))();
+  TextColumn get detailsJson => text().withDefault(const Constant('{}'))();
   TextColumn get routeFilePath => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -55,6 +56,7 @@ class HealthRecords extends Table {
   RealColumn get numericValue => real().nullable()();
   TextColumn get unit => text().nullable()();
   IntColumn get severity => integer().nullable()();
+  TextColumn get detailsJson => text().withDefault(const Constant('{}'))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -140,6 +142,20 @@ class Reminders extends Table {
   DateTimeColumn get scheduledAt => dateTime()();
   TextColumn get repeatRule => text().nullable()();
   IntColumn get notificationId => integer().nullable()();
+  TextColumn get completionMode => text().withDefault(const Constant('none'))();
+  TextColumn get completionTarget =>
+      text().withDefault(const Constant('health'))();
+  TextColumn get recordType => text().nullable()();
+  TextColumn get recordTitle => text().nullable()();
+  RealColumn get recordNumericValue => real().nullable()();
+  TextColumn get recordUnit => text().nullable()();
+  TextColumn get recordNote => text().withDefault(const Constant(''))();
+  TextColumn get recordDetailsJson =>
+      text().withDefault(const Constant('{}'))();
+  TextColumn get careType => text().nullable()();
+  TextColumn get carePlace => text().withDefault(const Constant(''))();
+  TextColumn get careNote => text().withDefault(const Constant(''))();
+  TextColumn get careDetailsJson => text().withDefault(const Constant('{}'))();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   BoolColumn get paused => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
@@ -190,7 +206,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -217,6 +233,24 @@ class AppDatabase extends _$AppDatabase {
           'CREATE UNIQUE INDEX IF NOT EXISTS care_plans_pet_candidate_unique '
           'ON care_plans (pet_id, candidate_id)',
         );
+      }
+      if (from < 6) {
+        await migrator.addColumn(healthRecords, healthRecords.detailsJson);
+        await migrator.addColumn(reminders, reminders.completionMode);
+        await migrator.addColumn(reminders, reminders.recordType);
+        await migrator.addColumn(reminders, reminders.recordTitle);
+        await migrator.addColumn(reminders, reminders.recordNumericValue);
+        await migrator.addColumn(reminders, reminders.recordUnit);
+        await migrator.addColumn(reminders, reminders.recordNote);
+        await migrator.addColumn(reminders, reminders.recordDetailsJson);
+      }
+      if (from < 7) {
+        await migrator.addColumn(careActivities, careActivities.detailsJson);
+        await migrator.addColumn(reminders, reminders.completionTarget);
+        await migrator.addColumn(reminders, reminders.careType);
+        await migrator.addColumn(reminders, reminders.carePlace);
+        await migrator.addColumn(reminders, reminders.careNote);
+        await migrator.addColumn(reminders, reminders.careDetailsJson);
       }
     },
     beforeOpen: (details) async {
