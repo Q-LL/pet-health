@@ -96,10 +96,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return PageFrame(
       title: '毛健康',
       subtitle: '专为狗狗记录每一天的小变化。',
-      actions: [
-        _NotificationButton(),
-        const SizedBox(width: 12),
-      ],
+      actions: [_NotificationButton(), const SizedBox(width: 12)],
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

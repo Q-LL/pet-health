@@ -151,7 +151,8 @@ class ScheduleRuleCodec {
     DailyRule() => 'daily',
     IntervalDayRule(:final days) => 'interval:${days}d',
     WeeklyTimesRule(:final times) => 'weekly_times:$times',
-    WeeklyDayRule(:final weekdays) => 'weekly_days:${([...weekdays]..sort()).join(',')}',
+    WeeklyDayRule(:final weekdays) =>
+      'weekly_days:${([...weekdays]..sort()).join(',')}',
     CustomCycleRule(:final days) => 'custom:$days',
     EventDrivenRule(:final trigger) => 'event:$trigger',
   };
@@ -193,7 +194,11 @@ class ScheduleRuleCodec {
   }
 
   ScheduleRule? _parseWeeklyDays(String value) {
-    final parts = value.split(',').map((s) => int.tryParse(s.trim())).whereType<int>().toList();
+    final parts = value
+        .split(',')
+        .map((s) => int.tryParse(s.trim()))
+        .whereType<int>()
+        .toList();
     if (parts.isEmpty) return null;
     return WeeklyDayRule(parts.where((d) => d >= 1 && d <= 7).toList());
   }
@@ -224,7 +229,9 @@ class ScheduleRuleCodec {
       return WeeklyTimesRule(times);
     }
 
-    if (normalized == '每周一次' || normalized == '每周 1 次' || normalized == '每周观察') {
+    if (normalized == '每周一次' ||
+        normalized == '每周 1 次' ||
+        normalized == '每周观察') {
       return const WeeklyTimesRule(1);
     }
 
