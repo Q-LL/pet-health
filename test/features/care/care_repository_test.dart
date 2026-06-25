@@ -96,6 +96,24 @@ void main() {
     expect(updated.note, '梳毛十五分钟');
   });
 
+  test('persists structured details for care activities', () async {
+    final petId = await repository.ensureDefaultPet();
+    final activity = await repository.create(
+      CareActivityDraft(
+        petId: petId,
+        type: 'paw',
+        occurredAt: DateTime.utc(2026, 6, 22),
+        place: '玄关',
+        details: const {'action': '足爪检查', 'status': '未见异常'},
+      ),
+    );
+
+    final found = await repository.getById(activity.id);
+
+    expect(found?.details['action'], '足爪检查');
+    expect(found?.details['status'], '未见异常');
+  });
+
   test('searches care activities by keyword, type, time and page', () async {
     final petId = await repository.ensureDefaultPet();
     await repository.create(

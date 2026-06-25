@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -182,6 +184,7 @@ class CareRepository {
             durationSeconds: Value(duration),
             place: Value(draft.place.trim()),
             note: Value(draft.note.trim()),
+            detailsJson: Value(_encodeDetails(draft.details)),
             routeFilePath: Value(_trimmedOrNull(draft.routeFilePath)),
             createdAt: Value(existing?.createdAt.toUtc() ?? now),
             updatedAt: Value(now),
@@ -354,6 +357,11 @@ class CareRepository {
     if (startedAt != null && endedAt != null && endedAt.isBefore(startedAt)) {
       throw const FormatException('结束时间不能早于开始时间');
     }
+    for (final entry in draft.details.entries) {
+      if (entry.key.trim().isEmpty) {
+        throw const FormatException('护理结构化字段名不能为空');
+      }
+    }
   }
 
   void _validateQuery({
@@ -392,6 +400,7 @@ class CareRepository {
           : Duration(seconds: row.durationSeconds!),
       place: row.place,
       note: row.note,
+      details: _decodeDetails(row.detailsJson),
       routeFilePath: row.routeFilePath,
       createdAt: row.createdAt.toUtc(),
       updatedAt: row.updatedAt.toUtc(),
@@ -402,4 +411,27 @@ class CareRepository {
 String? _trimmedOrNull(String? value) {
   final trimmed = value?.trim();
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+String _encodeDetails(Map<String, String> details) {
+  final cleaned = <String, String>{};
+  for (final entry in details.entries) {
+    final key = entry.key.trim();
+    final value = entry.value.trim();
+    if (key.isNotEmpty && value.isNotEmpty) cleaned[key] = value;
+  }
+  return jsonEncode(cleaned);
+}
+
+Map<String, String> _decodeDetails(String raw) {
+  if (raw.trim().isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) return const {};
+    return decoded.map(
+      (key, value) => MapEntry(key.toString(), value.toString()),
+    );
+  } on FormatException {
+    return const {};
+  }
 }

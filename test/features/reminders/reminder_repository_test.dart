@@ -68,6 +68,64 @@ void main() {
     expect(updated.repeatRule, 'daily');
   });
 
+  test('persists completion record template', () async {
+    final reminder = await repository.create(
+      ReminderDraft(
+        petId: petId,
+        sourceType: 'food',
+        title: '早餐喂食',
+        scheduledAt: DateTime.utc(2026, 6, 24, 8),
+        repeatRule: 'daily',
+        completionMode: 'auto_record',
+        recordType: 'food',
+        recordTitle: '早餐',
+        recordNumericValue: 80,
+        recordUnit: 'g',
+        recordDetails: const {'foodName': '低敏犬粮', 'meal': '早餐'},
+      ),
+    );
+
+    final found = await repository.getById(reminder.id);
+
+    expect(found?.completionMode, 'auto_record');
+    expect(found?.recordType, 'food');
+    expect(found?.recordNumericValue, 80);
+    expect(found?.recordDetails['foodName'], '低敏犬粮');
+  });
+
+  test('persists care completion template', () async {
+    final reminder = await repository.create(
+      ReminderDraft(
+        petId: petId,
+        sourceType: 'paw',
+        title: '雨后擦爪',
+        scheduledAt: DateTime.utc(2026, 6, 24, 20),
+        completionMode: 'auto_record',
+        completionTarget: 'care',
+        careType: 'paw',
+        carePlace: '玄关',
+        careDetails: const {'action': '擦爪', 'status': '未见异常'},
+      ),
+    );
+
+    final found = await repository.getById(reminder.id);
+
+    expect(found?.completionTarget, 'care');
+    expect(found?.careType, 'paw');
+    expect(found?.carePlace, '玄关');
+    expect(found?.careDetails['action'], '擦爪');
+  });
+
+  test('weekly day repeat rule preserves chosen weekdays', () {
+    final rule = ReminderRepeatRule.parse('weekly_days:1,3,5');
+
+    expect(rule?.format(), 'weekly_days:1,3,5');
+    expect(
+      rule?.nextOccurrence(DateTime.utc(2026, 6, 22, 8)),
+      DateTime.utc(2026, 6, 24, 8),
+    );
+  });
+
   test('enable/disable/pause/resume transitions', () async {
     final reminder = await repository.create(
       ReminderDraft(
@@ -211,6 +269,38 @@ void main() {
           title: '无效重复',
           scheduledAt: DateTime.utc(2026, 6, 24),
           repeatRule: 'sometimes',
+        ),
+      ),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects incomplete auto record template', () async {
+    expect(
+      () => repository.create(
+        ReminderDraft(
+          petId: petId,
+          sourceType: 'food',
+          title: '早餐喂食',
+          scheduledAt: DateTime.utc(2026, 6, 24, 8),
+          completionMode: 'auto_record',
+          recordType: 'food',
+          recordUnit: 'g',
+        ),
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => repository.create(
+        ReminderDraft(
+          petId: petId,
+          sourceType: 'medication',
+          title: '用药',
+          scheduledAt: DateTime.utc(2026, 6, 24, 8),
+          completionMode: 'auto_record',
+          recordType: 'medication',
+          recordNumericValue: 1,
+          recordUnit: '片',
         ),
       ),
       throwsFormatException,

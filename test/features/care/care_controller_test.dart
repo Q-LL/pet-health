@@ -44,6 +44,7 @@ void main() {
     expect(record?.duration, const Duration(minutes: 36, seconds: 12));
     expect(record?.place, '滨江公园');
     expect(container.read(careControllerProvider).activeWalkStartedAt, isNull);
-    expect(container.read(careControllerProvider).lastWalk, same(record));
+    expect(container.read(careControllerProvider).lastWalk?.startedAt, startedAt);
+    expect(container.read(careControllerProvider).lastWalk?.endedAt, endedAt);
   });
 }

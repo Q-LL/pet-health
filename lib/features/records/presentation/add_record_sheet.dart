@@ -5,36 +5,12 @@ import '../../../core/widgets/motion.dart';
 import '../../care/application/care_controller.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_models.dart';
+import '../../care/domain/care_activity_spec.dart';
 import '../../care/presentation/care_sheets.dart';
 import '../../pets/data/pet_repository.dart';
 import '../data/health_record_repository.dart';
 import '../domain/health_record.dart';
-
-const healthRecordLabels = <String, String>{
-  'weight': '体重',
-  'food': '饮食',
-  'water': '饮水',
-  'elimination': '排泄',
-  'symptom': '症状',
-  'medication': '用药',
-  'vaccine': '疫苗',
-  'deworming': '驱虫',
-  'custom': '自定义记录',
-};
-
-const careActivityLabels = <String, String>{
-  'bath': '洗澡',
-  'walk': '遛狗',
-  'oral': '口腔护理',
-  'combing': '梳毛',
-  'styling': '美容',
-  'nail': '指甲护理',
-  'ear': '耳部护理',
-  'eye': '眼部护理',
-  'paw': '足爪护理',
-  'environment': '用品 / 环境清洁',
-  'custom': '自定义护理',
-};
+import '../domain/health_record_spec.dart';
 
 Future<void> showAddRecordSheet(BuildContext context) {
   return showModalBottomSheet<void>(
@@ -54,12 +30,19 @@ Future<void> showHealthRecordSheet(
   BuildContext context, {
   String type = 'custom',
   HealthRecord? record,
+  HealthRecordPrefill? prefill,
+  Future<void> Function(HealthRecord record)? afterSave,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (_) => _HealthRecordSheet(initialType: type, record: record),
+    builder: (_) => _HealthRecordSheet(
+      initialType: type,
+      record: record,
+      prefill: prefill,
+      afterSave: afterSave,
+    ),
   );
 }
 
@@ -67,12 +50,19 @@ Future<void> showCareActivitySheet(
   BuildContext context, {
   String type = 'custom',
   CareActivity? activity,
+  CareActivityPrefill? prefill,
+  Future<void> Function(CareActivity activity)? afterSave,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (_) => _CareActivitySheet(initialType: type, activity: activity),
+    builder: (_) => _CareActivitySheet(
+      initialType: type,
+      activity: activity,
+      prefill: prefill,
+      afterSave: afterSave,
+    ),
   );
 }
 
@@ -148,8 +138,15 @@ class _AddRecordSheet extends ConsumerWidget {
 
     // ── 健康记录 ──
     const healthOrder = [
-      'weight', 'symptom', 'medication', 'vaccine', 'deworming',
-      'food', 'water', 'elimination', 'custom',
+      'weight',
+      'symptom',
+      'medication',
+      'vaccine',
+      'deworming',
+      'food',
+      'water',
+      'elimination',
+      'custom',
     ];
     final healthRecords = [
       for (final key in healthOrder)
@@ -166,8 +163,16 @@ class _AddRecordSheet extends ConsumerWidget {
 
     // ── 护理记录 ──
     const careOrder = [
-      'walk', 'bath', 'grooming', 'oral', 'nail',
-      'ear', 'eye', 'paw', 'environment', 'custom',
+      'walk',
+      'bath',
+      'grooming',
+      'oral',
+      'nail',
+      'ear',
+      'eye',
+      'paw',
+      'environment',
+      'custom',
     ];
     final careRecords = <({IconData icon, String label, VoidCallback action})>[
       for (final key in careOrder)
@@ -181,10 +186,13 @@ class _AddRecordSheet extends ConsumerWidget {
             },
           )
         else if (careActivityLabels.containsKey(key) &&
-            key != 'combing' && key != 'styling')
+            key != 'combing' &&
+            key != 'styling')
           (
             icon: _careIcon(key),
-            label: key == 'walk' && isWalking ? '结束遛狗' : careActivityLabels[key]!,
+            label: key == 'walk' && isWalking
+                ? '结束遛狗'
+                : careActivityLabels[key]!,
             action: () {
               Navigator.pop(context);
               if (key == 'bath') {
@@ -280,15 +288,13 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Divider(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          child: Divider(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ],
     );
@@ -448,10 +454,17 @@ class _ChoiceTile extends StatelessWidget {
 }
 
 class _HealthRecordSheet extends ConsumerStatefulWidget {
-  const _HealthRecordSheet({required this.initialType, this.record});
+  const _HealthRecordSheet({
+    required this.initialType,
+    this.record,
+    this.prefill,
+    this.afterSave,
+  });
 
   final String initialType;
   final HealthRecord? record;
+  final HealthRecordPrefill? prefill;
+  final Future<void> Function(HealthRecord record)? afterSave;
 
   @override
   ConsumerState<_HealthRecordSheet> createState() => _HealthRecordSheetState();
@@ -462,7 +475,10 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
   final _title = TextEditingController();
   final _note = TextEditingController();
   final _value = TextEditingController();
+  final _customUnit = TextEditingController();
+  final _detailControllers = <String, TextEditingController>{};
   late String _type;
+  String? _unit;
   var _occurredAt = DateTime.now();
   int? _severity;
   var _saving = false;
@@ -471,12 +487,17 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
   void initState() {
     super.initState();
     final record = widget.record;
+    final prefill = widget.prefill;
     _type = record?.type ?? widget.initialType;
-    _title.text = record?.title ?? healthRecordLabels[_type] ?? '健康记录';
-    _note.text = record?.note ?? '';
-    _value.text = record?.numericValue?.toString() ?? '';
+    final spec = healthRecordSpecFor(_type);
+    _title.text = record?.title ?? prefill?.title ?? spec.defaultTitle;
+    _note.text = record?.note ?? prefill?.note ?? '';
+    final numericValue = record?.numericValue ?? prefill?.numericValue;
+    _value.text = numericValue?.toString() ?? '';
+    _unit = record?.unit ?? prefill?.unit ?? spec.defaultUnit;
     _occurredAt = record?.occurredAt.toLocal() ?? DateTime.now();
-    _severity = record?.severity;
+    _severity = record?.severity ?? prefill?.severity;
+    _syncDetailControllers(record?.details ?? prefill?.details ?? const {});
   }
 
   @override
@@ -484,6 +505,10 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
     _title.dispose();
     _note.dispose();
     _value.dispose();
+    _customUnit.dispose();
+    for (final controller in _detailControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -492,25 +517,33 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
     setState(() => _saving = true);
     try {
       final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+      final spec = healthRecordSpecFor(_type);
+      final numericValue = spec.hasNumericValue
+          ? double.tryParse(_value.text.trim())
+          : null;
+      final unit = spec.hasNumericValue ? _resolvedUnit(spec) : null;
       final draft = HealthRecordDraft(
         petId: widget.record?.petId ?? petId,
         type: _type,
         occurredAt: _occurredAt,
-        title: _title.text,
+        title: _title.text.trim(),
         note: _note.text,
-        numericValue: _type == 'weight'
-            ? double.tryParse(_value.text.trim())
-            : null,
-        unit: _type == 'weight' ? 'kg' : null,
-        severity: _type == 'symptom' ? _severity : null,
+        numericValue: numericValue,
+        unit: unit,
+        severity: spec.hasSeverity ? _severity : null,
+        details: _collectDetails(),
       );
       final repository = ref.read(healthRecordRepositoryProvider);
+      late final HealthRecord saved;
       if (widget.record == null) {
-        await repository.create(draft);
+        saved = await repository.create(draft);
       } else {
-        await repository.update(widget.record!.id, draft);
+        saved = await repository.update(widget.record!.id, draft);
       }
-      if (mounted) Navigator.pop(context);
+      await widget.afterSave?.call(saved);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -523,6 +556,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final spec = healthRecordSpecFor(_type);
     return _RecordSheetFrame(
       title: widget.record == null ? '新增健康记录' : '编辑健康记录',
       child: Form(
@@ -541,11 +575,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
                     ),
                   )
                   .toList(),
-              onChanged: (value) => setState(() {
-                _type = value!;
-                _title.text = healthRecordLabels[value] ?? '健康记录';
-                _severity = null;
-              }),
+              onChanged: (value) => _changeType(value!),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -554,28 +584,56 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
               validator: (value) =>
                   value == null || value.trim().isEmpty ? '请填写标题' : null,
             ),
-            if (_type == 'weight') ...[
+            for (final field in spec.fields) ...[
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _value,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: '体重 *',
-                  suffixText: 'kg',
-                ),
-                validator: (value) =>
-                    double.tryParse(value?.trim() ?? '') == null
-                    ? '请输入有效体重'
-                    : null,
+              _DetailField(
+                spec: field,
+                controller: _detailControllers[field.key]!,
               ),
             ],
-            if (_type == 'symptom') ...[
+            if (spec.hasNumericValue) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextFormField(
+                      controller: _value,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText:
+                            '${spec.numericLabel}${spec.numericRequired ? ' *' : ''}',
+                      ),
+                      validator: (value) {
+                        final text = value?.trim() ?? '';
+                        if (!spec.numericRequired && text.isEmpty) return null;
+                        return double.tryParse(text) == null ? '请输入有效数值' : null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: _UnitField(
+                      unit: _unit,
+                      customController: _customUnit,
+                      options: spec.unitOptions,
+                      onChanged: (value) => setState(() => _unit = value),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (spec.hasSeverity) ...[
               const SizedBox(height: 12),
               DropdownButtonFormField<int?>(
                 initialValue: _severity,
-                decoration: const InputDecoration(labelText: '严重程度（可选）'),
+                decoration: InputDecoration(
+                  labelText: '${spec.severityLabel}（可选）',
+                ),
                 items: const [
                   DropdownMenuItem(value: null, child: Text('未填写')),
                   DropdownMenuItem(value: 1, child: Text('1 · 轻微')),
@@ -596,7 +654,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
             TextFormField(
               controller: _note,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: '备注（可选）'),
+              decoration: InputDecoration(labelText: spec.noteLabel),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
@@ -614,13 +672,154 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
       ),
     );
   }
+
+  void _changeType(String value) {
+    setState(() {
+      _type = value;
+      final spec = healthRecordSpecFor(value);
+      _title.text = spec.defaultTitle;
+      _value.clear();
+      _unit = spec.defaultUnit;
+      _customUnit.clear();
+      _severity = null;
+      _syncDetailControllers(const {});
+    });
+  }
+
+  void _syncDetailControllers(Map<String, String> values) {
+    final spec = healthRecordSpecFor(_type);
+    final nextKeys = spec.fields.map((field) => field.key).toSet();
+    for (final key in _detailControllers.keys.toList()) {
+      if (!nextKeys.contains(key)) {
+        _detailControllers.remove(key)?.dispose();
+      }
+    }
+    for (final field in spec.fields) {
+      final controller = _detailControllers.putIfAbsent(
+        field.key,
+        () => TextEditingController(),
+      );
+      controller.text = values[field.key] ?? '';
+    }
+  }
+
+  Map<String, String> _collectDetails() {
+    return {
+      for (final entry in _detailControllers.entries)
+        if (entry.value.text.trim().isNotEmpty)
+          entry.key: entry.value.text.trim(),
+    };
+  }
+
+  String? _resolvedUnit(HealthRecordTypeSpec spec) {
+    if (_unit == null || _unit!.trim().isEmpty) return spec.defaultUnit;
+    if (_unit == '__custom__') {
+      final custom = _customUnit.text.trim();
+      return custom.isEmpty ? spec.defaultUnit : custom;
+    }
+    return _unit;
+  }
+}
+
+class _DetailField extends StatelessWidget {
+  const _DetailField({required this.spec, required this.controller});
+
+  final HealthRecordFieldSpec spec;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    if (spec.isChoice) {
+      final currentValue = spec.options.contains(controller.text)
+          ? controller.text
+          : null;
+      return DropdownButtonFormField<String>(
+        initialValue: currentValue,
+        decoration: InputDecoration(
+          labelText: '${spec.label}${spec.required ? ' *' : ''}',
+        ),
+        items: [
+          const DropdownMenuItem(value: '', child: Text('未填写')),
+          for (final option in spec.options)
+            DropdownMenuItem(value: option, child: Text(option)),
+        ],
+        validator: (value) => spec.required && (value == null || value.isEmpty)
+            ? '请选择${spec.label}'
+            : null,
+        onChanged: (value) => controller.text = value ?? '',
+      );
+    }
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: '${spec.label}${spec.required ? ' *' : ''}',
+        hintText: spec.placeholder,
+      ),
+      validator: (value) =>
+          spec.required && (value == null || value.trim().isEmpty)
+          ? '请填写${spec.label}'
+          : null,
+    );
+  }
+}
+
+class _UnitField extends StatelessWidget {
+  const _UnitField({
+    required this.unit,
+    required this.customController,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String? unit;
+  final TextEditingController customController;
+  final List<String> options;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final knownUnit = unit != null && options.contains(unit);
+    if (unit != null && unit != '__custom__' && !knownUnit) {
+      customController.text = unit!;
+    }
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: knownUnit ? unit : '__custom__',
+          decoration: const InputDecoration(labelText: '单位'),
+          items: [
+            for (final option in options)
+              DropdownMenuItem(value: option, child: Text(option)),
+            const DropdownMenuItem(value: '__custom__', child: Text('自定义')),
+          ],
+          onChanged: onChanged,
+        ),
+        if (!knownUnit && unit != null) ...[
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: customController,
+            decoration: const InputDecoration(labelText: '自定义单位'),
+            validator: (value) =>
+                value == null || value.trim().isEmpty ? '请填写单位' : null,
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _CareActivitySheet extends ConsumerStatefulWidget {
-  const _CareActivitySheet({required this.initialType, this.activity});
+  const _CareActivitySheet({
+    required this.initialType,
+    this.activity,
+    this.prefill,
+    this.afterSave,
+  });
 
   final String initialType;
   final CareActivity? activity;
+  final CareActivityPrefill? prefill;
+  final Future<void> Function(CareActivity activity)? afterSave;
 
   @override
   ConsumerState<_CareActivitySheet> createState() => _CareActivitySheetState();
@@ -630,6 +829,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   final _formKey = GlobalKey<FormState>();
   final _place = TextEditingController();
   final _note = TextEditingController();
+  final _detailControllers = <String, TextEditingController>{};
   late String _type;
   var _occurredAt = DateTime.now();
   late DateTime _startedAt;
@@ -646,14 +846,20 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
         activity?.startedAt?.toLocal() ??
         DateTime.now().subtract(const Duration(minutes: 30));
     _endedAt = activity?.endedAt?.toLocal() ?? DateTime.now();
-    _place.text = activity?.place ?? '';
-    _note.text = activity?.note ?? '';
+    _place.text = activity?.place ?? widget.prefill?.place ?? '';
+    _note.text = activity?.note ?? widget.prefill?.note ?? '';
+    _syncCareDetailControllers(
+      activity?.details ?? widget.prefill?.details ?? const {},
+    );
   }
 
   @override
   void dispose() {
     _place.dispose();
     _note.dispose();
+    for (final controller in _detailControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -671,15 +877,20 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
         endedAt: isWalk ? _endedAt : null,
         place: _place.text,
         note: _note.text,
+        details: _collectCareDetails(),
         routeFilePath: widget.activity?.routeFilePath,
       );
       final repository = ref.read(careRepositoryProvider);
+      late final CareActivity saved;
       if (widget.activity == null) {
-        await repository.create(draft);
+        saved = await repository.create(draft);
       } else {
-        await repository.update(widget.activity!.id, draft);
+        saved = await repository.update(widget.activity!.id, draft);
       }
-      if (mounted) Navigator.pop(context);
+      await widget.afterSave?.call(saved);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -693,6 +904,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
   @override
   Widget build(BuildContext context) {
     final showWalkFields = _type == 'walk';
+    final spec = careActivitySpecFor(_type);
     final typeEntries = careActivityLabels.entries.where(
       (entry) => entry.key != 'walk' || widget.initialType == 'walk',
     );
@@ -714,7 +926,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
                     ),
                   )
                   .toList(),
-              onChanged: (value) => setState(() => _type = value!),
+              onChanged: (value) => _changeCareType(value!),
             ),
             const SizedBox(height: 12),
             if (showWalkFields) ...[
@@ -742,10 +954,18 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
                 onChanged: (value) => setState(() => _occurredAt = value),
               ),
             const SizedBox(height: 12),
+            if (!showWalkFields)
+              for (final field in spec.fields) ...[
+                _CareDetailField(
+                  spec: field,
+                  controller: _detailControllers[field.key]!,
+                ),
+                const SizedBox(height: 12),
+              ],
             TextFormField(
               controller: _place,
               decoration: InputDecoration(
-                labelText: showWalkFields ? '遛狗地点（可选）' : '地点（可选）',
+                labelText: showWalkFields ? '遛狗地点（可选）' : spec.placeLabel,
                 prefixIcon: Icon(
                   showWalkFields
                       ? Icons.park_outlined
@@ -758,7 +978,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
               controller: _note,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: showWalkFields ? '遛狗情况（可选）' : '护理情况（可选）',
+                labelText: showWalkFields ? '遛狗情况（可选）' : spec.noteLabel,
               ),
               validator: (_) => _type == 'walk' && _endedAt.isBefore(_startedAt)
                   ? '结束时间不能早于开始时间'
@@ -778,6 +998,80 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
           ],
         ),
       ),
+    );
+  }
+
+  void _changeCareType(String value) {
+    setState(() {
+      _type = value;
+      _syncCareDetailControllers(const {});
+    });
+  }
+
+  void _syncCareDetailControllers(Map<String, String> values) {
+    final spec = careActivitySpecFor(_type);
+    final nextKeys = spec.fields.map((field) => field.key).toSet();
+    for (final key in _detailControllers.keys.toList()) {
+      if (!nextKeys.contains(key)) {
+        _detailControllers.remove(key)?.dispose();
+      }
+    }
+    for (final field in spec.fields) {
+      final controller = _detailControllers.putIfAbsent(
+        field.key,
+        () => TextEditingController(),
+      );
+      controller.text = values[field.key] ?? '';
+    }
+  }
+
+  Map<String, String> _collectCareDetails() {
+    return {
+      for (final entry in _detailControllers.entries)
+        if (entry.value.text.trim().isNotEmpty)
+          entry.key: entry.value.text.trim(),
+    };
+  }
+}
+
+class _CareDetailField extends StatelessWidget {
+  const _CareDetailField({required this.spec, required this.controller});
+
+  final CareActivityFieldSpec spec;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    if (spec.isChoice) {
+      final currentValue = spec.options.contains(controller.text)
+          ? controller.text
+          : null;
+      return DropdownButtonFormField<String>(
+        initialValue: currentValue,
+        decoration: InputDecoration(
+          labelText: '${spec.label}${spec.required ? ' *' : ''}',
+        ),
+        items: [
+          const DropdownMenuItem(value: '', child: Text('未填写')),
+          for (final option in spec.options)
+            DropdownMenuItem(value: option, child: Text(option)),
+        ],
+        validator: (value) => spec.required && (value == null || value.isEmpty)
+            ? '请选择${spec.label}'
+            : null,
+        onChanged: (value) => controller.text = value ?? '',
+      );
+    }
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: '${spec.label}${spec.required ? ' *' : ''}',
+        hintText: spec.placeholder,
+      ),
+      validator: (value) =>
+          spec.required && (value == null || value.trim().isEmpty)
+          ? '请填写${spec.label}'
+          : null,
     );
   }
 }

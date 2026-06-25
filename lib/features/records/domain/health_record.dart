@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'health_record_spec.dart';
+
 const healthRecordTypes = {
   'weight',
   'food',
@@ -26,6 +28,7 @@ class HealthRecord {
     this.numericValue,
     this.unit,
     this.severity,
+    this.details = const {},
   });
 
   final String id;
@@ -37,6 +40,7 @@ class HealthRecord {
   final double? numericValue;
   final String? unit;
   final int? severity;
+  final Map<String, String> details;
   final DateTime createdAt;
   final DateTime updatedAt;
 }
@@ -52,6 +56,7 @@ class HealthRecordDraft {
     this.numericValue,
     this.unit,
     this.severity,
+    this.details = const {},
   });
 
   final String petId;
@@ -62,4 +67,46 @@ class HealthRecordDraft {
   final double? numericValue;
   final String? unit;
   final int? severity;
+  final Map<String, String> details;
+}
+
+@immutable
+class HealthRecordPrefill {
+  const HealthRecordPrefill({
+    this.title,
+    this.note = '',
+    this.numericValue,
+    this.unit,
+    this.severity,
+    this.details = const {},
+  });
+
+  final String? title;
+  final String note;
+  final double? numericValue;
+  final String? unit;
+  final int? severity;
+  final Map<String, String> details;
+}
+
+HealthRecordDraft healthRecordDraftFromPrefill({
+  required String petId,
+  required String type,
+  required DateTime occurredAt,
+  required HealthRecordPrefill prefill,
+}) {
+  final spec = healthRecordSpecFor(type);
+  return HealthRecordDraft(
+    petId: petId,
+    type: type,
+    occurredAt: occurredAt,
+    title: prefill.title?.trim().isNotEmpty == true
+        ? prefill.title!.trim()
+        : spec.defaultTitle,
+    note: prefill.note,
+    numericValue: prefill.numericValue,
+    unit: prefill.unit ?? spec.defaultUnit,
+    severity: prefill.severity,
+    details: prefill.details,
+  );
 }

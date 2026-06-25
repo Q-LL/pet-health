@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -136,6 +138,7 @@ class HealthRecordRepository {
             numericValue: Value(draft.numericValue),
             unit: Value(_trimmedOrNull(draft.unit)),
             severity: Value(draft.severity),
+            detailsJson: Value(_encodeDetails(draft.details)),
             createdAt: Value(existing?.createdAt.toUtc() ?? now),
             updatedAt: Value(now),
           ),
@@ -200,6 +203,11 @@ class HealthRecordRepository {
     if (draft.type == 'weight' && draft.numericValue == null) {
       throw const FormatException('体重记录必须填写数值');
     }
+    for (final entry in draft.details.entries) {
+      if (entry.key.trim().isEmpty) {
+        throw const FormatException('结构化字段名不能为空');
+      }
+    }
   }
 
   void _validateQuery({
@@ -233,6 +241,7 @@ class HealthRecordRepository {
     numericValue: row.numericValue,
     unit: row.unit,
     severity: row.severity,
+    details: _decodeDetails(row.detailsJson),
     createdAt: row.createdAt.toUtc(),
     updatedAt: row.updatedAt.toUtc(),
   );
@@ -241,4 +250,27 @@ class HealthRecordRepository {
 String? _trimmedOrNull(String? value) {
   final trimmed = value?.trim();
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+String _encodeDetails(Map<String, String> details) {
+  final cleaned = <String, String>{};
+  for (final entry in details.entries) {
+    final key = entry.key.trim();
+    final value = entry.value.trim();
+    if (key.isNotEmpty && value.isNotEmpty) cleaned[key] = value;
+  }
+  return jsonEncode(cleaned);
+}
+
+Map<String, String> _decodeDetails(String raw) {
+  if (raw.trim().isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) return const {};
+    return decoded.map(
+      (key, value) => MapEntry(key.toString(), value.toString()),
+    );
+  } on FormatException {
+    return const {};
+  }
 }
