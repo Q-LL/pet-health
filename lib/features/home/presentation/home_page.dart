@@ -14,6 +14,8 @@ import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
 import '../../care/presentation/care_overview.dart';
 import '../../care/presentation/care_sheets.dart';
+import '../../health_tips/presentation/health_summary_card.dart';
+import '../../health_tips/presentation/health_tips_card.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../pets/presentation/pet_avatar.dart';
 import '../../records/data/health_record_repository.dart';
@@ -97,7 +99,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       title: '毛健康',
       subtitle: '专为狗狗记录每一天的小变化。',
       actions: [_NotificationButton(), const SizedBox(width: 12)],
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           EntranceAnimation(child: _WelcomeHero()),
@@ -122,7 +124,11 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: 28),
           EntranceAnimation(
             delay: Duration(milliseconds: 210),
-            child: SectionHeader('今天', action: '全部提醒'),
+            child: SectionHeader(
+              '今天',
+              action: '全部提醒',
+              onTap: () => context.push('/home/reminders'),
+            ),
           ),
           EntranceAnimation(
             delay: Duration(milliseconds: 240),
@@ -131,16 +137,20 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: 28),
           EntranceAnimation(
             delay: Duration(milliseconds: 280),
-            child: SectionHeader('健康动态', action: '查看时间线'),
+            child: SectionHeader(
+              '健康动态',
+              action: '查看详细动态',
+              onTap: () => context.go('/home/health-dynamics'),
+            ),
           ),
           EntranceAnimation(
-            delay: Duration(milliseconds: 310),
-            child: _ActivityCard(),
+            delay: Duration(milliseconds: 300),
+            child: HealthSummaryCard(),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           EntranceAnimation(
-            delay: Duration(milliseconds: 340),
-            child: _InsightCard(),
+            delay: Duration(milliseconds: 320),
+            child: HealthTipsCard(),
           ),
         ],
       ),
@@ -625,7 +635,7 @@ class _TodayCard extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        '今天 ${items.length} 个提醒',
+                        '待办 ${items.length} 个提醒',
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -752,7 +762,7 @@ class _ReminderTileState extends ConsumerState<_ReminderTile> {
       ),
       title: Text(widget.reminder.title),
       subtitle: Text(
-        '${_formatReminderTime(widget.reminder.scheduledAt)} · ${_sourceTypeLabel(widget.reminder.sourceType)}',
+        '${_formatReminderStatus(widget.reminder.scheduledAt)} · ${_sourceTypeLabel(widget.reminder.sourceType)}',
       ),
       trailing: Wrap(
         spacing: 4,
@@ -845,7 +855,10 @@ class _ReminderTileState extends ConsumerState<_ReminderTile> {
       widget.reminder.id,
       _draftFromReminder(
         widget.reminder,
-        scheduledAt: repeatRule.nextOccurrence(widget.reminder.scheduledAt),
+        scheduledAt: repeatRule.nextOccurrenceAfter(
+          widget.reminder.scheduledAt,
+          DateTime.now(),
+        ),
       ),
     );
     await notificationService.scheduleReminder(updated);
@@ -892,7 +905,7 @@ class _ReminderTileState extends ConsumerState<_ReminderTile> {
   }
 }
 
-Future<void> showReminderSheet(BuildContext context) {
+Future<void> showReminderSheet(BuildContext context, {Reminder? reminder}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -901,12 +914,14 @@ Future<void> showReminderSheet(BuildContext context) {
       duration: AppMotion.medium,
       reverseDuration: AppMotion.fast,
     ),
-    builder: (_) => const _ReminderSheet(),
+    builder: (_) => _ReminderSheet(reminder: reminder),
   );
 }
 
 class _ReminderSheet extends ConsumerStatefulWidget {
-  const _ReminderSheet();
+  const _ReminderSheet({this.reminder});
+
+  final Reminder? reminder;
 
   @override
   ConsumerState<_ReminderSheet> createState() => _ReminderSheetState();
@@ -942,8 +957,13 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     final now = DateTime.now();
     _date = DateTime(now.year, now.month, now.day);
     _recordUnit = healthRecordSpecFor(_recordType).defaultUnit;
-    _syncReminderDetailControllers();
-    _syncCareReminderDetailControllers();
+    final reminder = widget.reminder;
+    if (reminder == null) {
+      _syncReminderDetailControllers();
+      _syncCareReminderDetailControllers();
+    } else {
+      _applyReminder(reminder);
+    }
   }
 
   @override
@@ -981,7 +1001,10 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('新增提醒', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              widget.reminder == null ? '新增提醒' : '编辑提醒',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 16),
             Form(
               key: _formKey,
@@ -992,6 +1015,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                     initialValue: _sourceType,
                     decoration: const InputDecoration(labelText: '提醒目的'),
                     items: const [
+                      DropdownMenuItem(value: 'care_plan', child: Text('护理计划')),
                       DropdownMenuItem(value: 'manual', child: Text('普通提醒')),
                       DropdownMenuItem(value: 'food', child: Text('喂食')),
                       DropdownMenuItem(value: 'water', child: Text('饮水')),
@@ -1277,7 +1301,13 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                   FilledButton.icon(
                     onPressed: _isSaving ? null : _save,
                     icon: const Icon(Icons.save_rounded),
-                    label: Text(_isSaving ? '保存中...' : '保存提醒'),
+                    label: Text(
+                      _isSaving
+                          ? '保存中...'
+                          : widget.reminder == null
+                          ? '保存提醒'
+                          : '保存修改',
+                    ),
                   ),
                 ],
               ),
@@ -1326,74 +1356,78 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         _time.hour,
         _time.minute,
       );
-      if (_repeatMode != 'once' && scheduledAt.isBefore(now)) {
-        scheduledAt = scheduledAt.add(const Duration(days: 1));
+      final repeatRule = _buildRepeatRule();
+      if (repeatRule != null && !scheduledAt.isAfter(now)) {
+        scheduledAt = ReminderRepeatRule.parse(
+          repeatRule,
+        )!.nextOccurrenceAfter(scheduledAt, now);
       }
       if (_repeatMode == 'once' && scheduledAt.isBefore(now)) {
         throw const FormatException('一次提醒的日期和时间不能早于现在');
       }
 
-      final reminder = await ref
-          .read(reminderRepositoryProvider)
-          .create(
-            ReminderDraft(
-              petId: petId,
-              sourceType: _sourceType,
-              title: _titleController.text.trim(),
-              scheduledAt: scheduledAt,
-              repeatRule: _buildRepeatRule(),
-              completionMode: _completionMode,
-              completionTarget: _completionTarget,
-              recordType:
-                  _completionMode == 'none' || _completionTarget != 'health'
-                  ? null
-                  : _recordType,
-              recordTitle:
-                  _completionMode != 'auto_record' ||
-                      _completionTarget != 'health'
-                  ? null
-                  : _recordTitleController.text.trim(),
-              recordNumericValue:
-                  _completionMode != 'auto_record' ||
-                      _completionTarget != 'health'
-                  ? null
-                  : double.tryParse(_recordValueController.text.trim()),
-              recordUnit:
-                  _completionMode != 'auto_record' ||
-                      _completionTarget != 'health'
-                  ? null
-                  : _resolvedReminderUnit(healthRecordSpecFor(_recordType)),
-              recordNote:
-                  _completionMode != 'auto_record' ||
-                      _completionTarget != 'health'
-                  ? ''
-                  : _recordNoteController.text,
-              recordDetails:
-                  _completionMode != 'auto_record' ||
-                      _completionTarget != 'health'
-                  ? const {}
-                  : _collectReminderDetails(),
-              careType: _completionMode == 'none' || _completionTarget != 'care'
-                  ? null
-                  : _careType,
-              carePlace:
-                  _completionMode == 'auto_record' &&
-                      _completionTarget == 'care'
-                  ? _carePlaceController.text
-                  : '',
-              careNote:
-                  _completionMode == 'auto_record' &&
-                      _completionTarget == 'care'
-                  ? _careNoteController.text
-                  : '',
-              careDetails:
-                  _completionMode == 'auto_record' &&
-                      _completionTarget == 'care'
-                  ? _collectCareReminderDetails()
-                  : const {},
-            ),
-          );
-      await notificationService.scheduleReminder(reminder);
+      final existing = widget.reminder;
+      final draft = ReminderDraft(
+        petId: existing?.petId ?? petId,
+        sourceType: _sourceType,
+        sourceId: existing?.sourceId,
+        title: _titleController.text.trim(),
+        scheduledAt: scheduledAt,
+        repeatRule: repeatRule,
+        notificationId: existing?.notificationId,
+        completionMode: _completionMode,
+        completionTarget: _completionTarget,
+        recordType: _completionMode == 'none' || _completionTarget != 'health'
+            ? null
+            : _recordType,
+        recordTitle:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : _recordTitleController.text.trim(),
+        recordNumericValue:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : double.tryParse(_recordValueController.text.trim()),
+        recordUnit:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : _resolvedReminderUnit(healthRecordSpecFor(_recordType)),
+        recordNote:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? ''
+            : _recordNoteController.text,
+        recordDetails:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? const {}
+            : _collectReminderDetails(),
+        careType: _completionMode == 'none' || _completionTarget != 'care'
+            ? null
+            : _careType,
+        carePlace:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _carePlaceController.text
+            : '',
+        careNote:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _careNoteController.text
+            : '',
+        careDetails:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _collectCareReminderDetails()
+            : const {},
+        enabled: existing?.enabled ?? true,
+        paused: existing?.paused ?? false,
+      );
+      final reminder = existing == null
+          ? await ref.read(reminderRepositoryProvider).create(draft)
+          : await ref
+                .read(reminderRepositoryProvider)
+                .update(existing.id, draft);
+      if (reminder.enabled && !reminder.paused) {
+        await notificationService.scheduleReminder(reminder);
+      } else {
+        await notificationService.cancelReminder(reminder);
+      }
       if (!mounted) return;
       Navigator.pop(context);
     } catch (error) {
@@ -1402,6 +1436,71 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
+    }
+  }
+
+  void _applyReminder(Reminder reminder) {
+    final local = reminder.scheduledAt.toLocal();
+    _date = DateTime(local.year, local.month, local.day);
+    _time = TimeOfDay.fromDateTime(local);
+    _sourceType = reminder.sourceType;
+    _completionMode = reminder.completionMode;
+    _completionTarget = reminder.completionTarget;
+    _recordType = _recordTypeForReminder(reminder);
+    _careType = _careTypeForReminder(reminder);
+    _titleController.text = reminder.title;
+    _recordTitleController.text = reminder.recordTitle ?? '';
+    _recordNoteController.text = reminder.recordNote;
+    _recordValueController.text = reminder.recordNumericValue?.toString() ?? '';
+    _recordUnit =
+        reminder.recordUnit ?? healthRecordSpecFor(_recordType).defaultUnit;
+    if (_recordUnit != null &&
+        !healthRecordSpecFor(_recordType).unitOptions.contains(_recordUnit)) {
+      _customUnitController.text = _recordUnit!;
+      _recordUnit = '__custom__';
+    }
+    _carePlaceController.text = reminder.carePlace;
+    _careNoteController.text = reminder.careNote;
+    _applyRepeatRule(reminder.repeatRule);
+    _syncReminderDetailControllers();
+    for (final entry in reminder.recordDetails.entries) {
+      _detailControllers[entry.key]?.text = entry.value;
+    }
+    _syncCareReminderDetailControllers();
+    for (final entry in reminder.careDetails.entries) {
+      _careDetailControllers[entry.key]?.text = entry.value;
+    }
+  }
+
+  void _applyRepeatRule(String? repeatRule) {
+    _repeatMode = 'once';
+    if (repeatRule == null || repeatRule.isEmpty) return;
+    if (repeatRule == 'daily') {
+      _repeatMode = 'daily';
+    } else if (repeatRule == 'monthly') {
+      _repeatMode = 'monthly';
+    } else if (repeatRule.startsWith('interval:') && repeatRule.endsWith('d')) {
+      final value = int.tryParse(
+        repeatRule.substring(9, repeatRule.length - 1),
+      );
+      if (value != null && value > 0) {
+        _repeatMode = 'interval_d';
+        _intervalDays = value;
+      }
+    } else if (repeatRule.startsWith('weekly_days:')) {
+      final days = repeatRule
+          .substring(12)
+          .split(',')
+          .map((part) => int.tryParse(part.trim()))
+          .whereType<int>()
+          .where((day) => day >= 1 && day <= 7)
+          .toSet();
+      if (days.isNotEmpty) {
+        _repeatMode = 'weekly_days';
+        _weekdays
+          ..clear()
+          ..addAll(days);
+      }
     }
   }
 
@@ -1754,6 +1853,25 @@ String _formatReminderTime(DateTime date) {
   return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }
 
+String _formatReminderStatus(DateTime scheduledAt) {
+  final local = scheduledAt.toLocal();
+  final now = DateTime.now();
+  if (local.isBefore(now)) {
+    return '超时 ${_formatOverdueDuration(now.difference(local))}';
+  }
+  final today = DateTime(now.year, now.month, now.day);
+  final scheduledDay = DateTime(local.year, local.month, local.day);
+  if (scheduledDay == today) return '今天 ${_formatReminderTime(local)}';
+  return '${local.month}/${local.day} ${_formatReminderTime(local)}';
+}
+
+String _formatOverdueDuration(Duration duration) {
+  if (duration.inDays > 0) return '${duration.inDays} 天';
+  if (duration.inHours > 0) return '${duration.inHours} 小时';
+  final minutes = duration.inMinutes.clamp(1, 59);
+  return '$minutes 分钟';
+}
+
 IconData _reminderIcon(String sourceType) => switch (sourceType) {
   'care_plan' => Icons.event_available_outlined,
   'medication' => Icons.medication_outlined,
@@ -1809,118 +1927,6 @@ String _errorMessage(Object error) {
   if (error is FormatException) return error.message;
   if (error is StateError) return error.message;
   return '操作失败，请稍后重试';
-}
-
-class _ActivityCard extends StatelessWidget {
-  const _ActivityCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(Icons.auto_graph_rounded, color: colors.primary),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    '记录越连续，变化越清晰',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            Row(
-              children: [
-                for (var index = 0; index < 7; index++) ...[
-                  if (index > 0) const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        AnimatedContainer(
-                          duration: AppMotion.medium,
-                          height: index == 6 ? 38 : 8,
-                          decoration: BoxDecoration(
-                            color: index == 6
-                                ? colors.primary
-                                : colors.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          ['一', '二', '三', '四', '五', '六', '日'][index],
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '完成第一条记录，开启本周健康时间线',
-              style: TextStyle(color: colors.onSurfaceVariant),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InsightCard extends StatelessWidget {
-  const _InsightCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.secondaryContainer,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.lightbulb_outline_rounded,
-            color: colors.onSecondaryContainer,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '本地趋势提示',
-                  style: TextStyle(
-                    color: colors.onSecondaryContainer,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  '毛健康只和狗狗自己的历史比较，并清楚说明每条提示为什么出现。',
-                  style: TextStyle(
-                    color: colors.onSecondaryContainer,
-                    height: 1.45,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _NotificationButton extends ConsumerWidget {

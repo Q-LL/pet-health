@@ -4,14 +4,19 @@ import 'package:go_router/go_router.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/care/presentation/care_coverage_page.dart';
 import '../features/care/presentation/care_plans_page.dart';
+import '../features/health_tips/presentation/health_dynamics_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/notifications/presentation/notification_center_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
 import '../features/records/presentation/records_history_page.dart';
+import '../features/reminders/presentation/reminders_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouter = GoRouter(
+  navigatorKey: rootNavigatorKey,
   initialLocation: '/home',
   routes: [
     StatefulShellRoute.indexedStack(
@@ -35,6 +40,14 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'notifications',
                   builder: (_, _) => const NotificationCenterPage(),
+                ),
+                GoRoute(
+                  path: 'reminders',
+                  builder: (_, _) => const RemindersPage(),
+                ),
+                GoRoute(
+                  path: 'health-dynamics',
+                  builder: (_, _) => const HealthDynamicsPage(),
                 ),
               ],
             ),

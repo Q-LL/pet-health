@@ -56,6 +56,7 @@ class CareReminderEngine {
     required String careType,
     required DateTime now,
     required List<CarePlanLog> logs,
+    List<DateTime>? completedAt,
     DateTime? fallbackDueAt,
   }) {
     if (rule == null || rule.isEventDriven) return null;
@@ -63,15 +64,23 @@ class CareReminderEngine {
       rule: rule,
       careType: careType,
       logs: logs,
+      completedAt: completedAt,
     );
     if (interval == null) return fallbackDueAt;
 
     final latestAction = _latestAction(logs);
-    if (latestAction == null) {
+    final lastCompleted = _lastCompletedAt(logs, completedAt: completedAt);
+    if (lastCompleted == null && completedAt != null) {
+      return initialDueAt(rule: rule, now: now) ?? fallbackDueAt;
+    }
+    if (latestAction == null && lastCompleted == null) {
       return fallbackDueAt ?? initialDueAt(rule: rule, now: now);
     }
 
-    if (latestAction.action == 'skipped') {
+    if (latestAction != null &&
+        latestAction.action == 'skipped' &&
+        (lastCompleted == null ||
+            latestAction.occurredAt.isAfter(lastCompleted))) {
       return _friendlyCareTime(
         latestAction.occurredAt.add(
           Duration(days: _skipFollowUpDays(interval)),
@@ -79,7 +88,6 @@ class CareReminderEngine {
       );
     }
 
-    final lastCompleted = _lastCompletedAt(logs);
     if (lastCompleted == null) return fallbackDueAt;
     return _friendlyCareTime(lastCompleted.add(Duration(days: interval)));
   }
@@ -88,6 +96,7 @@ class CareReminderEngine {
     required CarePlan plan,
     required List<CarePlanLog> logs,
     required DateTime now,
+    List<DateTime>? completedAt,
   }) {
     final rule = scheduleRuleCodec.decodeAny(plan.scheduleRule);
     if (rule == null || rule.isEventDriven) {
@@ -106,14 +115,16 @@ class CareReminderEngine {
       rule: rule,
       careType: plan.careType,
       logs: logs,
+      completedAt: completedAt,
     );
-    final lastCompleted = _lastCompletedAt(logs);
+    final lastCompleted = _lastCompletedAt(logs, completedAt: completedAt);
     final recentSkips = _recentSkipCount(logs);
     final dueAt = nextDueAfterLogs(
       rule: rule,
       careType: plan.careType,
       logs: logs,
       now: now,
+      completedAt: completedAt,
       fallbackDueAt: plan.nextDueAt,
     );
     final daysSince = lastCompleted == null
@@ -121,11 +132,12 @@ class CareReminderEngine {
         : now.difference(lastCompleted).inDays;
     final daysUntil = dueAt?.difference(now).inDays;
     final isOverdue = dueAt != null && !dueAt.isAfter(now);
-    final reminderWindow = _reminderWindowDays(interval);
+    final reminderWindow = _reminderWindowDaysFor(plan.careType, interval);
     final shouldSurface =
         isOverdue ||
         lastCompleted == null ||
-        (daysUntil != null && daysUntil <= reminderWindow) ||
+        _isInsideReminderWindow(dueAt, now, reminderWindow) ||
+        _isInsideSkipFollowUpWindow(dueAt, now, interval, recentSkips) ||
         recentSkips >= 2;
 
     final score = _priorityScore(
@@ -133,6 +145,8 @@ class CareReminderEngine {
       interval: interval,
       daysSince: daysSince,
       daysUntil: daysUntil,
+      dueAt: dueAt,
+      now: now,
       isOverdue: isOverdue,
       hasNeverCompleted: lastCompleted == null,
       recentSkips: recentSkips,
@@ -151,10 +165,12 @@ class CareReminderEngine {
       urgencyLevel: urgencyLevel,
       priorityScore: score,
       recommendationText: _recommendationText(
-        plan: plan,
         interval: interval,
+        careType: plan.careType,
         daysSince: daysSince,
         daysUntil: daysUntil,
+        dueAt: dueAt,
+        now: now,
         isOverdue: isOverdue,
         lastCompletedAt: lastCompleted,
         recentSkips: recentSkips,
@@ -166,16 +182,12 @@ class CareReminderEngine {
     required ScheduleRule rule,
     required String careType,
     required List<CarePlanLog> logs,
+    List<DateTime>? completedAt,
   }) {
     final base = rule.intervalDays;
     if (base == null || base <= 0) return null;
 
-    final completed =
-        logs
-            .where((log) => log.action == 'completed')
-            .map((log) => log.occurredAt)
-            .toList()
-          ..sort();
+    final completed = [..._completedTimeline(logs, completedAt)]..sort();
     if (completed.length < 3) return base;
 
     final gaps = <int>[];
@@ -196,15 +208,28 @@ class CareReminderEngine {
 
 const careReminderEngine = CareReminderEngine();
 
-DateTime? _lastCompletedAt(List<CarePlanLog> logs) {
+DateTime? _lastCompletedAt(
+  List<CarePlanLog> logs, {
+  List<DateTime>? completedAt,
+}) {
   DateTime? last;
-  for (final log in logs) {
-    if (log.action != 'completed') continue;
-    if (last == null || log.occurredAt.isAfter(last)) {
-      last = log.occurredAt;
+  for (final occurredAt in _completedTimeline(logs, completedAt)) {
+    if (last == null || occurredAt.isAfter(last)) {
+      last = occurredAt;
     }
   }
   return last;
+}
+
+List<DateTime> _completedTimeline(
+  List<CarePlanLog> logs,
+  List<DateTime>? completedAt,
+) {
+  if (completedAt != null) return completedAt;
+  return logs
+      .where((log) => log.action == 'completed')
+      .map((log) => log.occurredAt)
+      .toList();
 }
 
 CarePlanLog? _latestAction(List<CarePlanLog> logs) {
@@ -251,11 +276,29 @@ int _skipFollowUpDays(int interval) {
   return 7;
 }
 
-int _reminderWindowDays(int? interval) {
+int _reminderWindowDaysFor(String careType, int? interval) {
   if (interval == null || interval <= 3) return 0;
+  if (careType == 'ear' || careType == 'eye') return 0;
   if (interval <= 14) return 1;
   if (interval <= 45) return 2;
   return 7;
+}
+
+bool _isInsideReminderWindow(DateTime? dueAt, DateTime now, int windowDays) {
+  if (dueAt == null || !dueAt.isAfter(now)) return false;
+  if (windowDays <= 0) return false;
+  return dueAt.difference(now) <= Duration(days: windowDays);
+}
+
+bool _isInsideSkipFollowUpWindow(
+  DateTime? dueAt,
+  DateTime now,
+  int? interval,
+  int recentSkips,
+) {
+  if (recentSkips <= 0 || dueAt == null || !dueAt.isAfter(now)) return false;
+  if (interval == null || interval <= 0) return false;
+  return dueAt.difference(now) <= Duration(days: _skipFollowUpDays(interval));
 }
 
 int _priorityScore({
@@ -263,6 +306,8 @@ int _priorityScore({
   required int? interval,
   required int? daysSince,
   required int? daysUntil,
+  required DateTime? dueAt,
+  required DateTime now,
   required bool isOverdue,
   required bool hasNeverCompleted,
   required int recentSkips,
@@ -278,12 +323,10 @@ int _priorityScore({
     } else if (daysUntil != null) {
       score += (-daysUntil).clamp(0, 14) * 3;
     }
-  } else if (daysUntil != null) {
-    if (daysUntil <= 0) {
-      score += 35;
-    } else if (interval != null) {
-      final window = _reminderWindowDays(interval);
-      if (daysUntil <= window) score += 25 - (daysUntil * 5);
+  } else if (dueAt != null && interval != null) {
+    final window = _reminderWindowDaysFor(careType, interval);
+    if (_isInsideReminderWindow(dueAt, now, window)) {
+      score += 25 - ((daysUntil ?? 0).clamp(0, window) * 5);
     }
   }
 
@@ -302,10 +345,12 @@ String _urgencyLevel(int score, bool isOverdue, int? interval, int? daysSince) {
 }
 
 String _recommendationText({
-  required CarePlan plan,
   required int? interval,
+  required String careType,
   required int? daysSince,
   required int? daysUntil,
+  required DateTime? dueAt,
+  required DateTime now,
   required bool isOverdue,
   required DateTime? lastCompletedAt,
   required int recentSkips,
@@ -324,9 +369,15 @@ String _recommendationText({
     }
     return '已到推荐护理时间，建议今天完成';
   }
-  if (daysUntil != null && daysUntil <= _reminderWindowDays(interval)) {
-    if (daysUntil <= 0) return '今天适合完成这项护理';
-    return '$daysUntil 天后到推荐时间，可以提前安排';
+  if (_isInsideReminderWindow(
+    dueAt,
+    now,
+    _reminderWindowDaysFor(careType, interval),
+  )) {
+    final daysText = daysUntil == null || daysUntil <= 0
+        ? '今天'
+        : '$daysUntil 天后';
+    return '$daysText 到推荐时间，可以提前安排';
   }
   if (daysSince != null && interval != null) {
     return '节奏正常，距离上次护理 $daysSince 天，建议间隔约 $interval 天';

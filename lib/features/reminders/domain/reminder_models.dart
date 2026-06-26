@@ -277,6 +277,15 @@ class ReminderRepeatRule {
     };
   }
 
+  /// 从 [from] 起持续推进，直到返回严格晚于 [after] 的下一次触发时间。
+  DateTime nextOccurrenceAfter(DateTime from, DateTime after) {
+    var next = nextOccurrence(from);
+    for (var i = 0; i < 366 && !next.isAfter(after); i++) {
+      next = nextOccurrence(next);
+    }
+    return next.isAfter(after) ? next : after.add(const Duration(days: 1));
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

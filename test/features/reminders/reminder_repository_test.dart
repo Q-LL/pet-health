@@ -126,6 +126,18 @@ void main() {
     );
   });
 
+  test('repeat rule advances past missed occurrences', () {
+    final rule = ReminderRepeatRule.parse('daily');
+
+    expect(
+      rule?.nextOccurrenceAfter(
+        DateTime.utc(2026, 6, 24, 22),
+        DateTime.utc(2026, 6, 26, 10),
+      ),
+      DateTime.utc(2026, 6, 26, 22),
+    );
+  });
+
   test('enable/disable/pause/resume transitions', () async {
     final reminder = await repository.create(
       ReminderDraft(
@@ -244,6 +256,21 @@ void main() {
     final reminders = await repository.watchTodayReminders(petId).first;
     expect(reminders.map((r) => r.id), contains(reminder.id));
     expect(reminders.every((r) => !r.paused), isTrue);
+  });
+
+  test('pending reminders keep overdue items until completed', () async {
+    final overdue = await repository.create(
+      ReminderDraft(
+        petId: petId,
+        sourceType: 'manual',
+        title: '昨晚提醒',
+        scheduledAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    );
+
+    final reminders = await repository.watchPendingReminders(petId).first;
+
+    expect(reminders.map((r) => r.id), contains(overdue.id));
   });
 
   test('rejects invalid source type', () async {

@@ -26,39 +26,47 @@ class CareCoveragePage extends ConsumerWidget {
   }
 }
 
-class _CoverageDetailView extends StatelessWidget {
+class _CoverageDetailView extends StatefulWidget {
   const _CoverageDetailView({required this.detail});
 
   final CareCoverageDetail detail;
 
   @override
+  State<_CoverageDetailView> createState() => _CoverageDetailViewState();
+}
+
+class _CoverageDetailViewState extends State<_CoverageDetailView> {
+  var _selectedTab = 0;
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const TabBar(
-            tabs: [
-              Tab(text: '本周待完成'),
-              Tab(text: '趋势'),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<int>(
+          segments: const [
+            ButtonSegment(value: 0, label: Text('本周待完成')),
+            ButtonSegment(value: 1, label: Text('趋势')),
+          ],
+          selected: {_selectedTab},
+          onSelectionChanged: (selected) {
+            setState(() => _selectedTab = selected.first);
+          },
+        ),
+        const SizedBox(height: 16),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: KeyedSubtree(
+            key: ValueKey(_selectedTab),
+            child: _selectedTab == 0
+                ? _ThisWeekPanel(items: widget.detail.thisWeek)
+                : _TrendPanel(
+                    weekly: widget.detail.weeklyPeriods,
+                    monthly: widget.detail.monthlyPeriods,
+                  ),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 520,
-            child: TabBarView(
-              children: [
-                _ThisWeekPanel(items: detail.thisWeek),
-                _TrendPanel(
-                  weekly: detail.weeklyPeriods,
-                  monthly: detail.monthlyPeriods,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -92,6 +100,8 @@ class _ThisWeekPanel extends StatelessWidget {
       );
     }
     return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         _WeekSummaryCard(
           completed: totalCompleted,
@@ -263,6 +273,8 @@ class _TrendPanel extends StatelessWidget {
       );
     }
     return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         if (weekly.isNotEmpty) ...[
           _PeriodSection(title: '最近几周', periods: weekly),

@@ -300,7 +300,10 @@ class CarePlanRepository {
   // ---------------------------------------------------------------------------
 
   /// 根据最近日志重新计算下次到期时间。
-  Future<void> recalculateNextDue(String planId) async {
+  Future<void> recalculateNextDue(
+    String planId, {
+    List<DateTime>? completedAt,
+  }) async {
     final plan = await getById(planId);
     if (plan == null) throw StateError('护理计划不存在：$planId');
 
@@ -313,7 +316,12 @@ class CarePlanRepository {
       careType: plan.careType,
       logs: logs,
       now: DateTime.now(),
-      fallbackDueAt: logs.isEmpty ? null : plan.nextDueAt,
+      completedAt: completedAt,
+      fallbackDueAt: completedAt != null
+          ? null
+          : logs.isEmpty
+          ? null
+          : plan.nextDueAt,
     );
     if (nextDue == null) return;
 

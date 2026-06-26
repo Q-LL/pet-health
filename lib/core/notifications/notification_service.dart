@@ -7,6 +7,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/reminders/domain/reminder_models.dart';
+import 'walk_live_activity_service.dart';
 
 export 'package:flutter_local_notifications/flutter_local_notifications.dart'
     show NotificationResponse;
@@ -31,6 +32,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   final _responses = StreamController<NotificationResponse>.broadcast();
   var _initialized = false;
+  int? _lastWalkTimerStartedAtMillis;
+  Future<void>? _walkTimerStartInFlight;
 
   Stream<NotificationResponse> get responses => _responses.stream;
 
@@ -139,6 +142,41 @@ class NotificationService {
     String? petName,
   }) async {
     if (kIsWeb || !_initialized) return;
+    final startedAtMillis = startedAt.toUtc().millisecondsSinceEpoch;
+    if (_lastWalkTimerStartedAtMillis == startedAtMillis) return;
+    final inFlight = _walkTimerStartInFlight;
+    if (inFlight != null) {
+      await inFlight;
+      if (_lastWalkTimerStartedAtMillis == startedAtMillis) return;
+    }
+    _lastWalkTimerStartedAtMillis = startedAtMillis;
+
+    final startOperation = _showWalkTimer(
+      startedAt: startedAt,
+      petName: petName,
+    );
+    _walkTimerStartInFlight = startOperation;
+    try {
+      await startOperation;
+    } finally {
+      if (identical(_walkTimerStartInFlight, startOperation)) {
+        _walkTimerStartInFlight = null;
+      }
+    }
+  }
+
+  Future<void> _showWalkTimer({
+    required DateTime startedAt,
+    String? petName,
+  }) async {
+    await walkLiveActivityService.clearPendingFinish();
+    if (defaultTargetPlatform == TargetPlatform.iOS &&
+        await walkLiveActivityService.start(
+          startedAt: startedAt,
+          petName: petName,
+        )) {
+      return;
+    }
     try {
       await _plugin.show(
         id: walkNotificationId,
@@ -182,6 +220,9 @@ class NotificationService {
 
   Future<void> cancelWalkTimer() async {
     if (kIsWeb || !_initialized) return;
+    _lastWalkTimerStartedAtMillis = null;
+    _walkTimerStartInFlight = null;
+    await walkLiveActivityService.end();
     try {
       await _plugin.cancel(id: walkNotificationId);
     } catch (_) {}

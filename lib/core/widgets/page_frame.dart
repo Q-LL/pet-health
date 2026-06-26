@@ -62,10 +62,11 @@ class PageFrame extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader(this.title, {this.action, super.key});
+  const SectionHeader(this.title, {this.action, this.onTap, super.key});
 
   final String title;
   final String? action;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +79,7 @@ class SectionHeader extends StatelessWidget {
           ),
           if (action != null)
             TextButton.icon(
-              onPressed: () {},
+              onPressed: onTap,
               label: Text(action!),
               iconAlignment: IconAlignment.end,
               icon: const Icon(Icons.arrow_forward_rounded, size: 18),

@@ -286,6 +286,41 @@ void main() {
     expect(decision.isRecommended, isTrue);
   });
 
+  test('daily care is not recommended before its exact due time', () {
+    final lastCompleted = DateTime(2026, 6, 25, 9);
+    final now = DateTime(2026, 6, 26, 10);
+    final decision = careReminderEngine.evaluate(
+      plan: _carePlan(
+        scheduleRule: scheduleRuleCodec.encode(const DailyRule()),
+        careType: 'eye',
+        nextDueAt: DateTime(2026, 6, 26, 20),
+      ),
+      logs: const [],
+      completedAt: [lastCompleted],
+      now: now,
+    );
+
+    expect(decision.isRecommended, isFalse);
+    expect(decision.isOverdue, isFalse);
+  });
+
+  test('care activity history overrides stale completed plan logs', () {
+    final now = DateTime(2026, 6, 25, 10);
+    final logs = [_carePlanLog('1', DateTime(2026, 6, 24, 9))];
+    final decision = careReminderEngine.evaluate(
+      plan: _carePlan(
+        scheduleRule: scheduleRuleCodec.encode(const WeeklyTimesRule(2)),
+        careType: 'ear',
+      ),
+      logs: logs,
+      completedAt: const [],
+      now: now,
+    );
+
+    expect(decision.lastCompletedAt, isNull);
+    expect(decision.isRecommended, isTrue);
+  });
+
   test('findForPet with enabled filter', () async {
     final petId = await container
         .read(petRepositoryProvider)
@@ -357,15 +392,20 @@ void main() {
   });
 }
 
-CarePlan _carePlan({required String scheduleRule}) {
+CarePlan _carePlan({
+  required String scheduleRule,
+  String careType = 'bath',
+  DateTime? nextDueAt,
+}) {
   final now = DateTime(2026, 6, 1);
   return CarePlan(
     id: 'plan',
     petId: 'pet',
     candidateId: 'bath_history',
-    careType: 'bath',
+    careType: careType,
     title: '洗澡计划',
     scheduleRule: scheduleRule,
+    nextDueAt: nextDueAt,
     enabled: true,
     createdAt: now,
     updatedAt: now,

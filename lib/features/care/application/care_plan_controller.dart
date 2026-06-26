@@ -283,7 +283,10 @@ class CarePlanController extends Notifier<CarePlanState> {
     if (plan == null) throw StateError('护理计划未开启：$candidateId');
     final repository = ref.read(carePlanRepositoryProvider);
     final log = await repository.logSkip(plan.id, note: note);
-    await repository.recalculateNextDue(plan.id);
+    await repository.recalculateNextDue(
+      plan.id,
+      completedAt: await _completionTimesForPlan(plan),
+    );
     final updatedPlan = await repository.getById(plan.id);
     await _schedulePlanNotification(updatedPlan ?? plan);
     return log;
@@ -368,12 +371,7 @@ class CarePlanController extends Notifier<CarePlanState> {
 
     final repository = ref.read(carePlanRepositoryProvider);
     final log = await repository.logCompletion(plan.id, note: note);
-    await repository.recalculateNextDue(plan.id);
 
-    final updatedPlan = await repository.getById(plan.id);
-    await _schedulePlanNotification(updatedPlan ?? plan);
-
-    // 同时创建一条 CareActivity
     final careRepo = ref.read(careRepositoryProvider);
     final activityType = plan.careType;
     if (careActivityTypes.contains(activityType) && activityType != 'walk') {
@@ -405,7 +403,24 @@ class CarePlanController extends Notifier<CarePlanState> {
       );
     }
 
+    await repository.recalculateNextDue(
+      plan.id,
+      completedAt: await _completionTimesForPlan(plan),
+    );
+    final updatedPlan = await repository.getById(plan.id);
+    await _schedulePlanNotification(updatedPlan ?? plan);
+
     return log;
+  }
+
+  Future<List<DateTime>?> _completionTimesForPlan(CarePlan plan) async {
+    if (!careActivityTypes.contains(plan.careType) || plan.careType == 'walk') {
+      return null;
+    }
+    final activities = await ref
+        .read(careRepositoryProvider)
+        .findForPet(plan.petId, type: plan.careType);
+    return activities.map((activity) => activity.occurredAt).toList();
   }
 
   Future<DateTime?> _initialNextDueAt({

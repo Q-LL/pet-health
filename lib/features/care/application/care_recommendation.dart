@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/care_repository.dart';
 import '../data/care_plan_repository.dart';
+import '../domain/care_activity_filter.dart';
 import '../domain/care_plan_models.dart';
 import 'care_plan_controller.dart';
 import 'care_reminder_engine.dart';
@@ -75,16 +77,27 @@ final careRecommendationsProvider = Provider<List<CareRecommendation>>((ref) {
     final rule = scheduleRuleCodec.decodeAny(plan.scheduleRule);
     if (rule != null && rule.isEventDriven) continue;
 
-    // 获取最近完成日志
     final logs = ref.watch(carePlanLogsProvider(plan.id)).value ?? const [];
-    final lastCompleted = logs
-        .where((log) => log.action == 'completed')
-        .fold<DateTime?>(null, (prev, log) {
-          if (prev == null || log.occurredAt.isAfter(prev)) {
-            return log.occurredAt;
-          }
-          return prev;
-        });
+    final activities =
+        ref
+            .watch(
+              filteredCareActivitiesProvider(
+                CareActivityFilter(petId: plan.petId, type: plan.careType),
+              ),
+            )
+            .value ??
+        const [];
+    final completedAt = activities
+        .map((activity) => activity.occurredAt)
+        .toList(growable: false);
+    final completionTimeline = completedAt;
+    final lastCompleted = completionTimeline.fold<DateTime?>(null, (
+      previous,
+      occurredAt,
+    ) {
+      if (previous == null || occurredAt.isAfter(previous)) return occurredAt;
+      return previous;
+    });
 
     final now = DateTime.now();
     final daysSince = lastCompleted == null
@@ -95,6 +108,7 @@ final careRecommendationsProvider = Provider<List<CareRecommendation>>((ref) {
       plan: plan,
       logs: logs,
       now: now,
+      completedAt: completedAt,
     );
 
     recommendations.add(

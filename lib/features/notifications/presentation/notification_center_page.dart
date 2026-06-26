@@ -31,8 +31,10 @@ class NotificationCenterPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorMessage(error: error),
         data: (reminderItems) {
-          final todayReminders = reminderItems.where((r) => r.enabled).toList();
-          if (dueRecommendations.isEmpty && todayReminders.isEmpty) {
+          final pendingReminders = reminderItems
+              .where((r) => r.enabled)
+              .toList();
+          if (dueRecommendations.isEmpty && pendingReminders.isEmpty) {
             return _EmptyNotification();
           }
           return Column(
@@ -45,10 +47,10 @@ class NotificationCenterPage extends ConsumerWidget {
                   _CarePlanNotificationCard(recommendation: rec),
                 const SizedBox(height: 20),
               ],
-              if (todayReminders.isNotEmpty) ...[
-                _SectionHeader(title: '今日提醒', count: todayReminders.length),
+              if (pendingReminders.isNotEmpty) ...[
+                _SectionHeader(title: '待办提醒', count: pendingReminders.length),
                 const SizedBox(height: 10),
-                for (final reminder in todayReminders.take(5))
+                for (final reminder in pendingReminders)
                   _ReminderNotificationCard(reminder: reminder),
               ],
             ],
@@ -248,7 +250,7 @@ class _ReminderNotificationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatTime(reminder.scheduledAt),
+                      _formatReminderStatus(reminder.scheduledAt),
                       style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                   ],
@@ -325,4 +327,23 @@ String _formatTime(DateTime date) {
   final h = local.hour.toString().padLeft(2, '0');
   final m = local.minute.toString().padLeft(2, '0');
   return '$h:$m';
+}
+
+String _formatReminderStatus(DateTime scheduledAt) {
+  final local = scheduledAt.toLocal();
+  final now = DateTime.now();
+  if (local.isBefore(now)) {
+    return '超时 ${_formatOverdueDuration(now.difference(local))}';
+  }
+  final today = DateTime(now.year, now.month, now.day);
+  final scheduledDay = DateTime(local.year, local.month, local.day);
+  if (scheduledDay == today) return '今天 ${_formatTime(local)}';
+  return '${local.month}/${local.day} ${_formatTime(local)}';
+}
+
+String _formatOverdueDuration(Duration duration) {
+  if (duration.inDays > 0) return '${duration.inDays} 天';
+  if (duration.inHours > 0) return '${duration.inHours} 小时';
+  final minutes = duration.inMinutes.clamp(1, 59);
+  return '$minutes 分钟';
 }
