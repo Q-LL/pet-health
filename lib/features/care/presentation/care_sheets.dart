@@ -10,8 +10,8 @@ Future<void> showBathRecordSheet(BuildContext context) {
   return showCareActivitySheet(context, type: 'bath');
 }
 
-Future<void> showFinishWalkSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+Future<bool?> showFinishWalkSheet(BuildContext context, {DateTime? endedAt}) {
+  return showModalBottomSheet<bool>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -19,12 +19,15 @@ Future<void> showFinishWalkSheet(BuildContext context) {
       duration: AppMotion.medium,
       reverseDuration: AppMotion.fast,
     ),
-    builder: (_) => const _FinishWalkSheet(),
+    builder: (_) => _FinishWalkSheet(parentContext: context, endedAt: endedAt),
   );
 }
 
 class _FinishWalkSheet extends ConsumerStatefulWidget {
-  const _FinishWalkSheet();
+  const _FinishWalkSheet({required this.parentContext, this.endedAt});
+
+  final BuildContext parentContext;
+  final DateTime? endedAt;
 
   @override
   ConsumerState<_FinishWalkSheet> createState() => _FinishWalkSheetState();
@@ -40,32 +43,41 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
   }
 
   Future<void> _finish() async {
-    await ref
+    final record = await ref
         .read(careControllerProvider.notifier)
-        .finishWalk(place: _placeController.text);
-    if (mounted) Navigator.pop(context);
+        .finishWalk(place: _placeController.text, at: widget.endedAt);
+    if (record == null) return;
 
-    // 检查是否开启了 paw_after_walk 护理计划
-    if (!mounted) return;
     final planState = ref.read(carePlanControllerProvider);
     final pawPlan = planState.enabledPlans['paw_after_walk'];
+    if (mounted) Navigator.pop(context, true);
+
     if (pawPlan != null && !pawPlan.paused) {
-      _showPawCheckDialog(context, ref, pawPlan.candidateId);
+      await Future<void>.delayed(Duration.zero);
+      if (!widget.parentContext.mounted) return;
+      _showPawCheckDialog(widget.parentContext, pawPlan.candidateId);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final elapsed = ref
-        .watch(walkElapsedProvider)
-        .when(
-          data: (value) => value,
-          error: (_, _) => Duration.zero,
-          loading: () => Duration.zero,
-        );
+    final activeWalkStartedAt = ref.watch(
+      careControllerProvider.select((state) => state.activeWalkStartedAt),
+    );
+    final elapsed = widget.endedAt == null || activeWalkStartedAt == null
+        ? ref
+              .watch(walkElapsedProvider)
+              .when(
+                data: (value) => value,
+                error: (_, _) => Duration.zero,
+                loading: () => Duration.zero,
+              )
+        : widget.endedAt!.difference(activeWalkStartedAt);
     return _SheetFrame(
       title: '结束遛狗',
-      subtitle: '本次已遛 ${formatDuration(elapsed)}，补充场所后保存。',
+      subtitle: widget.endedAt == null
+          ? '本次已遛 ${formatDuration(elapsed)}，补充场所后保存。'
+          : '锁屏上已结束计时，本次遛了 ${formatDuration(elapsed)}，补充场所后保存。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -158,11 +170,7 @@ String formatDuration(Duration duration) {
   return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
 }
 
-void _showPawCheckDialog(
-  BuildContext context,
-  WidgetRef ref,
-  String pawCandidateId,
-) {
+void _showPawCheckDialog(BuildContext context, String pawCandidateId) {
   showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -181,15 +189,16 @@ void _showPawCheckDialog(
     ),
   ).then((confirmed) async {
     if (confirmed != true || !context.mounted) return;
-    // 记录足爪护理计划完成
-    try {
-      await ref
-          .read(carePlanControllerProvider.notifier)
-          .logCompletionWithActivity(pawCandidateId);
-    } catch (_) {}
-    // 打开足爪护理记录表单
-    if (context.mounted) {
-      await showCareActivitySheet(context, type: 'paw');
-    }
+    final container = ProviderScope.containerOf(context, listen: false);
+    await showCareActivitySheet(
+      context,
+      type: 'paw',
+      beforeSave: (draft) async {
+        await container
+            .read(carePlanControllerProvider.notifier)
+            .logCompletionWithActivity(pawCandidateId, activityDraft: draft);
+        return null;
+      },
+    );
   });
 }

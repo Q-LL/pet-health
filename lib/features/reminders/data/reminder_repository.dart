@@ -36,7 +36,7 @@ final filteredRemindersProvider = StreamProvider.autoDispose
 /// 实时返回今日提醒（当天 00:00 ~ 次日 00:00 的启用提醒）。
 final todayRemindersProvider = StreamProvider.autoDispose
     .family<List<Reminder>, String>((ref, petId) {
-      return ref.watch(reminderRepositoryProvider).watchTodayReminders(petId);
+      return ref.watch(reminderRepositoryProvider).watchPendingReminders(petId);
     });
 
 class ReminderRepository {
@@ -133,15 +133,22 @@ class ReminderRepository {
         .getSingle();
   }
 
-  /// 实时返回今日提醒：当天 `[00:00, 次日 00:00)` 的启用且未暂停提醒。
+  /// 实时返回待办提醒：所有逾期未完成提醒 + 当天 `[00:00, 次日 00:00)` 内提醒。
   Stream<List<Reminder>> watchTodayReminders(String petId) {
+    return watchPendingReminders(petId);
+  }
+
+  /// 实时返回待办提醒：已到期但未完成的提醒不会跨天消失。
+  Stream<List<Reminder>> watchPendingReminders(String petId) {
     final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final tomorrowStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
     return watchForPet(
       petId,
       enabled: true,
-      from: todayStart.toUtc(),
       to: tomorrowStart.toUtc(),
     ).map((reminders) => reminders.where((r) => !r.paused).toList());
   }

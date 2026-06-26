@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/care_plan_repository.dart';
+import '../data/care_repository.dart';
 import '../domain/care_plan_models.dart';
 import 'care_plan_controller.dart';
 
@@ -99,7 +99,7 @@ final careCoverageProvider = FutureProvider<CareCoverage>((ref) async {
   final now = DateTime.now();
   final weekStart = _startOfWeek(now);
   final weekEnd = weekStart.add(const Duration(days: 7));
-  final repository = ref.read(carePlanRepositoryProvider);
+  final careRepository = ref.read(careRepositoryProvider);
 
   var totalCompleted = 0;
   var totalExpected = 0;
@@ -113,8 +113,12 @@ final careCoverageProvider = FutureProvider<CareCoverage>((ref) async {
 
     totalExpected += _expectedCountForPlan(plan, interval, weekStart, weekEnd);
 
-    final logs = await repository.findLogs(plan.id);
-    totalCompleted += _completedForPlan(plan, logs, weekStart, weekEnd);
+    totalCompleted += await _completedForPlan(
+      plan,
+      careRepository,
+      weekStart,
+      weekEnd,
+    );
   }
 
   final rate = totalExpected > 0
@@ -124,7 +128,7 @@ final careCoverageProvider = FutureProvider<CareCoverage>((ref) async {
   // 计算连续达标周数（简化版：检查过去 N 周的覆盖率）
   final streak = await _calculateStreak(
     activePlans: activePlans,
-    repository: repository,
+    careRepository: careRepository,
     currentRate: rate,
   );
 
@@ -151,7 +155,7 @@ final careCoverageDetailProvider = FutureProvider<CareCoverageDetail>((
   ref,
 ) async {
   final activePlans = _activePlans(ref.watch(carePlanControllerProvider));
-  final repository = ref.read(carePlanRepositoryProvider);
+  final careRepository = ref.read(careRepositoryProvider);
   final now = DateTime.now();
   final weekStart = _startOfWeek(now);
   final weekEnd = weekStart.add(const Duration(days: 7));
@@ -161,13 +165,17 @@ final careCoverageDetailProvider = FutureProvider<CareCoverageDetail>((
     final rule = scheduleRuleCodec.decodeAny(plan.scheduleRule);
     final interval = rule?.intervalDays;
     if (interval == null || interval <= 0) continue;
-    final logs = await repository.findLogs(plan.id);
     final expected = _expectedCountForPlan(plan, interval, weekStart, weekEnd);
     thisWeek.add(
       CarePlanCoverageProgress(
         plan: plan,
         expected: expected,
-        completed: _completedForPlan(plan, logs, weekStart, weekEnd),
+        completed: await _completedForPlan(
+          plan,
+          careRepository,
+          weekStart,
+          weekEnd,
+        ),
       ),
     );
   }
@@ -176,7 +184,7 @@ final careCoverageDetailProvider = FutureProvider<CareCoverageDetail>((
   for (var offset = 0; offset < 6; offset++) {
     final start = weekStart.subtract(Duration(days: offset * 7));
     final end = start.add(const Duration(days: 7));
-    final totals = await _periodTotals(activePlans, repository, start, end);
+    final totals = await _periodTotals(activePlans, careRepository, start, end);
     if (totals.$2 > 0) {
       weeklyPeriods.add(
         CareCoveragePeriod(
@@ -197,7 +205,7 @@ final careCoverageDetailProvider = FutureProvider<CareCoverageDetail>((
     final month = DateTime(now.year, now.month - offset);
     final start = DateTime(month.year, month.month);
     final end = DateTime(month.year, month.month + 1);
-    final totals = await _periodTotals(activePlans, repository, start, end);
+    final totals = await _periodTotals(activePlans, careRepository, start, end);
     if (totals.$2 > 0) {
       monthlyPeriods.add(
         CareCoveragePeriod(
@@ -219,7 +227,7 @@ final careCoverageDetailProvider = FutureProvider<CareCoverageDetail>((
 /// 计算连续达标周数。
 Future<int> _calculateStreak({
   required List<CarePlan> activePlans,
-  required CarePlanRepository repository,
+  required CareRepository careRepository,
   required double currentRate,
 }) async {
   if (currentRate < 0.8) return 0;
@@ -244,8 +252,12 @@ Future<int> _calculateStreak({
 
       weekExpected += _expectedCountForPlan(plan, interval, weekStart, weekEnd);
 
-      final logs = await repository.findLogs(plan.id);
-      weekCompleted += _completedForPlan(plan, logs, weekStart, weekEnd);
+      weekCompleted += await _completedForPlan(
+        plan,
+        careRepository,
+        weekStart,
+        weekEnd,
+      );
     }
 
     if (weekExpected == 0) break;
@@ -274,7 +286,7 @@ List<CarePlan> _activePlans(CarePlanState planState) {
 
 Future<(int, int)> _periodTotals(
   List<CarePlan> plans,
-  CarePlanRepository repository,
+  CareRepository careRepository,
   DateTime start,
   DateTime end,
 ) async {
@@ -285,31 +297,25 @@ Future<(int, int)> _periodTotals(
     final interval = rule?.intervalDays;
     if (interval == null || interval <= 0) continue;
     expected += _expectedCountForPlan(plan, interval, start, end);
-    completed += _completedForPlan(
-      plan,
-      await repository.findLogs(plan.id),
-      start,
-      end,
-    );
+    completed += await _completedForPlan(plan, careRepository, start, end);
   }
   return (completed, expected);
 }
 
-int _completedForPlan(
+Future<int> _completedForPlan(
   CarePlan plan,
-  List<CarePlanLog> logs,
+  CareRepository careRepository,
   DateTime start,
   DateTime end,
-) {
+) async {
   final effectiveStart = _maxDate(start, plan.createdAt.toUtc());
-  return logs
-      .where(
-        (log) =>
-            log.action == 'completed' &&
-            !log.occurredAt.isBefore(effectiveStart) &&
-            log.occurredAt.isBefore(end),
-      )
-      .length;
+  if (!effectiveStart.isBefore(end)) return 0;
+  return careRepository.count(
+    plan.petId,
+    type: plan.careType,
+    from: effectiveStart,
+    to: end,
+  );
 }
 
 int _expectedCountForPlan(

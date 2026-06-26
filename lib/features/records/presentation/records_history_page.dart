@@ -578,7 +578,17 @@ class _RecordDetailSheet extends ConsumerWidget {
       await carePlanRepository.deleteLog(logId);
       final targetPlanId = planId ?? log?.planId;
       if (targetPlanId != null && targetPlanId.isNotEmpty) {
-        await carePlanRepository.recalculateNextDue(targetPlanId);
+        final plan = await carePlanRepository.getById(targetPlanId);
+        final completedAt = plan == null
+            ? null
+            : (await careRepository.findForPet(
+                plan.petId,
+                type: plan.careType,
+              )).map((item) => item.occurredAt).toList();
+        await carePlanRepository.recalculateNextDue(
+          targetPlanId,
+          completedAt: completedAt,
+        );
       }
     }
     return deleted;

@@ -116,16 +116,38 @@ class CareRepository {
     String? keyword,
     int? limit,
     int offset = 0,
-  }) {
-    return watchForPet(
-      petId,
+  }) async {
+    _validateQuery(
       type: type,
       from: from,
       to: to,
-      keyword: keyword,
       limit: limit,
       offset: offset,
-    ).first;
+    );
+    final search = keyword?.trim();
+    final query = _database.select(_database.careActivities)
+      ..where((activity) {
+        var expression = activity.petId.equals(petId);
+        if (type != null) expression &= activity.type.equals(type);
+        if (from != null) {
+          expression &= activity.occurredAt.isBiggerOrEqualValue(from.toUtc());
+        }
+        if (to != null) {
+          expression &= activity.occurredAt.isSmallerThanValue(to.toUtc());
+        }
+        if (search != null && search.isNotEmpty) {
+          expression &=
+              activity.place.contains(search) | activity.note.contains(search);
+        }
+        return expression;
+      })
+      ..orderBy([
+        (activity) => OrderingTerm.desc(activity.occurredAt),
+        (activity) => OrderingTerm.desc(activity.updatedAt),
+      ]);
+    if (limit != null) query.limit(limit, offset: offset);
+    final rows = await query.get();
+    return rows.map(_activityFromRow).toList(growable: false);
   }
 
   Future<CareActivity?> getById(String id) async {

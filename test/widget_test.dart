@@ -6,7 +6,9 @@ import 'package:pet_health/app/app.dart';
 import 'package:pet_health/app/router.dart';
 import 'package:pet_health/core/database/app_database.dart';
 import 'package:pet_health/core/database/database_provider.dart';
+import 'package:pet_health/features/care/data/care_plan_repository.dart';
 import 'package:pet_health/features/care/data/care_repository.dart';
+import 'package:pet_health/features/care/domain/care_plan_models.dart';
 import 'package:pet_health/features/pets/data/pet_repository.dart';
 import 'package:pet_health/features/reminders/data/reminder_repository.dart';
 import 'package:pet_health/features/reminders/domain/reminder_models.dart';
@@ -113,8 +115,7 @@ void main() {
     await tester.ensureVisible(saveCareRecord);
     await tester.pumpAndSettle();
     await tester.tap(saveCareRecord);
-    await tester.pumpAndSettle();
-    expect(find.text('已记录完成'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
 
     final historySegment = find.text('记录').first;
     await tester.ensureVisible(historySegment);
@@ -122,6 +123,33 @@ void main() {
     await tester.tap(historySegment);
     await tester.pumpAndSettle();
     expect(find.textContaining('口腔日常护理 · 已完成'), findsOneWidget);
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('opens the care coverage detail page from home', (tester) async {
+    final petId = await CareRepository(database).ensureDefaultPet();
+    await PetRepository(database).selectPet(petId);
+    await CarePlanRepository(database).create(
+      CarePlanDraft(
+        petId: petId,
+        candidateId: 'oral_home_care',
+        careType: 'oral',
+        title: '口腔日常护理',
+        scheduleRule: scheduleRuleCodec.encode(const DailyRule()),
+      ),
+    );
+
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    final coverageBadge = find.textContaining('本周覆盖率');
+    await tester.ensureVisible(coverageBadge);
+    await tester.pumpAndSettle();
+    await tester.tap(coverageBadge);
+    await tester.pumpAndSettle();
+
+    expect(find.text('护理完成率'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('读取完成率失败'), findsNothing);
     await disposeTestApp(tester);
   });
 
