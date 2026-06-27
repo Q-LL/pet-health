@@ -1,10 +1,10 @@
 # 毛健康本地数据接口文档
 
-> 版本：0.8
+> 版本：0.9
 > 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
 
-当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录、护理活动、护理计划和提醒。就诊、处方、通用附件、导出、备份恢复、本地知识库和 OCR 尚未进入本接口文档。
+当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录、护理活动、护理计划、护理覆盖统计、提醒、系统本地通知、遛狗实时活动、本地健康动态和本地知识库。就诊、处方、通用附件、导出、备份恢复和 OCR 尚未进入本接口文档。
 
 ## 1. 前端接入原则
 
@@ -12,7 +12,7 @@
 - 所有实体 ID 为 UUID 字符串；第一个占位狗狗可能保留 `local-default-pet`。
 - Repository 输入输出的时间统一为 UTC，页面展示时调用 `toLocal()`。
 - `watch...` 返回实时 `Stream`，数据库变化后页面会自动收到新数据。
-- 删除狗狗会通过 SQLite 外键级联删除其健康记录、护理记录、照片、护理计划和提醒。
+- 删除狗狗会通过 SQLite 外键级联删除其健康记录、护理记录、照片、护理计划、护理计划日志、提醒和提醒日志。
 
 ## 2. Riverpod 入口
 
@@ -28,8 +28,16 @@
 | `careRepositoryProvider` | `CareRepository` | 洗澡、遛狗等护理活动 |
 | `carePlanRepositoryProvider` | `CarePlanRepository` | 护理计划持久化、完成日志和到期计算 |
 | `carePlanControllerProvider` | `CarePlanState` | 当前狗狗的护理计划页面状态（数据库驱动） |
+| `careCoverageProvider` | `AsyncValue<CareCoverage>` | 本周护理计划完成率、应完成数、连续达标周数 |
+| `careCoverageDetailProvider` | `AsyncValue<CareCoverageDetail>` | 本周计划进度、近 6 周和近 6 个月覆盖率 |
 | `reminderRepositoryProvider` | `ReminderRepository` | 提醒的创建、修改、暂停、完成和执行日志 |
 | `careControllerProvider` | `CareState` | 当前狗狗的护理页面状态 |
+| `healthTipsProvider` | `AsyncValue<List<HealthTip>>` | 基于档案、记录和护理计划生成本地健康建议 |
+| `healthSummaryProvider` | `AsyncValue<HealthSummary>` | 聚合近 30/60 天记录、体重历史和护理覆盖率生成摘要 |
+| `healthDynamicsProvider` | `AsyncValue<HealthDynamics>` | 健康动态页聚合摘要、优先洞察和建议 |
+| `knowledgeRepositoryProvider` | `KnowledgeRepository` | 本地知识库分类、搜索、详情和相关文章查询 |
+| `knowledgeArticlesProvider` | `AsyncValue<List<KnowledgeArticle>>` | 按分类和关键词返回知识文章 |
+| `relatedKnowledgeProvider` | `AsyncValue<List<KnowledgeArticle>>` | 按场景 key 返回健康动态/护理页面的相关文章 |
 
 ### 筛选 Provider
 
@@ -208,7 +216,7 @@ Future<bool> deletePet(String id)
 
 - 当前选择保存在本地 `app_settings` 表。
 - 删除返回是否实际删除到狗狗。
-- 删除狗狗会级联删除健康记录、护理记录和照片数据库行，并删除 App 私有目录中的照片文件。
+- 删除狗狗会级联删除健康记录、护理记录、照片、护理计划、提醒及其日志数据库行，并删除 App 私有目录中的照片文件。
 - 删除当前狗狗后自动选择剩余狗狗；没有狗狗时重新创建占位档案。
 
 ## 4. 狗狗照片接口
@@ -602,7 +610,33 @@ Future<void> recalculateNextDue(String planId)
 
 事件触发或历史驱动文案（如 `每次遛狗后询问`、`根据历史间隔`）不会推导固定日期，`nextDueAt` 保持为空，后续由对应规则引擎补充。
 
-## 8. 提醒接口
+## 8. 护理覆盖统计接口
+
+源文件：`lib/features/care/application/care_coverage.dart`
+
+护理覆盖统计从已启用护理计划和护理活动记录实时计算，不单独落库。事件驱动计划不计入固定周期覆盖率。
+
+```dart
+final coverage = await ref.watch(careCoverageProvider.future);
+final detail = await ref.watch(careCoverageDetailProvider.future);
+```
+
+### `CareCoverage`
+
+| 字段 | 含义 |
+|---|---|
+| `totalActivePlans` | 已开启的非事件驱动计划数量 |
+| `completedThisWeek` | 本周已完成次数 |
+| `expectedThisWeek` | 本周应完成次数 |
+| `weeklyRate` | 本周覆盖率，范围 `0.0~1.0` |
+| `currentStreak` | 连续达标周数，达标线为 80% |
+| `coverageLevel` | `excellent`、`good` 或 `needs_improvement` |
+
+### `CareCoverageDetail`
+
+`CareCoverageDetail.thisWeek` 返回本周每个固定周期计划的应完成、已完成和剩余次数；`weeklyPeriods` 返回近 6 周覆盖率，`monthlyPeriods` 返回近 6 个月覆盖率。页面只展示事实完成情况，不生成护理分。
+
+## 9. 提醒接口
 
 源文件：`lib/features/reminders/data/reminder_repository.dart`
 
@@ -612,6 +646,18 @@ Future<void> recalculateNextDue(String planId)
 |---|---|
 | `care_plan` | 来自护理计划 |
 | `manual` | 手动创建 |
+| `food` | 饮食 |
+| `water` | 饮水 |
+| `symptom` | 症状观察 |
+| `bath` | 洗澡 |
+| `oral` | 口腔护理 |
+| `combing` | 梳毛 |
+| `styling` | 美容 |
+| `nail` | 指甲检查或修剪 |
+| `ear` | 耳部观察或护理 |
+| `eye` | 眼部观察或护理 |
+| `paw` | 足爪检查或清洁 |
+| `environment` | 用品与环境清洁 |
 | `visit` | 来自就诊 |
 | `medication` | 来自用药 |
 | `vaccine` | 来自疫苗 |
@@ -625,10 +671,12 @@ Future<List<Reminder>> findForPet(...)
 Future<Reminder?> getById(String id)
 Future<int> count(String petId, {String? sourceType, bool? enabled})
 Stream<List<Reminder>> watchTodayReminders(String petId)
+Stream<List<Reminder>> watchPendingReminders(String petId)
 ```
 
 - 筛选、时间边界、排序和分页规则与健康记录一致。
-- `watchTodayReminders` 按本地自然日计算当天 `[00:00, 次日 00:00)`，再转换为 UTC 查询，返回启用且未暂停提醒。
+- `watchTodayReminders` 当前等同于 `watchPendingReminders`。
+- `watchPendingReminders` 返回所有已到期但未完成的提醒和今天内的提醒，逾期提醒不会跨天消失。
 
 ### 写入
 
@@ -645,7 +693,23 @@ Future<bool> delete(String id)
 - `create`：必须填写 `petId`、`sourceType`、`title`、`scheduledAt`。
 - `sourceType` 必须在支持列表中，`title` 不能为空。
 - `repeatRule` 如填写，必须符合下方重复规则格式；非法格式抛出 `FormatException`。
+- `completionMode` 必须是 `none`、`ask_record` 或 `auto_record`。
+- `completionTarget` 必须是 `health` 或 `care`。
+- 当 `completionMode != none` 时，必须提供对应的健康记录或护理记录模板字段。
 - `update` 要求目标已存在，否则抛出 `StateError`。
+
+### 完成提醒后的记录模板
+
+提醒可以只作为待办，也可以绑定完成后的记录动作：
+
+| 字段 | 含义 |
+|---|---|
+| `completionMode` | `none` 不生成记录；`ask_record` 完成时带入模板并让用户确认；`auto_record` 直接生成预填写记录 |
+| `completionTarget` | `health` 绑定健康记录；`care` 绑定护理记录 |
+| `recordType` / `recordTitle` / `recordNumericValue` / `recordUnit` / `recordNote` / `recordDetails` | 健康记录模板 |
+| `careType` / `carePlace` / `careNote` / `careDetails` | 护理记录模板 |
+
+`auto_record` 会校验对应记录类型的必填字段；护理记录模板不支持 `walk`，遛狗仍走开始/结束计时流程。
 
 ### 日志
 
@@ -667,12 +731,117 @@ Future<List<ReminderLog>> findLogs(String reminderId, {int? limit})
 | `daily` | 每天 |
 | `monthly` | 每月 |
 | `weekly:N` | 每周 N 次 |
+| `weekly_days:1,3,5` | 每周指定星期，1 表示周一，7 表示周日 |
 | `interval:Nd` | 每 N 天 |
 | `interval:Nw` | 每 N 周 |
 
 辅助类 `ReminderRepeatRule` 提供 `parse(raw)`、`format()` 和 `nextOccurrence(from)` 方法。
 
-## 9. 错误约定
+## 10. 系统通知与遛狗实时活动
+
+源文件：
+
+- `lib/core/notifications/notification_service.dart`
+- `lib/core/notifications/walk_live_activity_service.dart`
+
+系统通知不是数据源，只是提醒和遛狗状态的执行/展示通道。Repository 写入成功后，页面或控制器再调用通知服务。
+
+| 方法 | 用途 |
+|---|---|
+| `initialize()` | 非 Web 平台初始化本地通知、时区和通知响应回调 |
+| `requestPermissions()` | 请求 Android/iOS 通知权限和 Android 精确闹钟权限 |
+| `scheduleReminder(reminder)` / `cancelReminder(reminder)` | 调度或取消普通提醒通知 |
+| `scheduleCarePlanDue(...)` / `cancelCarePlanDue(planId)` | 调度或取消护理计划到期通知 |
+| `showCarePlanDueNow(...)` | App 前台时立即显示护理计划到期通知 |
+| `showWalkTimer(...)` / `cancelWalkTimer()` | 展示或关闭进行中遛狗通知；iOS 优先使用 Live Activity |
+| `walkLiveActivityService.getPendingFinish()` | App 恢复前台时读取从 iOS Live Activity 触发的结束遛狗请求 |
+
+边界：
+
+- Web 调试端不调度系统通知，但提醒数据仍会保存。
+- Live Activity 是最佳努力能力，失败时回退到普通本地通知。
+- 通知权限被拒绝时，写入 Repository 不应失败；页面需要提示用户去系统设置恢复权限。
+
+## 11. 本地健康动态接口
+
+源文件：
+
+- `lib/features/health_tips/application/health_tips_provider.dart`
+- `lib/features/health_tips/application/health_summary_provider.dart`
+- `lib/features/health_tips/application/health_dynamics_provider.dart`
+
+健康动态全部在本地计算，不调用网络和大语言模型。
+
+| Provider | 输入数据 | 输出 |
+|---|---|---|
+| `healthTipsProvider` | 当前狗狗档案、近 30 天健康记录、体重历史、护理计划和覆盖率 | `List<HealthTip>`，含类别、优先级、正文和出现原因 |
+| `healthSummaryProvider` | 近 30 天记录、30–60 天对比记录、体重历史和护理覆盖率 | `HealthSummary`，含体重、记录频次、护理、饮食和症状摘要 |
+| `healthDynamicsProvider` | 近 90 天记录、摘要上下文和建议上下文 | `HealthDynamics`，聚合摘要、优先洞察和建议 |
+
+输出原则：
+
+- 数据不足时返回空内容或数据质量提示，不生成诊断结论。
+- 每条建议带 `reason` 或 `evidence`，便于页面解释“为什么出现”。
+- 护理数据只作为上下文和完成情况，不自动推断疾病因果关系。
+
+## 12. 错误约定
+
+## 12. 本地知识库接口
+
+源文件：
+
+- `lib/core/knowledge/knowledge_database.dart`
+- `lib/features/knowledge/data/knowledge_repository.dart`
+
+本地知识库使用独立 `knowledge.sqlite`，与用户数据 `user.sqlite` 分离。当前定位是离线参考手册：帮助用户观察、记录、护理和准备就医；不参与 AI 问答，不提供诊断、处方、剂量或治疗方案。
+
+### 数据表
+
+| 表 | 用途 |
+|---|---|
+| `knowledge_articles` | 知识文章正文、分类、风险等级、上下文关联和 JSON 列表字段 |
+| `knowledge_sources` | 来源标题、机构、URL、访问日期和许可说明 |
+| `knowledge_article_sources` | 文章与来源的多对多关系 |
+| `knowledge_versions` | 本地知识包版本、地区和说明 |
+
+### Repository
+
+```dart
+Future<List<String>> listCategories()
+Future<List<KnowledgeArticle>> findArticles({
+  String? category,
+  String keyword = '',
+  int limit = 80,
+})
+Future<KnowledgeArticle?> getArticle(String id)
+Future<List<KnowledgeArticle>> findRelated({
+  required String contextKey,
+  int limit = 3,
+})
+Future<List<KnowledgeSource>> sourcesForArticle(String articleId)
+```
+
+`contextKey` 用于 App 内轻联动，例如：
+
+| 场景 | contextKey |
+|---|---|
+| 饮水记录或饮水动态 | `record.water` |
+| 体重趋势 | `record.weight` |
+| 消化相关健康动态 | `health_dynamics.digestive` |
+| 口腔护理计划 | `care.oral` |
+| 耳部观察计划 | `care.ear` |
+| 足爪检查计划 | `care.paw` |
+| 疫苗提醒 | `reminder.vaccine` |
+| 驱虫提醒 | `reminder.deworming` |
+| 幼犬/成年/老年生命周期 | `life_stage.puppy`、`life_stage.adult`、`life_stage.senior` |
+| 小型犬/大型犬体型差异 | `breed.small`、`breed.large` |
+| 常见犬种差异 | `breed.golden_retriever`、`breed.labrador_retriever`、`breed.poodle`、`breed.border_collie`、`breed.dachshund`、`breed.husky` |
+| 短鼻犬夏季照护 | `breed.brachycephalic`、`season.summer` |
+| 四季照护 | `season.spring`、`season.summer`、`season.autumn`、`season.winter` |
+
+当前搜索使用标题、摘要、正文和标签的简单本地匹配；FTS5、知识包替换和更多审核条目后续补充。
+
+## 13. 错误约定
 
 | 错误 | 情况 | 前端处理 |
 |---|---|---|
@@ -683,7 +852,7 @@ Future<List<ReminderLog>> findLogs(String reminderId, {int? limit})
 
 所有写操作返回的 `Future` 必须等待完成后再关闭表单。数据库写入失败时不要先在 UI 中显示“保存成功”。
 
-## 10. 自动化测试
+## 14. 自动化测试
 
 安装依赖并生成数据库代码：
 
@@ -709,11 +878,14 @@ flutter test test/features/records/health_record_repository_test.dart
 flutter test test/features/care/care_repository_test.dart
 flutter test test/features/care/care_plan_controller_test.dart
 flutter test test/features/reminders/reminder_repository_test.dart
+flutter test test/features/health_tips/health_tips_engine_test.dart
+flutter test test/features/health_tips/health_summary_engine_test.dart
+flutter test test/features/health_tips/health_dynamics_engine_test.dart
 ```
 
 测试使用内存 SQLite，不会污染手机、模拟器或浏览器中的真实数据。
 
-## 11. 手工验收
+## 15. 手工验收
 
 1. 执行 `flutter run -d chrome` 或连接手机运行。
 2. 打开“狗狗”，创建第一只狗狗；确认占位页面变成狗狗卡片。

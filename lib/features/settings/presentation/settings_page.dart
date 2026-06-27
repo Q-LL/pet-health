@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/page_frame.dart';
 import '../data/app_settings_repository.dart';
@@ -57,10 +58,19 @@ class SettingsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           const SectionHeader('知识与隐私'),
-          const _SettingsGroup(
+          _SettingsGroup(
             children: [
-              _SettingsTile(Icons.menu_book_outlined, '本地知识库', '离线搜索护理与药品基础信息'),
-              _SettingsTile(Icons.shield_outlined, '权限与隐私', '数据默认保存在当前设备'),
+              _SettingsTile(
+                Icons.menu_book_outlined,
+                '本地知识库',
+                '离线查看观察、记录、护理和就医准备',
+                onTap: () => context.push('/settings/knowledge'),
+              ),
+              const _SettingsTile(
+                Icons.shield_outlined,
+                '权限与隐私',
+                '数据默认保存在当前设备',
+              ),
             ],
           ),
           const SizedBox(height: 24),
