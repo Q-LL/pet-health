@@ -6,6 +6,7 @@ import '../features/care/presentation/care_coverage_page.dart';
 import '../features/care/presentation/care_plans_page.dart';
 import '../features/health_tips/presentation/health_dynamics_page.dart';
 import '../features/home/presentation/home_page.dart';
+import '../features/knowledge/presentation/knowledge_page.dart';
 import '../features/notifications/presentation/notification_center_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
@@ -72,7 +73,24 @@ final appRouter = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
+            GoRoute(
+              path: '/settings',
+              builder: (_, _) => const SettingsPage(),
+              routes: [
+                GoRoute(
+                  path: 'knowledge',
+                  builder: (_, _) => const KnowledgePage(),
+                  routes: [
+                    GoRoute(
+                      path: ':articleId',
+                      builder: (_, state) => KnowledgeArticlePage(
+                        articleId: state.pathParameters['articleId']!,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ],

@@ -10,6 +10,7 @@ import '../../records/presentation/add_record_sheet.dart';
 import '../domain/care_activity_spec.dart';
 import '../domain/care_models.dart';
 import '../domain/care_plan_models.dart';
+import '../../knowledge/presentation/related_knowledge_link.dart';
 
 class CarePlansPage extends ConsumerStatefulWidget {
   const CarePlansPage({super.key});
@@ -201,6 +202,8 @@ class _SuggestionCard extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              RelatedKnowledgeLink(contextKey: 'care.${candidate.iconKey}'),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -357,6 +360,10 @@ class _EnabledPlanCardState extends ConsumerState<_EnabledPlanCard> {
                   icon: const Icon(Icons.tune_rounded),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            RelatedKnowledgeLink(
+              contextKey: 'care.${widget.candidate.iconKey}',
             ),
             const SizedBox(height: 14),
             Wrap(

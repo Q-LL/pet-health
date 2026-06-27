@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/health_tips_provider.dart';
 import '../domain/health_tip.dart';
+import '../../knowledge/presentation/related_knowledge_link.dart';
 
 /// 健康动态卡片区域，替换首页的 _ActivityCard + _InsightCard。
 class HealthTipsCard extends ConsumerWidget {
@@ -114,7 +115,7 @@ class _TipsListState extends State<_TipsList> {
 }
 
 const double _cardWidth = 300;
-const double _cardHeight = 196;
+const double _cardHeight = 230;
 
 class _TipCard extends StatelessWidget {
   const _TipCard({required this.tip, required this.onDismiss});
@@ -247,10 +248,131 @@ class _TipCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          RelatedKnowledgeLink(
+            contextKey: _contextKeyForTip(tip),
+            compact: true,
+          ),
         ],
       ),
     );
   }
+}
+
+String _contextKeyForTip(HealthTip tip) {
+  // ─── 数据洞察：按具体 id 精准映射 ─────────────────────────────────────
+  if (tip.category == 'data_insight') {
+    return switch (tip.id) {
+      'insight_stool_abnormal' => 'record.elimination',
+      'insight_urine_abnormal' => 'record.elimination',
+      'insight_water_change' => 'health_dynamics.water_change',
+      'insight_water_urine_cluster' => 'health_dynamics.water_change',
+      'insight_symptom_frequent' => 'record.symptom',
+      'insight_diet_sparse' => 'record.food',
+      'insight_digestive_cluster' => 'health_dynamics.digestive',
+      'insight_weight_up' || 'insight_weight_down' => 'health_dynamics.weight_change',
+      'insight_coverage_low' => 'health_dynamics.general',
+      'insight_record_gap' => 'health_dynamics.general',
+      'insight_positive_routine' => 'health_dynamics.general',
+      _ => 'health_dynamics.general',
+    };
+  }
+
+  // ─── 生命阶段 ────────────────────────────────────────────────────────────
+  if (tip.id.contains('puppy') || tip.title.contains('幼犬')) {
+    return 'life_stage.puppy';
+  }
+  if (tip.id.contains('senior') ||
+      tip.title.contains('老年') ||
+      tip.title.contains('高龄')) {
+    return 'life_stage.senior';
+  }
+  if (tip.category == 'life_stage') return 'health_dynamics.life_stage';
+
+  // ─── 季节 ────────────────────────────────────────────────────────────────
+  if (tip.id.contains('spring') || tip.title.contains('春')) {
+    return 'season.spring';
+  }
+  if (tip.id.contains('summer') ||
+      tip.title.contains('夏') ||
+      tip.title.contains('高温')) {
+    return 'season.summer';
+  }
+  if (tip.id.contains('autumn') || tip.title.contains('秋')) {
+    return 'season.autumn';
+  }
+  if (tip.id.contains('winter') || tip.title.contains('冬')) {
+    return 'season.winter';
+  }
+
+  // ─── 品种 ────────────────────────────────────────────────────────────────
+  if (tip.id.contains('retriever') ||
+      tip.title.contains('金毛') ||
+      tip.title.contains('拉布拉多')) {
+    return 'breed.golden_retriever';
+  }
+  if (tip.id.contains('poodle') ||
+      tip.title.contains('贵宾') ||
+      tip.title.contains('泰迪')) {
+    return 'breed.poodle';
+  }
+  if (tip.id.contains('border_collie') || tip.title.contains('边牧')) {
+    return 'breed.border_collie';
+  }
+  if (tip.id.contains('dachshund') || tip.title.contains('腊肠')) {
+    return 'breed.dachshund';
+  }
+  if (tip.id.contains('husky') || tip.title.contains('哈士奇')) {
+    return 'breed.husky';
+  }
+  if (tip.id.contains('brachycephalic') ||
+      tip.title.contains('短鼻') ||
+      tip.title.contains('法斗') ||
+      tip.title.contains('巴哥')) {
+    return 'breed.brachycephalic';
+  }
+  if (tip.id.contains('small')) return 'breed.small';
+  if (tip.id.contains('large')) return 'breed.large';
+
+  // ─── 记录类型 ────────────────────────────────────────────────────────────
+  if (tip.id.contains('water') || tip.title.contains('饮水')) {
+    return 'record.water';
+  }
+  if (tip.id.contains('weight') || tip.title.contains('体重')) {
+    return 'record.weight';
+  }
+  if (tip.id.contains('digestive') ||
+      tip.title.contains('消化') ||
+      tip.title.contains('食欲')) {
+    return 'health_dynamics.digestive';
+  }
+  if (tip.id.contains('deworm') || tip.title.contains('驱虫')) {
+    return 'reminder.deworming';
+  }
+  if (tip.id.contains('vaccine') || tip.title.contains('疫苗')) {
+    return 'reminder.vaccine';
+  }
+
+  // ─── 护理类型 ────────────────────────────────────────────────────────────
+  if (tip.title.contains('口腔') || tip.title.contains('牙')) return 'care.oral';
+  if (tip.title.contains('耳')) return 'care.ear';
+  if (tip.title.contains('梳毛') || tip.title.contains('换毛')) {
+    return 'care.combing';
+  }
+  if (tip.title.contains('指甲') || tip.title.contains('修甲')) {
+    return 'care.nail';
+  }
+  if (tip.title.contains('眼')) return 'care.eye';
+  if (tip.title.contains('足') || tip.title.contains('爪') ||
+      tip.title.contains('遛狗')) {
+    return 'care.paw';
+  }
+  if (tip.title.contains('洗澡')) return 'care.bath';
+
+  // ─── 季节类型兜底 ────────────────────────────────────────────────────────
+  if (tip.category == 'seasonal') return 'season.summer';
+
+  return 'health_dynamics.general';
 }
 
 class _TipColorScheme {

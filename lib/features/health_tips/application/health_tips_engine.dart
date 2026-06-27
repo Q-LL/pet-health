@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
 import '../domain/breed_health_risks.dart';
 import '../domain/data_insight_tips.dart';
 import '../domain/health_tip.dart';
@@ -220,7 +222,7 @@ class HealthTipsEngine {
         ? breed.trim()
         : '狗狗';
 
-    return [
+    final tips = <HealthTip>[
       HealthTip(
         id: 'breed_${risk.name.hashCode}',
         category: 'breed',
@@ -233,6 +235,93 @@ class HealthTipsEngine {
             : '所有犬种都有常见的健康风险需要关注。',
       ),
     ];
+
+    final trait = _breedTraitTip(ctx, breedLabel, daySeed);
+    if (trait != null) tips.add(trait);
+    return tips;
+  }
+
+  HealthTip? _breedTraitTip(
+    HealthTipsContext ctx,
+    String breedLabel,
+    int daySeed,
+  ) {
+    // 固定日期 seed，避免每天频繁变动；约三天出现一次。
+    if (daySeed % 3 != 0) return null;
+    final breed = ctx.pet.breed?.trim() ?? '';
+    final species = ctx.pet.species?.trim() ?? '';
+
+    ({String id, String title, String body, String reason})? trait;
+    if (breed.contains('金毛') || breed.contains('拉布拉多')) {
+      trait = (
+        id: 'breed_trait_retriever',
+        title: '$breedLabel 的小特点：热情也爱吃',
+        body: '寻回犬常见特点是亲人、乐于互动、食欲好。把零食、运动和体重一起记录，会更容易看出节奏。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (breed.contains('贵宾') || breed.contains('泰迪')) {
+      trait = (
+        id: 'breed_trait_poodle',
+        title: '$breedLabel 的小特点：聪明又需要梳理',
+        body: '贵宾犬通常学习快、互动需求高，卷毛也更需要规律梳理和耳部观察。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (breed.contains('边牧') || breed.contains('边境')) {
+      trait = (
+        id: 'breed_trait_border_collie',
+        title: '$breedLabel 的小特点：脑力运动很重要',
+        body: '边牧常常需要任务感和嗅闻训练。只散步不一定够，可以记录哪些活动后更安定。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (breed.contains('腊肠')) {
+      trait = (
+        id: 'breed_trait_dachshund',
+        title: '$breedLabel 的小特点：长背短腿要护腰',
+        body: '腊肠犬日常要减少频繁跳上跳下，体重和活动变化也值得持续记录。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (breed.contains('哈士奇')) {
+      trait = (
+        id: 'breed_trait_husky',
+        title: '$breedLabel 的小特点：精力和天气都要看',
+        body: '哈士奇通常精力旺盛，但耐寒不等于耐热。夏天运动安排要更保守。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (breed.contains('法斗') ||
+        breed.contains('法国斗牛') ||
+        breed.contains('巴哥')) {
+      trait = (
+        id: 'breed_trait_brachycephalic',
+        title: '$breedLabel 的小特点：热天要更谨慎',
+        body: '短鼻犬在高温和剧烈运动后更容易喘。热天建议缩短外出并记录恢复时间。',
+        reason: '基于用户填写的犬种资料。',
+      );
+    } else if (species.contains('小型')) {
+      trait = (
+        id: 'breed_trait_small',
+        title: '小型犬的小特点：成熟早，也要管体重',
+        body: '小型犬通常成熟较早，口腔护理、体重和冬季保暖都值得放进日常计划。',
+        reason: '基于用户填写的体型资料。',
+      );
+    } else if (species.contains('大型') || species.contains('巨型')) {
+      trait = (
+        id: 'breed_trait_large',
+        title: '大型犬的小特点：成长慢，关节更要稳',
+        body: '大型犬成熟期更长，体重、运动和起身上下楼状态都值得持续观察。',
+        reason: '基于用户填写的体型资料。',
+      );
+    }
+
+    if (trait == null) return null;
+    return HealthTip(
+      id: trait.id,
+      category: 'breed',
+      priority: 'low',
+      icon: Icons.psychology_alt_outlined,
+      title: trait.title,
+      body: trait.body,
+      reason: trait.reason,
+    );
   }
 
   // ─── 工具方法 ──────────────────────────────────────────────────────────────
