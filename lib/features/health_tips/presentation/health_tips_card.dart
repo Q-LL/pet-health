@@ -270,7 +270,8 @@ String _contextKeyForTip(HealthTip tip) {
       'insight_symptom_frequent' => 'record.symptom',
       'insight_diet_sparse' => 'record.food',
       'insight_digestive_cluster' => 'health_dynamics.digestive',
-      'insight_weight_up' || 'insight_weight_down' => 'health_dynamics.weight_change',
+      'insight_weight_up' ||
+      'insight_weight_down' => 'health_dynamics.weight_change',
       'insight_coverage_low' => 'health_dynamics.general',
       'insight_record_gap' => 'health_dynamics.general',
       'insight_positive_routine' => 'health_dynamics.general',
@@ -363,7 +364,8 @@ String _contextKeyForTip(HealthTip tip) {
     return 'care.nail';
   }
   if (tip.title.contains('眼')) return 'care.eye';
-  if (tip.title.contains('足') || tip.title.contains('爪') ||
+  if (tip.title.contains('足') ||
+      tip.title.contains('爪') ||
       tip.title.contains('遛狗')) {
     return 'care.paw';
   }
