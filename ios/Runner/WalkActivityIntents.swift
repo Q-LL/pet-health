@@ -26,6 +26,11 @@ struct EndWalkIntent: LiveActivityIntent {
   func perform() async throws -> some IntentResult {
     let endedAt = Date()
 
+    // Persist the stop immediately. Flutter reconciles this timestamp into the
+    // local database the next time the app is active; recording details is a
+    // separate, optional action.
+    WalkLiveActivityStore.markPendingFinish(startedAt: startedAt, endedAt: endedAt)
+
     for activity in Activity<WalkActivityAttributes>.activities {
       var updatedState = activity.content.state
       updatedState.endedAt = endedAt

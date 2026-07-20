@@ -47,7 +47,9 @@ class CareController extends Notifier<CareState> {
     required String place,
   }) async {
     final repository = ref.read(careRepositoryProvider);
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final record = await repository.recordBath(
       petId: petId,
       occurredAt: occurredAt,
@@ -59,19 +61,27 @@ class CareController extends Notifier<CareState> {
   Future<void> startWalk({DateTime? at}) async {
     if (state.activeWalkStartedAt != null) return;
     final repository = ref.read(careRepositoryProvider);
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final startedAt = await repository.startWalk(petId: petId, at: at);
     state = state.copyWith(activeWalkStartedAt: startedAt);
     await notificationService.showWalkTimer(startedAt: startedAt);
   }
 
-  Future<WalkRecord?> finishWalk({required String place, DateTime? at}) async {
+  Future<WalkRecord?> finishWalk({
+    DateTime? at,
+    DateTime? expectedStartedAt,
+  }) async {
     final repository = ref.read(careRepositoryProvider);
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final record = await repository.finishWalk(
       petId: petId,
-      place: place,
+      place: '',
       at: at,
+      expectedStartedAt: expectedStartedAt,
     );
     if (record == null) return null;
 
@@ -81,5 +91,23 @@ class CareController extends Notifier<CareState> {
     );
     await notificationService.cancelWalkTimer();
     return record;
+  }
+
+  Future<WalkRecord> updateWalkDetails(
+    WalkRecord record, {
+    required String place,
+    String note = '',
+  }) async {
+    await ref.read(petRepositoryProvider).requireSelectedRealPetId();
+    final updated = await ref
+        .read(careRepositoryProvider)
+        .updateWalkDetails(id: record.id, place: place, note: note);
+    state = state.copyWith(
+      walks: [
+        for (final walk in state.walks)
+          if (walk.id == updated.id) updated else walk,
+      ],
+    );
+    return updated;
   }
 }

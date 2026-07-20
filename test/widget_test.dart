@@ -6,10 +6,12 @@ import 'package:pet_health/app/app.dart';
 import 'package:pet_health/app/router.dart';
 import 'package:pet_health/core/database/app_database.dart';
 import 'package:pet_health/core/database/database_provider.dart';
+import 'package:pet_health/features/care/application/care_controller.dart';
 import 'package:pet_health/features/care/data/care_plan_repository.dart';
 import 'package:pet_health/features/care/data/care_repository.dart';
 import 'package:pet_health/features/care/domain/care_plan_models.dart';
 import 'package:pet_health/features/pets/data/pet_repository.dart';
+import 'package:pet_health/features/pets/domain/pet_profile.dart';
 import 'package:pet_health/features/reminders/data/reminder_repository.dart';
 import 'package:pet_health/features/reminders/domain/reminder_models.dart';
 
@@ -30,26 +32,103 @@ void main() {
 
   Future<void> disposeTestApp(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the five primary destinations', (tester) async {
+  testWidgets('shows four destinations and a separate record action', (
+    tester,
+  ) async {
     await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
     expect(find.text('首页'), findsOneWidget);
     expect(find.text('日历'), findsOneWidget);
-    expect(find.text('记录'), findsOneWidget);
     expect(find.text('狗狗'), findsOneWidget);
     expect(find.text('设置'), findsOneWidget);
+    expect(find.byTooltip('新增记录'), findsOneWidget);
     expect(find.text('毛健康'), findsAtLeastNWidgets(1));
+    expect(find.text('创建档案'), findsOneWidget);
+    expect(find.text('快速记录'), findsNothing);
+    expect(find.text('日常护理'), findsNothing);
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('blocks record creation until a real pet exists', (tester) async {
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
+
+    expect(find.text('先创建狗狗档案'), findsOneWidget);
+    expect(find.byTooltip('新增记录'), findsNothing);
+    expect(find.text('新增记录'), findsNothing);
+    await tester.tap(find.text('暂不创建'));
+    await tester.pumpAndSettle();
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('shows the record action only on the unobstructed home root', (
+    tester,
+  ) async {
+    await PetRepository(database).create(const PetDraft(name: '团子'));
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('新增记录'), findsOneWidget);
+    await tester.tap(find.byTooltip('新增记录'));
+    await tester.pumpAndSettle();
+    expect(find.text('新增记录'), findsOneWidget);
+    expect(find.byTooltip('新增记录'), findsNothing);
+
+    await tester.tapAt(const Offset(8, 8));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('新增记录'), findsOneWidget);
+
+    appRouter.go('/home/reminders');
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('新增记录'), findsNothing);
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('shows an honest empty state for memories', (tester) async {
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('日历'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('爱宠时光'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('还没有成长时光'), findsOneWidget);
+    expect(find.text('第一次体检'), findsNothing);
+    expect(find.text('来到家里'), findsNothing);
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('keeps the real-profile home layout stable at 375px', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await PetRepository(database).create(const PetDraft(name: '团子'));
+
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('团子'), findsOneWidget);
+    expect(find.text('今天'), findsOneWidget);
     expect(find.text('快速记录'), findsOneWidget);
     expect(find.text('日常护理'), findsOneWidget);
-    expect(find.text('一键开始遛狗'), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await disposeTestApp(tester);
   });
 
   testWidgets('starts an active walk from the care card', (tester) async {
+    await PetRepository(database).create(const PetDraft(name: '团子'));
     await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
@@ -61,12 +140,53 @@ void main() {
 
     expect(find.text('正在遛狗'), findsOneWidget);
     expect(find.text('结束遛狗'), findsAtLeastNWidgets(1));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold).first),
+      listen: false,
+    );
+    await container.read(careControllerProvider.notifier).finishWalk();
+    await tester.pumpAndSettle();
+    await disposeTestApp(tester);
+  });
+
+  testWidgets('stops a walk before optional details are confirmed', (
+    tester,
+  ) async {
+    await PetRepository(database).create(const PetDraft(name: '团子'));
+    await tester.pumpWidget(testApp());
+    await tester.pumpAndSettle();
+
+    final startWalk = find.text('一键开始遛狗');
+    await tester.ensureVisible(startWalk);
+    await tester.pumpAndSettle();
+    await tester.tap(startWalk);
+    await tester.pumpAndSettle();
+
+    final stopWalk = find.text('结束遛狗').last;
+    await tester.ensureVisible(stopWalk);
+    await tester.pumpAndSettle();
+    await tester.tap(stopWalk);
+    await tester.pumpAndSettle();
+
+    expect(find.text('遛狗已结束'), findsOneWidget);
+    expect(find.text('稍后填写'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold).first),
+      listen: false,
+    );
+    expect(container.read(careControllerProvider).activeWalkStartedAt, isNull);
+    expect(container.read(careControllerProvider).lastWalk, isNotNull);
+
+    await tester.tap(find.text('稍后填写'));
+    await tester.pumpAndSettle();
+    expect(container.read(careControllerProvider).activeWalkStartedAt, isNull);
     await disposeTestApp(tester);
   });
 
   testWidgets('opens a care suggestion and enables it explicitly', (
     tester,
   ) async {
+    await PetRepository(database).create(const PetDraft(name: '团子'));
     await tester.pumpWidget(testApp());
     await tester.pumpAndSettle();
 
@@ -128,7 +248,7 @@ void main() {
 
   testWidgets('opens the care coverage detail page from home', (tester) async {
     final petId = await CareRepository(database).ensureDefaultPet();
-    await PetRepository(database).selectPet(petId);
+    await PetRepository(database).create(const PetDraft(name: '团子'));
     await CarePlanRepository(database).create(
       CarePlanDraft(
         petId: petId,
@@ -155,7 +275,7 @@ void main() {
 
   testWidgets('shows today reminders and completes one', (tester) async {
     final petId = await CareRepository(database).ensureDefaultPet();
-    await PetRepository(database).selectPet(petId);
+    await PetRepository(database).create(const PetDraft(name: '团子'));
     final now = DateTime.now();
     await ReminderRepository(database).create(
       ReminderDraft(

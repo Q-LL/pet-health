@@ -11,9 +11,12 @@ import '../../pets/data/pet_repository.dart';
 import '../data/health_record_repository.dart';
 import '../domain/health_record.dart';
 import '../domain/health_record_spec.dart';
+import 'record_entry_guard.dart';
+import 'record_sheet_components.dart';
 
-Future<void> showAddRecordSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+Future<void> showAddRecordSheet(BuildContext context) async {
+  if (!await requireRealPetProfile(context) || !context.mounted) return;
+  await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     showDragHandle: true,
@@ -32,8 +35,9 @@ Future<void> showHealthRecordSheet(
   HealthRecord? record,
   HealthRecordPrefill? prefill,
   Future<void> Function(HealthRecord record)? afterSave,
-}) {
-  return showModalBottomSheet<void>(
+}) async {
+  if (!await requireRealPetProfile(context) || !context.mounted) return;
+  await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -53,8 +57,9 @@ Future<void> showCareActivitySheet(
   CareActivityPrefill? prefill,
   Future<CareActivity?> Function(CareActivityDraft draft)? beforeSave,
   Future<void> Function(CareActivity activity)? afterSave,
-}) {
-  return showModalBottomSheet<void>(
+}) async {
+  if (!await requireRealPetProfile(context) || !context.mounted) return;
+  await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -68,8 +73,9 @@ Future<void> showCareActivitySheet(
   );
 }
 
-Future<void> showWalkRecordSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+Future<void> showWalkRecordSheet(BuildContext context) async {
+  if (!await requireRealPetProfile(context) || !context.mounted) return;
+  await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -93,7 +99,7 @@ void _showGroomingChoiceSheet(BuildContext context) {
       duration: AppMotion.medium,
       reverseDuration: AppMotion.fast,
     ),
-    builder: (context) => _RecordSheetFrame(
+    builder: (context) => RecordSheetFrame(
       title: '梳毛 / 美容',
       subtitle: '选择本次护理类型',
       child: Column(
@@ -154,7 +160,7 @@ class _AddRecordSheet extends ConsumerWidget {
       for (final key in healthOrder)
         if (healthRecordLabels.containsKey(key))
           (
-            icon: _healthIcon(key),
+            icon: healthRecordIcon(key),
             label: healthRecordLabels[key]!,
             action: () {
               Navigator.pop(context);
@@ -191,7 +197,7 @@ class _AddRecordSheet extends ConsumerWidget {
             key != 'combing' &&
             key != 'styling')
           (
-            icon: _careIcon(key),
+            icon: careRecordIcon(key),
             label: key == 'walk' && isWalking
                 ? '结束遛狗'
                 : careActivityLabels[key]!,
@@ -353,7 +359,7 @@ class _WalkRecordChoiceSheet extends ConsumerWidget {
       ),
     );
     final colors = Theme.of(context).colorScheme;
-    return _RecordSheetFrame(
+    return RecordSheetFrame(
       title: isWalking ? '正在遛狗' : '添加遛狗记录',
       subtitle: isWalking
           ? '当前有一段正在计时的遛狗，可以直接结束并保存。'
@@ -518,7 +524,9 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
     if (!_formKey.currentState!.validate() || _saving) return;
     setState(() => _saving = true);
     try {
-      final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+      final petId = await ref
+          .read(petRepositoryProvider)
+          .requireSelectedRealPetId();
       final spec = healthRecordSpecFor(_type);
       final numericValue = spec.hasNumericValue
           ? double.tryParse(_value.text.trim())
@@ -559,7 +567,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
   @override
   Widget build(BuildContext context) {
     final spec = healthRecordSpecFor(_type);
-    return _RecordSheetFrame(
+    return RecordSheetFrame(
       title: widget.record == null ? '新增健康记录' : '编辑健康记录',
       child: Form(
         key: _formKey,
@@ -648,7 +656,7 @@ class _HealthRecordSheetState extends ConsumerState<_HealthRecordSheet> {
               ),
             ],
             const SizedBox(height: 12),
-            _DateTimeField(
+            RecordDateTimeField(
               value: _occurredAt,
               onChanged: (value) => setState(() => _occurredAt = value),
             ),
@@ -872,7 +880,9 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
     if (!_formKey.currentState!.validate() || _saving) return;
     setState(() => _saving = true);
     try {
-      final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+      final petId = await ref
+          .read(petRepositoryProvider)
+          .requireSelectedRealPetId();
       final isWalk = _type == 'walk';
       final bathAtHome =
           _type == 'bath' && _detailControllers['method']?.text == '家里洗澡';
@@ -926,7 +936,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
     final typeEntries = careActivityLabels.entries.where(
       (entry) => entry.key != 'walk' || widget.initialType == 'walk',
     );
-    return _RecordSheetFrame(
+    return RecordSheetFrame(
       title: widget.activity == null ? '新增护理记录' : '编辑护理记录',
       child: Form(
         key: _formKey,
@@ -948,13 +958,13 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
             ),
             const SizedBox(height: 12),
             if (showWalkFields) ...[
-              _DateTimeField(
+              RecordDateTimeField(
                 label: '开始时间',
                 value: _startedAt,
                 onChanged: (value) => setState(() => _startedAt = value),
               ),
               const SizedBox(height: 12),
-              _DateTimeField(
+              RecordDateTimeField(
                 label: '结束时间',
                 value: _endedAt,
                 onChanged: (value) => setState(() => _endedAt = value),
@@ -967,7 +977,7 @@ class _CareActivitySheetState extends ConsumerState<_CareActivitySheet> {
                 ),
               ],
             ] else
-              _DateTimeField(
+              RecordDateTimeField(
                 value: _occurredAt,
                 onChanged: (value) => setState(() => _occurredAt = value),
               ),
@@ -1164,109 +1174,3 @@ class _CareDetailFieldState extends State<_CareDetailField> {
     );
   }
 }
-
-class _DateTimeField extends StatelessWidget {
-  const _DateTimeField({
-    required this.value,
-    required this.onChanged,
-    this.label = '发生时间',
-  });
-
-  final DateTime value;
-  final ValueChanged<DateTime> onChanged;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => OutlinedButton.icon(
-    onPressed: () async {
-      final date = await showDatePicker(
-        context: context,
-        initialDate: value,
-        firstDate: DateTime(2020),
-        lastDate: DateTime.now(),
-      );
-      if (date == null || !context.mounted) return;
-      final time = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(value),
-      );
-      if (time == null) return;
-      onChanged(
-        DateTime(date.year, date.month, date.day, time.hour, time.minute),
-      );
-    },
-    icon: const Icon(Icons.schedule_rounded),
-    label: Text('$label：${_formatDateTime(value)}'),
-  );
-}
-
-class _RecordSheetFrame extends StatelessWidget {
-  const _RecordSheetFrame({
-    required this.title,
-    required this.child,
-    this.subtitle,
-  });
-
-  final String title;
-  final Widget child;
-  final String? subtitle;
-
-  @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    padding: EdgeInsets.fromLTRB(
-      20,
-      4,
-      20,
-      24 + MediaQuery.viewInsetsOf(context).bottom,
-    ),
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 6),
-          Text(
-            subtitle ?? '记录会保存在当前狗狗的本地档案中。',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 20),
-          child,
-        ],
-      ),
-    ),
-  );
-}
-
-IconData _healthIcon(String type) => switch (type) {
-  'weight' => Icons.monitor_weight_outlined,
-  'food' => Icons.restaurant_outlined,
-  'water' => Icons.water_drop_rounded,
-  'elimination' => Icons.wc_outlined,
-  'symptom' => Icons.healing_outlined,
-  'medication' => Icons.medication_outlined,
-  'vaccine' => Icons.vaccines_outlined,
-  'deworming' => Icons.bug_report_outlined,
-  _ => Icons.note_add_outlined,
-};
-
-IconData _careIcon(String type) => switch (type) {
-  'bath' => Icons.bathtub_outlined,
-  'walk' => Icons.directions_walk_rounded,
-  'oral' => Icons.medical_services_outlined,
-  'combing' => Icons.brush_outlined,
-  'styling' => Icons.content_cut_rounded,
-  'nail' => Icons.back_hand_outlined,
-  'ear' => Icons.hearing_outlined,
-  'eye' => Icons.visibility_outlined,
-  'paw' => Icons.pets_outlined,
-  'environment' => Icons.cleaning_services_outlined,
-  'deworming' => Icons.bug_report_outlined,
-  _ => Icons.note_add_outlined,
-};
-
-String _formatDateTime(DateTime date) =>
-    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
-    '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';

@@ -260,9 +260,12 @@ class _TipCard extends StatelessWidget {
 }
 
 String _contextKeyForTip(HealthTip tip) {
+  final id = tip.id;
+  final title = tip.title;
+
   // ─── 数据洞察：按具体 id 精准映射 ─────────────────────────────────────
   if (tip.category == 'data_insight') {
-    return switch (tip.id) {
+    return switch (id) {
       'insight_stool_abnormal' => 'record.elimination',
       'insight_urine_abnormal' => 'record.elimination',
       'insight_water_change' => 'health_dynamics.water_change',
@@ -270,111 +273,138 @@ String _contextKeyForTip(HealthTip tip) {
       'insight_symptom_frequent' => 'record.symptom',
       'insight_diet_sparse' => 'record.food',
       'insight_digestive_cluster' => 'health_dynamics.digestive',
-      'insight_weight_up' ||
-      'insight_weight_down' => 'health_dynamics.weight_change',
-      'insight_coverage_low' => 'health_dynamics.general',
-      'insight_record_gap' => 'health_dynamics.general',
-      'insight_positive_routine' => 'health_dynamics.general',
+      'insight_weight_up' || 'insight_weight_down' =>
+        'health_dynamics.weight_change',
+      'insight_coverage_low' => 'health_dynamics.care_plan',
+      'insight_record_gap' => 'health_dynamics.tracking',
+      'insight_positive_routine' => 'health_dynamics.tracking',
       _ => 'health_dynamics.general',
     };
   }
 
-  // ─── 生命阶段 ────────────────────────────────────────────────────────────
-  if (tip.id.contains('puppy') || tip.title.contains('幼犬')) {
-    return 'life_stage.puppy';
-  }
-  if (tip.id.contains('senior') ||
-      tip.title.contains('老年') ||
-      tip.title.contains('高龄')) {
-    return 'life_stage.senior';
-  }
-  if (tip.category == 'life_stage') return 'health_dynamics.life_stage';
+  // ─── 品种风险：按标题中的品种名匹配 ─────────────────────────────────────
+  // breed risk tips 使用 hash ID（breed_xxx.hashCode），无法从 ID 推断品种，
+  // 因此必须通过标题关键词匹配。
+  final breedContextKey = _matchBreedInTitle(title);
+  if (breedContextKey != null) return breedContextKey;
 
-  // ─── 季节 ────────────────────────────────────────────────────────────────
-  if (tip.id.contains('spring') || tip.title.contains('春')) {
-    return 'season.spring';
+  // ─── 品种风险关键词（标题中无品种名时的通用风险匹配）───────────────────
+  if (title.contains('关节') || title.contains('髋')) return 'breed.large';
+  if (title.contains('肿瘤')) return 'breed.golden_retriever';
+  if (title.contains('心脏')) return 'breed.large';
+  if (title.contains('肥胖')) return 'record.weight';
+  if (title.contains('耳部') || title.contains('耳朵')) return 'care.ear';
+  if (title.contains('脊椎') || title.contains('脊柱')) return 'breed.large';
+  if (title.contains('消化')) return 'health_dynamics.digestive';
+  if (title.contains('膝盖')) return 'breed.small';
+  if (title.contains('牙周') || title.contains('牙齿') || title.contains('口腔')) {
+    return 'care.oral';
   }
-  if (tip.id.contains('summer') ||
-      tip.title.contains('夏') ||
-      tip.title.contains('高温')) {
-    return 'season.summer';
-  }
-  if (tip.id.contains('autumn') || tip.title.contains('秋')) {
-    return 'season.autumn';
-  }
-  if (tip.id.contains('winter') || tip.title.contains('冬')) {
-    return 'season.winter';
-  }
-
-  // ─── 品种 ────────────────────────────────────────────────────────────────
-  if (tip.id.contains('retriever') ||
-      tip.title.contains('金毛') ||
-      tip.title.contains('拉布拉多')) {
-    return 'breed.golden_retriever';
-  }
-  if (tip.id.contains('poodle') ||
-      tip.title.contains('贵宾') ||
-      tip.title.contains('泰迪')) {
-    return 'breed.poodle';
-  }
-  if (tip.id.contains('border_collie') || tip.title.contains('边牧')) {
-    return 'breed.border_collie';
-  }
-  if (tip.id.contains('dachshund') || tip.title.contains('腊肠')) {
-    return 'breed.dachshund';
-  }
-  if (tip.id.contains('husky') || tip.title.contains('哈士奇')) {
-    return 'breed.husky';
-  }
-  if (tip.id.contains('brachycephalic') ||
-      tip.title.contains('短鼻') ||
-      tip.title.contains('法斗') ||
-      tip.title.contains('巴哥')) {
+  if (title.contains('气管') || title.contains('呼吸')) {
     return 'breed.brachycephalic';
   }
-  if (tip.id.contains('small')) return 'breed.small';
-  if (tip.id.contains('large')) return 'breed.large';
+  if (title.contains('眼部') || title.contains('眼')) return 'care.eye';
+  if (title.contains('皮肤褶皱') || title.contains('褶皱')) {
+    return 'breed.brachycephalic';
+  }
 
-  // ─── 记录类型 ────────────────────────────────────────────────────────────
-  if (tip.id.contains('water') || tip.title.contains('饮水')) {
-    return 'record.water';
+  // ─── 生命阶段 ────────────────────────────────────────────────────────────
+  if (id.contains('puppy') || title.contains('幼犬')) {
+    return 'life_stage.puppy';
   }
-  if (tip.id.contains('weight') || tip.title.contains('体重')) {
-    return 'record.weight';
+  if (id.contains('senior') || title.contains('老年') || title.contains('高龄')) {
+    return 'life_stage.senior';
   }
-  if (tip.id.contains('digestive') ||
-      tip.title.contains('消化') ||
-      tip.title.contains('食欲')) {
-    return 'health_dynamics.digestive';
-  }
-  if (tip.id.contains('deworm') || tip.title.contains('驱虫')) {
+  if (id.contains('geriatric')) return 'life_stage.senior';
+  if (tip.category == 'life_stage') return 'health_dynamics.life_stage';
+
+  // ─── 季节性：按具体主题 ID 精确匹配 ────────────────────────────────────
+  if (id.contains('deworm') || id.contains('parasite') || title.contains('驱虫')) {
     return 'reminder.deworming';
   }
-  if (tip.id.contains('vaccine') || tip.title.contains('疫苗')) {
+  if (id.contains('vaccine') || title.contains('疫苗')) return 'reminder.vaccine';
+  if (id.contains('shedding') || title.contains('换毛')) return 'care.combing';
+  if (id.contains('allergy') || title.contains('过敏')) return 'record.symptom';
+  if (id.contains('mating') || title.contains('发情')) {
+    return 'health_dynamics.life_stage';
+  }
+  if (id.contains('heat') || title.contains('防暑') || title.contains('高温')) {
+    return 'season.summer';
+  }
+  if (id.contains('water') && id.contains('summer')) return 'season.summer';
+  if (id.contains('food') && id.contains('summer')) return 'season.summer';
+  if (id.contains('walk') || title.contains('遛狗')) return 'care.paw';
+  if (id.contains('brachy') || title.contains('短鼻')) {
+    return 'breed.brachycephalic';
+  }
+  if (id.contains('appetite') || title.contains('食欲')) return 'record.food';
+  if (id.contains('disease') || title.contains('传染病')) {
     return 'reminder.vaccine';
+  }
+  if (id.contains('temp') || title.contains('温差') || title.contains('感冒')) {
+    return 'season.autumn';
+  }
+  if (id.contains('warmth') || title.contains('保暖')) return 'season.winter';
+  if (id.contains('joint') || title.contains('关节')) return 'breed.large';
+  if (id.contains('bath') || title.contains('洗澡')) return 'care.bath';
+  if (id.contains('exercise') || title.contains('运动')) {
+    return 'health_dynamics.life_stage';
+  }
+  if (id.contains('skin') || title.contains('皮肤') || title.contains('干燥')) {
+    return 'record.symptom';
+  }
+  if (id.contains('spring')) return 'season.spring';
+  if (id.contains('summer')) return 'season.summer';
+  if (id.contains('autumn')) return 'season.autumn';
+  if (id.contains('winter')) return 'season.winter';
+
+  // ─── 通用关键词匹配（按 ID + 标题）───────────────────────────────────────
+  if (id.contains('water') || title.contains('饮水')) return 'record.water';
+  if (id.contains('weight') || title.contains('体重')) {
+    return 'health_dynamics.weight_change';
+  }
+  if (id.contains('digestive') || title.contains('消化') || title.contains('食欲')) {
+    return 'health_dynamics.digestive';
   }
 
   // ─── 护理类型 ────────────────────────────────────────────────────────────
-  if (tip.title.contains('口腔') || tip.title.contains('牙')) return 'care.oral';
-  if (tip.title.contains('耳')) return 'care.ear';
-  if (tip.title.contains('梳毛') || tip.title.contains('换毛')) {
-    return 'care.combing';
-  }
-  if (tip.title.contains('指甲') || tip.title.contains('修甲')) {
-    return 'care.nail';
-  }
-  if (tip.title.contains('眼')) return 'care.eye';
-  if (tip.title.contains('足') ||
-      tip.title.contains('爪') ||
-      tip.title.contains('遛狗')) {
+  if (title.contains('口腔') || title.contains('牙')) return 'care.oral';
+  if (title.contains('耳')) return 'care.ear';
+  if (title.contains('梳毛') || title.contains('换毛')) return 'care.combing';
+  if (title.contains('指甲') || title.contains('修甲')) return 'care.nail';
+  if (title.contains('眼')) return 'care.eye';
+  if (title.contains('足') || title.contains('爪') || title.contains('遛狗')) {
     return 'care.paw';
   }
-  if (tip.title.contains('洗澡')) return 'care.bath';
+  if (title.contains('洗澡')) return 'care.bath';
 
-  // ─── 季节类型兜底 ────────────────────────────────────────────────────────
-  if (tip.category == 'seasonal') return 'season.summer';
+  // ─── 季节类型兜底（使用当前季节）──────────────────────────────────────────
+  if (tip.category == 'seasonal') return _currentSeasonKey();
 
   return 'health_dynamics.general';
+}
+
+/// 根据标题中的品种名匹配知识库 contextKey。
+String? _matchBreedInTitle(String title) {
+  if (title.contains('金毛')) return 'breed.golden_retriever';
+  if (title.contains('拉布拉多')) return 'breed.golden_retriever';
+  if (title.contains('贵宾') || title.contains('泰迪')) return 'breed.poodle';
+  if (title.contains('边牧') || title.contains('边境')) return 'breed.border_collie';
+  if (title.contains('腊肠')) return 'breed.dachshund';
+  if (title.contains('哈士奇')) return 'breed.husky';
+  if (title.contains('法斗') || title.contains('法国斗牛') || title.contains('巴哥')) {
+    return 'breed.brachycephalic';
+  }
+  return null;
+}
+
+/// 返回当前月份对应的季节 contextKey。
+String _currentSeasonKey() {
+  final month = DateTime.now().month;
+  if (month >= 3 && month <= 5) return 'season.spring';
+  if (month >= 6 && month <= 8) return 'season.summer';
+  if (month >= 9 && month <= 11) return 'season.autumn';
+  return 'season.winter';
 }
 
 class _TipColorScheme {

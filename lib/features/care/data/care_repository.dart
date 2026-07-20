@@ -290,16 +290,7 @@ class CareRepository {
           activeWalkStartedAt ??= activity.startedAt;
           continue;
         }
-        walks.add(
-          WalkRecord(
-            startedAt: activity.startedAt!,
-            endedAt: activity.endedAt!,
-            duration:
-                activity.duration ??
-                activity.endedAt!.difference(activity.startedAt!),
-            place: activity.place,
-          ),
-        );
+        walks.add(_walkRecordFromActivity(activity));
       }
 
       return CareState(
@@ -348,11 +339,16 @@ class CareRepository {
     required String petId,
     required String place,
     DateTime? at,
+    DateTime? expectedStartedAt,
     String note = '',
   }) async {
     final active = await getActiveWalk(petId);
     final startedAt = active?.startedAt;
     if (active == null || startedAt == null) return null;
+    if (expectedStartedAt != null &&
+        expectedStartedAt.toUtc().difference(startedAt).inSeconds.abs() > 1) {
+      return null;
+    }
 
     final requestedEnd = (at ?? DateTime.now()).toUtc();
     final endedAt = requestedEnd.isBefore(startedAt) ? startedAt : requestedEnd;
@@ -369,11 +365,48 @@ class CareRepository {
         routeFilePath: active.routeFilePath,
       ),
     );
+    return _walkRecordFromActivity(activity);
+  }
+
+  Future<WalkRecord> updateWalkDetails({
+    required String id,
+    required String place,
+    String note = '',
+  }) async {
+    final activity = await getById(id);
+    if (activity == null ||
+        activity.type != 'walk' ||
+        activity.startedAt == null ||
+        activity.endedAt == null) {
+      throw StateError('已结束的遛狗记录不存在：$id');
+    }
+    final updated = await update(
+      id,
+      CareActivityDraft(
+        petId: activity.petId,
+        type: activity.type,
+        occurredAt: activity.occurredAt,
+        startedAt: activity.startedAt,
+        endedAt: activity.endedAt,
+        place: place,
+        note: note,
+        details: activity.details,
+        routeFilePath: activity.routeFilePath,
+      ),
+    );
+    return _walkRecordFromActivity(updated);
+  }
+
+  WalkRecord _walkRecordFromActivity(CareActivity activity) {
+    final startedAt = activity.startedAt!;
+    final endedAt = activity.endedAt!;
     return WalkRecord(
+      id: activity.id,
       startedAt: startedAt,
       endedAt: endedAt,
       duration: activity.duration ?? endedAt.difference(startedAt),
       place: activity.place,
+      note: activity.note,
     );
   }
 

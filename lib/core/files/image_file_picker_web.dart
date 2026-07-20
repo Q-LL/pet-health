@@ -23,3 +23,5 @@ Future<PickedImageFile?> pickPetPhotoFile() async {
     mediaType: file.mimeType ?? mediaTypeForImageName(file.name),
   );
 }
+
+Future<bool> recoverLostPetPhotoSelection() async => false;

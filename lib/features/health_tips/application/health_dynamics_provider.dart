@@ -38,12 +38,13 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
     from: ninetyDaysAgo,
     limit: 400,
   );
-  final previousRecords = await repository.findForPet(
-    selectedPetId,
-    from: sixtyDaysAgo,
-    to: thirtyDaysAgo,
-    limit: 200,
-  );
+  final previousRecords = recentRecords
+      .where(
+        (record) =>
+            !record.occurredAt.isBefore(sixtyDaysAgo) &&
+            record.occurredAt.isBefore(thirtyDaysAgo),
+      )
+      .toList(growable: false);
   final weightRecords = await repository.findForPet(
     selectedPetId,
     type: 'weight',

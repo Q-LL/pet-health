@@ -136,6 +136,32 @@ class PetRepository {
     return petId;
   }
 
+  /// Returns a real selected dog for user-authored data writes.
+  ///
+  /// Placeholder profiles exist only to keep first-launch reads stable. They
+  /// must never become the owner of health, reminder or care records.
+  Future<String> requireSelectedRealPetId() async {
+    final setting = await (_database.select(
+      _database.appSettings,
+    )..where((row) => row.key.equals(selectedPetSettingKey))).getSingleOrNull();
+    if (setting != null) {
+      final selected = await (_database.select(
+        _database.pets,
+      )..where((row) => row.id.equals(setting.value))).getSingleOrNull();
+      if (selected != null && !selected.isPlaceholder) return selected.id;
+    }
+
+    final firstRealPet =
+        await (_database.select(_database.pets)
+              ..where((pet) => pet.isPlaceholder.equals(false))
+              ..orderBy([(pet) => OrderingTerm.asc(pet.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (firstRealPet == null) throw const RealPetRequiredException();
+    await selectPet(firstRealPet.id);
+    return firstRealPet.id;
+  }
+
   Future<PetProfile> create(PetDraft draft) => savePet(draft);
 
   Future<PetProfile> update(String id, PetDraft draft) async {
@@ -298,6 +324,13 @@ class PetRepository {
       throw const FormatException('offset 必须非负且只能与 limit 一起使用');
     }
   }
+}
+
+class RealPetRequiredException implements Exception {
+  const RealPetRequiredException();
+
+  @override
+  String toString() => '请先创建真实的狗狗档案';
 }
 
 String? _trimmedOrNull(String? value) {

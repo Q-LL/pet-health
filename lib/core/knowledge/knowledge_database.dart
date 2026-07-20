@@ -84,7 +84,7 @@ class KnowledgeDatabase extends _$KnowledgeDatabase {
       );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -92,30 +92,31 @@ class KnowledgeDatabase extends _$KnowledgeDatabase {
       await migrator.createAll();
       await _seed();
     },
-    beforeOpen: (details) async {
-      await customStatement('PRAGMA foreign_keys = ON');
-      final articleCountExpression = knowledgeArticles.id.count();
-      final articleCount =
-          await (selectOnly(knowledgeArticles)
-                ..addColumns([articleCountExpression]))
-              .map((row) => row.read(articleCountExpression) ?? 0)
-              .getSingle();
-      if (articleCount < _seedArticles.length) {
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        // v2: 清空旧数据后重新填充（修复 contextKey 映射）
+        await delete(knowledgeArticleSources).go();
+        await delete(knowledgeArticles).go();
+        await delete(knowledgeSources).go();
+        await delete(knowledgeVersions).go();
         await _seed();
       }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
     },
   );
 
   Future<void> _seed() async {
-    final now = DateTime.utc(2026, 6, 28);
+    final now = DateTime.utc(2026, 6, 29);
     await into(knowledgeVersions).insertOnConflictUpdate(
       KnowledgeVersionsCompanion.insert(
-        id: 'knowledge_2026_08',
-        version: '2026.08',
+        id: 'knowledge_2026_09',
+        version: '2026.09',
         releasedAt: now,
         notes: const Value(
-          'v2026.08: 全面扩展知识库——新增急救、营养、皮肤、行为分类，'
-          '补充 35 篇文章，优化 contextKey 覆盖。',
+          'v2026.09: 修复知识库与健康动态卡片的 contextKey 映射——'
+          '新增护理计划、记录追踪文章，修正行为文章分类，补全季节/品种关联。',
         ),
       ),
     );
@@ -142,14 +143,14 @@ class KnowledgeDatabase extends _$KnowledgeDatabase {
           summary: article.summary,
           body: article.body,
           severityLevel: Value(article.severityLevel),
-          species: Value(article.species),
+          species: const Value('dog'),
           lifeStage: Value(article.lifeStage),
           contextKeysJson: Value(jsonEncode(article.contextKeys)),
           tagsJson: Value(jsonEncode(article.tags)),
           redFlagsJson: Value(jsonEncode(article.redFlags)),
           suggestedActionsJson: Value(jsonEncode(article.suggestedActions)),
           reviewedStatus: const Value('reviewed'),
-          version: const Value('2026.08'),
+          version: const Value('2026.09'),
           updatedAt: now,
         ),
       );
@@ -195,7 +196,6 @@ class _SeedArticle {
     required this.sourceIds,
     this.severityLevel = 'info',
     this.redFlags = const [],
-    this.species = 'dog',
     this.lifeStage = 'any',
   });
 
@@ -205,7 +205,6 @@ class _SeedArticle {
   final String summary;
   final String body;
   final String severityLevel;
-  final String species;
   final String lifeStage;
   final List<String> contextKeys;
   final List<String> tags;
@@ -473,7 +472,12 @@ const _seedArticles = [
     body:
         '就诊前可以整理：症状第一次出现时间、每天变化、照片或视频、食欲饮水、排泄、体重、近期用药、疫苗驱虫记录、是否换粮或误食。把事实按时间顺序列出来，能帮助兽医更快理解情况。不要为了凑信息自行推断诊断。',
     severityLevel: 'info',
-    contextKeys: ['health_dynamics.general', 'record.symptom', 'record.weight'],
+    contextKeys: [
+      'health_dynamics.general',
+      'health_dynamics.tracking',
+      'record.symptom',
+      'record.weight',
+    ],
     tags: ['就医准备', '健康摘要', '时间线'],
     redFlags: ['呼吸困难', '抽搐', '严重外伤', '持续无法站立', '疑似中毒'],
     suggestedActions: ['整理最近记录', '带照片或视频', '列出用药和接种信息'],
@@ -1040,7 +1044,7 @@ const _seedArticles = [
     body:
         '分离焦虑的表现包括：主人准备出门时紧张不安、离开后持续吠叫或哀叫、破坏门或窗户附近物品、在室内排泄、过度流涎。这不是“报复”或“调皮”，而是一种情绪困扰。可以从短时间离开练习、提供安全感和互动玩具开始。严重情况需要专业行为训练师或兽医行为科介入。不要因焦虑行为惩罚狗狗。',
     severityLevel: 'watch',
-    contextKeys: ['health_dynamics.general'],
+    contextKeys: ['behavior.separation_anxiety'],
     tags: ['分离焦虑', '行为', '训练'],
     redFlags: ['自伤行为', '持续数小时不停吠叫', '每次离开都失禁'],
     suggestedActions: ['记录离开后行为', '短时间离开练习', '提供互动玩具'],
@@ -1054,7 +1058,7 @@ const _seedArticles = [
     body:
         '狗狗吠叫的常见原因包括警报（陌生声音或人）、兴奋、焦虑、无聊和寻求关注。先记录吠叫发生的时间、触发因素和持续时间，帮助判断类型。警报型可通过脱敏训练减少；无聊型需要增加运动和精神刺激；焦虑型可能需要专业行为干预。不要因吠叫惩罚狗狗，这可能会加重焦虑。',
     severityLevel: 'info',
-    contextKeys: ['health_dynamics.general'],
+    contextKeys: ['behavior.barking'],
     tags: ['吠叫', '行为', '训练'],
     redFlags: ['伴随攻击行为', '突然行为改变', '持续焦虑表现'],
     suggestedActions: ['记录吠叫触发因素', '增加运动和精神刺激', '考虑脱敏训练'],
@@ -1305,5 +1309,33 @@ const _seedArticles = [
     redFlags: [],
     suggestedActions: ['写清标题和时间', '补充详细描述', '配合照片保存'],
     sourceIds: ['avma_pet_owners'],
+  ),
+  _SeedArticle(
+    id: 'care_plan_importance',
+    title: '坚持完成护理计划的意义',
+    category: 'daily_care',
+    summary: '护理计划的价值在于持续和规律，而不是每次做得多完美。',
+    body:
+        '护理计划的核心是建立规律的照护习惯，而不是一次做得很多然后中断。即使每天只完成一小部分，长期坚持也比偶尔突击更有效。如果完成率经常偏低，可以先减少计划数量，只保留最重要的几项，逐步增加。记录每次完成的项目，能帮助自己看到进步。',
+    severityLevel: 'info',
+    contextKeys: ['health_dynamics.care_plan', 'health_dynamics.tracking'],
+    tags: ['护理计划', '完成率', '健康习惯'],
+    redFlags: [],
+    suggestedActions: ['从最重要的1-2项开始', '完成后及时打勾记录', '逐步增加而不是突然加量'],
+    sourceIds: ['avma_pet_owners', 'merck_dog_owners'],
+  ),
+  _SeedArticle(
+    id: 'health_tracking_habit',
+    title: '建立轻量但持续的健康记录习惯',
+    category: 'record_guide',
+    summary: '每天花一两分钟记录基础指标，比偶尔记录一大堆更有价值。',
+    body:
+        '健康记录的价值在于连续性，而不是每次记录多少内容。每天花一两分钟记录体重、饮食、排泄或饮水中的一项，就能在几周后看到有意义的趋势。可以用拍照快速记录皮肤、便便或外伤状态，配合简短文字说明。连续记录越久，越容易发现偏离基线的变化，也能在就医时提供更有价值的时间线。',
+    severityLevel: 'info',
+    contextKeys: ['health_dynamics.tracking', 'health_dynamics.general'],
+    tags: ['健康记录', '习惯', '趋势'],
+    redFlags: [],
+    suggestedActions: ['每天固定时间记录一项', '用拍照快速保存状态', '同一指标连续记录更有意义'],
+    sourceIds: ['avma_pet_owners', 'merck_dog_owners'],
   ),
 ];
