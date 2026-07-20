@@ -5,13 +5,38 @@ import '../../../core/widgets/motion.dart';
 import '../../records/presentation/add_record_sheet.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
+import '../domain/care_models.dart';
 
 Future<void> showBathRecordSheet(BuildContext context) {
   return showCareActivitySheet(context, type: 'bath');
 }
 
-Future<bool?> showFinishWalkSheet(BuildContext context, {DateTime? endedAt}) {
-  return showModalBottomSheet<bool>(
+/// Stops the timer first, then offers optional details for the saved walk.
+///
+/// Dismissing the sheet never resumes the timer: ending a walk is a single,
+/// immediate action while place and notes are progressive enhancement.
+Future<WalkRecord?> showFinishWalkSheet(
+  BuildContext context, {
+  DateTime? endedAt,
+  DateTime? expectedStartedAt,
+}) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  late final WalkRecord? record;
+  try {
+    record = await container
+        .read(careControllerProvider.notifier)
+        .finishWalk(at: endedAt, expectedStartedAt: expectedStartedAt);
+  } on Object catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('结束遛狗失败：$error')));
+    }
+    return null;
+  }
+  if (record == null || !context.mounted) return record;
+
+  await showModalBottomSheet<bool>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -19,15 +44,16 @@ Future<bool?> showFinishWalkSheet(BuildContext context, {DateTime? endedAt}) {
       duration: AppMotion.medium,
       reverseDuration: AppMotion.fast,
     ),
-    builder: (_) => _FinishWalkSheet(parentContext: context, endedAt: endedAt),
+    builder: (_) => _FinishWalkSheet(parentContext: context, record: record!),
   );
+  return record;
 }
 
 class _FinishWalkSheet extends ConsumerStatefulWidget {
-  const _FinishWalkSheet({required this.parentContext, this.endedAt});
+  const _FinishWalkSheet({required this.parentContext, required this.record});
 
   final BuildContext parentContext;
-  final DateTime? endedAt;
+  final WalkRecord record;
 
   @override
   ConsumerState<_FinishWalkSheet> createState() => _FinishWalkSheetState();
@@ -35,6 +61,13 @@ class _FinishWalkSheet extends ConsumerStatefulWidget {
 
 class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
   final _placeController = TextEditingController();
+  var _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _placeController.text = widget.record.place;
+  }
 
   @override
   void dispose() {
@@ -42,11 +75,22 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
     super.dispose();
   }
 
-  Future<void> _finish() async {
-    final record = await ref
-        .read(careControllerProvider.notifier)
-        .finishWalk(place: _placeController.text, at: widget.endedAt);
-    if (record == null) return;
+  Future<void> _saveDetails() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(careControllerProvider.notifier)
+          .updateWalkDetails(widget.record, place: _placeController.text);
+    } on Object catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('补充遛狗信息失败：$error')));
+        setState(() => _saving = false);
+      }
+      return;
+    }
 
     final planState = ref.read(carePlanControllerProvider);
     final pawPlan = planState.enabledPlans['paw_after_walk'];
@@ -61,31 +105,18 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final activeWalkStartedAt = ref.watch(
-      careControllerProvider.select((state) => state.activeWalkStartedAt),
-    );
-    final elapsed = widget.endedAt == null || activeWalkStartedAt == null
-        ? ref
-              .watch(walkElapsedProvider)
-              .when(
-                data: (value) => value,
-                error: (_, _) => Duration.zero,
-                loading: () => Duration.zero,
-              )
-        : widget.endedAt!.difference(activeWalkStartedAt);
     return _SheetFrame(
-      title: '结束遛狗',
-      subtitle: widget.endedAt == null
-          ? '本次已遛 ${formatDuration(elapsed)}，补充场所后保存。'
-          : '锁屏上已结束计时，本次遛了 ${formatDuration(elapsed)}，补充场所后保存。',
+      title: '遛狗已结束',
+      subtitle:
+          '计时已经停止，本次遛了 ${formatDuration(widget.record.duration)}。地点可以现在补充，也可以稍后在记录中编辑。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
             controller: _placeController,
-            autofocus: true,
+            autofocus: false,
             textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _finish(),
+            onSubmitted: (_) => _saveDetails(),
             decoration: const InputDecoration(
               labelText: '遛狗场所（可选）',
               hintText: '例如：滨江公园、小区花园',
@@ -109,9 +140,14 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            onPressed: _finish,
-            icon: const Icon(Icons.flag_rounded),
-            label: const Text('结束并保存'),
+            onPressed: _saving ? null : _saveDetails,
+            icon: const Icon(Icons.save_outlined),
+            label: Text(_saving ? '保存中…' : '保存补充信息'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _saving ? null : () => Navigator.pop(context, false),
+            child: const Text('稍后填写'),
           ),
         ],
       ),

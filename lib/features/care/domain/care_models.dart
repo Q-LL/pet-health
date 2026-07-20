@@ -113,16 +113,20 @@ class BathRecord {
 @immutable
 class WalkRecord {
   const WalkRecord({
+    required this.id,
     required this.startedAt,
     required this.endedAt,
     required this.duration,
     required this.place,
+    this.note = '',
   });
 
+  final String id;
   final DateTime startedAt;
   final DateTime endedAt;
   final Duration duration;
   final String place;
+  final String note;
 }
 
 @immutable

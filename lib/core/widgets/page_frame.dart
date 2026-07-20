@@ -18,14 +18,16 @@ class PageFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return SafeArea(
       child: CustomScrollView(
         slivers: [
           SliverAppBar.large(
             title: Text(title),
             actions: actions,
-            backgroundColor: Colors.transparent,
+            backgroundColor: colors.surface,
             surfaceTintColor: Colors.transparent,
+            scrolledUnderElevation: 0,
           ),
           SliverToBoxAdapter(
             child: Center(

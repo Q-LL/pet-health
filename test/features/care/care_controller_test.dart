@@ -4,16 +4,21 @@ import 'package:drift/native.dart';
 import 'package:pet_health/core/database/app_database.dart';
 import 'package:pet_health/core/database/database_provider.dart';
 import 'package:pet_health/features/care/application/care_controller.dart';
+import 'package:pet_health/features/pets/data/pet_repository.dart';
+import 'package:pet_health/features/pets/domain/pet_profile.dart';
 
 void main() {
   late AppDatabase database;
   late ProviderContainer container;
 
-  setUp(() {
+  setUp(() async {
     database = AppDatabase(NativeDatabase.memory());
     container = ProviderContainer(
       overrides: [appDatabaseProvider.overrideWithValue(database)],
     );
+    await container
+        .read(petRepositoryProvider)
+        .create(const PetDraft(name: '团子'));
   });
 
   tearDown(() async {
@@ -39,12 +44,20 @@ void main() {
     final controller = container.read(careControllerProvider.notifier);
 
     await controller.startWalk(at: startedAt);
-    final record = await controller.finishWalk(place: '滨江公园', at: endedAt);
+    final record = await controller.finishWalk(at: endedAt);
 
     expect(record?.duration, const Duration(minutes: 36, seconds: 12));
-    expect(record?.place, '滨江公园');
+    expect(record?.place, isEmpty);
     expect(container.read(careControllerProvider).activeWalkStartedAt, isNull);
-    expect(container.read(careControllerProvider).lastWalk?.startedAt, startedAt);
+    expect(
+      container.read(careControllerProvider).lastWalk?.startedAt,
+      startedAt,
+    );
     expect(container.read(careControllerProvider).lastWalk?.endedAt, endedAt);
+
+    final updated = await controller.updateWalkDetails(record!, place: '滨江公园');
+    expect(updated.place, '滨江公园');
+    expect(container.read(careControllerProvider).activeWalkStartedAt, isNull);
+    expect(container.read(careControllerProvider).lastWalk?.place, '滨江公园');
   });
 }

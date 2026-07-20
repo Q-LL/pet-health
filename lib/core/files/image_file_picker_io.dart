@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -21,6 +20,25 @@ const _petPhotoTypes = XTypeGroup(
   ],
 );
 
+XFile? _recoveredNativePhoto;
+
+/// Recovers a gallery result when Android recreated MainActivity while the
+/// system picker was in front. The file is consumed on the next avatar tap so
+/// the regular crop and compression flow remains the single processing path.
+Future<bool> recoverLostPetPhotoSelection() async {
+  if (!Platform.isAndroid || _recoveredNativePhoto != null) {
+    return _recoveredNativePhoto != null;
+  }
+  final response = await ImagePicker().retrieveLostData();
+  if (response.isEmpty) return false;
+  final exception = response.exception;
+  if (exception != null) throw exception;
+  final files = response.files;
+  if (files == null || files.isEmpty) return false;
+  _recoveredNativePhoto = files.first;
+  return true;
+}
+
 Future<PickedImageFile?> pickPetPhotoFile() async {
   if (Platform.isIOS || Platform.isAndroid) {
     return _pickNativeGalleryPhoto();
@@ -30,26 +48,23 @@ Future<PickedImageFile?> pickPetPhotoFile() async {
 }
 
 Future<PickedImageFile?> _pickNativeGalleryPhoto() async {
-  final file = await ImagePicker().pickImage(
-    source: ImageSource.gallery,
-    requestFullMetadata: false,
-  );
+  final recovered = _recoveredNativePhoto;
+  _recoveredNativePhoto = null;
+  final file =
+      recovered ??
+      await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+      );
   if (file == null) return null;
 
-  final bytes = await file.readAsBytes();
-  return _cropPickedImage(
-    sourcePath: file.path,
-    originalBytes: bytes,
-    name: file.name,
-    mediaType: file.mimeType ?? mediaTypeForImageName(file.name),
-  );
+  return _cropPickedImage(sourcePath: file.path, name: file.name);
 }
 
 Future<PickedImageFile?> _pickDesktopPhotoFile() async {
   final file = await openFile(acceptedTypeGroups: [_petPhotoTypes]);
   if (file == null) return null;
   final bytes = await file.readAsBytes();
-  final mediaType = file.mimeType ?? mediaTypeForImageName(file.name);
 
   final tempDir = await getTemporaryDirectory();
   final extension = file.name.split('.').last;
@@ -59,12 +74,7 @@ Future<PickedImageFile?> _pickDesktopPhotoFile() async {
   await tempFile.writeAsBytes(bytes);
 
   try {
-    return await _cropPickedImage(
-      sourcePath: tempPath,
-      originalBytes: bytes,
-      name: file.name,
-      mediaType: mediaType,
-    );
+    return await _cropPickedImage(sourcePath: tempPath, name: file.name);
   } finally {
     try {
       await tempFile.delete();
@@ -72,15 +82,15 @@ Future<PickedImageFile?> _pickDesktopPhotoFile() async {
   }
 }
 
-Future<PickedImageFile> _cropPickedImage({
+Future<PickedImageFile?> _cropPickedImage({
   required String sourcePath,
-  required List<int> originalBytes,
   required String name,
-  required String mediaType,
 }) async {
   final croppedFile = await ImageCropper().cropImage(
     sourcePath: sourcePath,
     aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+    maxWidth: 1600,
+    maxHeight: 1600,
     compressFormat: ImageCompressFormat.jpg,
     compressQuality: 90,
     uiSettings: [
@@ -93,18 +103,20 @@ Future<PickedImageFile> _cropPickedImage({
     ],
   );
 
-  if (croppedFile == null) {
-    return PickedImageFile(
-      bytes: Uint8List.fromList(originalBytes),
-      name: name,
-      mediaType: mediaType,
-    );
-  }
+  if (croppedFile == null) return null;
 
   final croppedBytes = await croppedFile.readAsBytes();
   return PickedImageFile(
     bytes: croppedBytes,
-    name: name,
+    name: _croppedJpegName(name),
     mediaType: 'image/jpeg',
   );
+}
+
+String _croppedJpegName(String originalName) {
+  final trimmed = originalName.trim();
+  if (trimmed.isEmpty) return 'avatar.jpg';
+  final dot = trimmed.lastIndexOf('.');
+  final stem = dot > 0 ? trimmed.substring(0, dot) : trimmed;
+  return '$stem.jpg';
 }

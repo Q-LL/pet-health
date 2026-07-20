@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,16 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/page_frame.dart';
-import '../../care/application/care_controller.dart';
-import '../../care/application/care_recommendation.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
 import '../../care/presentation/care_overview.dart';
-import '../../care/presentation/care_sheets.dart';
-import '../../health_tips/presentation/health_summary_card.dart';
-import '../../health_tips/presentation/health_tips_card.dart';
 import '../../pets/data/pet_repository.dart';
+import '../../pets/domain/pet_profile.dart';
 import '../../pets/presentation/pet_avatar.dart';
 import '../../records/data/health_record_repository.dart';
 import '../../records/domain/health_record.dart';
@@ -24,133 +18,79 @@ import '../../records/domain/health_record_spec.dart';
 import '../../records/presentation/add_record_sheet.dart';
 import '../../reminders/data/reminder_repository.dart';
 import '../../reminders/domain/reminder_models.dart';
-import '../../settings/data/app_settings_repository.dart';
+import 'home_dashboard.dart';
+import 'home_quick_actions.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  StreamSubscription<NotificationResponse>? _notificationSubscription;
-  var _showingWalkFinishSheet = false;
-  DateTime? _lastWalkNotificationStartedAt;
-
-  @override
-  void initState() {
-    super.initState();
-    _notificationSubscription = notificationService.responses.listen(
-      _handleNotificationResponse,
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final details = await notificationService.getLaunchDetails();
-      final response = details?.notificationResponse;
-      if (response != null && mounted) _handleNotificationResponse(response);
-    });
-  }
-
-  @override
-  void dispose() {
-    _notificationSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _handleNotificationResponse(NotificationResponse response) {
-    final payload = response.payload;
-    if (payload == walkFinishPayload ||
-        response.actionId == walkFinishActionId) {
-      _showPendingWalkFinishSheet();
-    }
-  }
-
-  void _showPendingWalkFinishSheet() {
-    if (_showingWalkFinishSheet || !mounted) return;
-    final activeWalkStartedAt = ref.read(
-      careControllerProvider.select((state) => state.activeWalkStartedAt),
-    );
-    if (activeWalkStartedAt == null) return;
-    _showingWalkFinishSheet = true;
-    context.go('/home');
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      await showFinishWalkSheet(context);
-      _showingWalkFinishSheet = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen<DateTime?>(
-      careControllerProvider.select((state) => state.activeWalkStartedAt),
-      (_, startedAt) {
-        if (startedAt == null) {
-          _lastWalkNotificationStartedAt = null;
-          notificationService.cancelWalkTimer();
-          return;
-        }
-        if (_lastWalkNotificationStartedAt == startedAt) return;
-        _lastWalkNotificationStartedAt = startedAt;
-        notificationService.showWalkTimer(startedAt: startedAt);
-      },
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pets = ref.watch(petsProvider).value ?? const [];
+    final hasRealPetProfile = pets.any((pet) => !pet.isPlaceholder);
     return PageFrame(
       title: '毛健康',
       subtitle: '专为狗狗记录每一天的小变化。',
-      actions: [_NotificationButton(), const SizedBox(width: 12)],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: HomeDashboard(
+        hasRealPetProfile: hasRealPetProfile,
+        profileHeader: const _WelcomeHero(),
+        today: const _TodayCard(),
+        quickActions: const HomeQuickActions(),
+        care: const CareOverview(),
+        health: const _HealthOverview(),
+        onManageReminders: () => context.push('/home/reminders'),
+        onViewHealth: () => context.go('/home/health-dynamics'),
+      ),
+    );
+  }
+}
+
+class _HealthOverview extends StatelessWidget {
+  const _HealthOverview();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EntranceAnimation(child: _WelcomeHero()),
-          SizedBox(height: 28),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 70),
-            child: SectionHeader('快速记录'),
-          ),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 100),
-            child: _QuickActions(),
-          ),
-          SizedBox(height: 28),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 140),
-            child: SectionHeader('日常护理'),
-          ),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 170),
-            child: CareOverview(),
-          ),
-          SizedBox(height: 28),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 210),
-            child: SectionHeader(
-              '今天',
-              action: '全部提醒',
-              onTap: () => context.push('/home/reminders'),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: colors.tertiaryContainer,
+              borderRadius: BorderRadius.circular(17),
+            ),
+            child: Icon(
+              Icons.auto_graph_rounded,
+              color: colors.onTertiaryContainer,
             ),
           ),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 240),
-            child: _TodayCard(),
-          ),
-          SizedBox(height: 28),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 280),
-            child: SectionHeader(
-              '健康动态',
-              action: '查看详细动态',
-              onTap: () => context.go('/home/health-dynamics'),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '从真实记录生成趋势',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '积累体重、饮食、排泄和护理记录后，在详细动态中查看本地分析。',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+              ],
             ),
-          ),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 300),
-            child: HealthSummaryCard(),
-          ),
-          SizedBox(height: 12),
-          EntranceAnimation(
-            delay: Duration(milliseconds: 320),
-            child: HealthTipsCard(),
           ),
         ],
       ),
@@ -167,7 +107,9 @@ class _WelcomeHero extends ConsumerWidget {
     final pets = ref.watch(petsProvider).value ?? const [];
     final selectedId = ref.watch(selectedPetIdProvider).value;
     final selectedPet = pets.where((pet) => pet.id == selectedId).firstOrNull;
-    final hasProfile = selectedPet != null && !selectedPet.isPlaceholder;
+    if (selectedPet != null && !selectedPet.isPlaceholder) {
+      return _SelectedPetHeader(pet: selectedPet);
+    }
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -208,38 +150,19 @@ class _WelcomeHero extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    if (hasProfile)
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: colors.surface.withValues(alpha: .78),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.shadow.withValues(alpha: .14),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: PetPortrait(pet: selectedPet, size: 86),
-                      )
-                    else
-                      const _LocalBadge(),
+                    const _LocalBadge(),
                   ],
                 ),
                 const SizedBox(height: 26),
                 Text(
-                  hasProfile ? '今天也陪好 ${selectedPet.name}' : '从认识毛孩子开始',
+                  '从认识毛孩子开始',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 360),
                   child: Text(
-                    hasProfile
-                        ? '健康和护理记录都只保存在本机，慢慢积累成属于它的狗狗履历。'
-                        : '创建第一份狗狗档案，体重、护理和每次观察都会有迹可循。',
+                    '创建第一份狗狗档案，体重、护理和每次观察都会有迹可循。',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyLarge?.copyWith(height: 1.5),
@@ -249,20 +172,63 @@ class _WelcomeHero extends ConsumerWidget {
                 Row(
                   children: [
                     FilledButton.icon(
-                      onPressed: () => hasProfile
-                          ? showAddRecordSheet(context)
-                          : context.go('/pets'),
-                      icon: Icon(
-                        hasProfile ? Icons.add_rounded : Icons.pets_rounded,
-                      ),
-                      label: Text(hasProfile ? '新增一条记录' : '创建档案'),
+                      onPressed: () => context.go('/pets'),
+                      icon: const Icon(Icons.pets_rounded),
+                      label: const Text('创建档案'),
                     ),
-                    const Spacer(),
-                    if (hasProfile) const _LocalBadge(),
                   ],
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedPetHeader extends StatelessWidget {
+  const _SelectedPetHeader({required this.pet});
+
+  final PetProfile pet;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Row(
+        children: [
+          PetPortrait(pet: pet, size: 68),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  pet.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '记录只保存在本机',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colors.onPrimaryContainer.withValues(alpha: .78),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: '切换狗狗',
+            onPressed: () => context.go('/pets'),
+            icon: const Icon(Icons.swap_horiz_rounded),
           ),
         ],
       ),
@@ -314,262 +280,6 @@ class _SoftCircle extends StatelessWidget {
       shape: BoxShape.circle,
     ),
   );
-}
-
-class _QuickActions extends ConsumerWidget {
-  const _QuickActions();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    final isWalking = ref.watch(
-      careControllerProvider.select(
-        (state) => state.activeWalkStartedAt != null,
-      ),
-    );
-    final selectedIds =
-        ref.watch(quickActionIdsProvider).value ?? defaultQuickActionIds;
-    final actions = [
-      for (final id in selectedIds)
-        _quickActionForId(
-          context,
-          ref,
-          id,
-          isWalking: isWalking,
-          colors: colors,
-        ),
-      _quickActionForId(
-        context,
-        ref,
-        fixedMoreRecordActionId,
-        isWalking: isWalking,
-        colors: colors,
-      ),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 420;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: compact ? 2 : 4,
-            mainAxisExtent: 104,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: actions.length,
-          itemBuilder: (context, index) {
-            final action = actions[index];
-            return PressableScale(
-              child: Material(
-                color: action.color,
-                borderRadius: BorderRadius.circular(24),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: action.action,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(action.icon, color: action.onColor, size: 26),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                action.label,
-                                style: TextStyle(
-                                  color: action.onColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              Icons.add_rounded,
-                              color: action.onColor,
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-({IconData icon, String label, Color color, Color onColor, VoidCallback action})
-_quickActionForId(
-  BuildContext context,
-  WidgetRef ref,
-  String id, {
-  required bool isWalking,
-  required ColorScheme colors,
-}) {
-  return switch (id) {
-    'health:water' => (
-      icon: Icons.water_drop_rounded,
-      label: '饮水',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'water'),
-    ),
-    'health:elimination' => (
-      icon: Icons.wc_outlined,
-      label: '排泄',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'elimination'),
-    ),
-    'health:symptom' => (
-      icon: Icons.healing_outlined,
-      label: '症状',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'symptom'),
-    ),
-    'health:food' => (
-      icon: Icons.restaurant_outlined,
-      label: '喂食',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'food'),
-    ),
-    'health:medication' => (
-      icon: Icons.medication_outlined,
-      label: '用药',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'medication'),
-    ),
-    'health:vaccine' => (
-      icon: Icons.vaccines_outlined,
-      label: '疫苗',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'vaccine'),
-    ),
-    'health:deworming' => (
-      icon: Icons.bug_report_outlined,
-      label: '驱虫',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'deworming'),
-    ),
-    'health:custom' => (
-      icon: Icons.note_add_outlined,
-      label: '自定义健康',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context),
-    ),
-    'care:bath' => (
-      icon: Icons.bathtub_outlined,
-      label: '洗澡',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showBathRecordSheet(context),
-    ),
-    'care:oral' => (
-      icon: Icons.medical_services_outlined,
-      label: '口腔护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'oral'),
-    ),
-    'care:combing' => (
-      icon: Icons.brush_outlined,
-      label: '梳毛',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'combing'),
-    ),
-    'care:styling' => (
-      icon: Icons.content_cut_rounded,
-      label: '美容',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'styling'),
-    ),
-    'care:nail' => (
-      icon: Icons.back_hand_outlined,
-      label: '指甲护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'nail'),
-    ),
-    'care:ear' => (
-      icon: Icons.hearing_outlined,
-      label: '耳部护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'ear'),
-    ),
-    'care:eye' => (
-      icon: Icons.visibility_outlined,
-      label: '眼部护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'eye'),
-    ),
-    'care:paw' => (
-      icon: Icons.pets_outlined,
-      label: '足爪护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'paw'),
-    ),
-    'care:environment' => (
-      icon: Icons.cleaning_services_outlined,
-      label: '环境清洁',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context, type: 'environment'),
-    ),
-    'care:walk' => (
-      icon: Icons.directions_walk_rounded,
-      label: isWalking ? '结束遛狗' : '快速遛狗',
-      color: colors.tertiaryContainer,
-      onColor: colors.onTertiaryContainer,
-      action: () {
-        if (isWalking) {
-          showFinishWalkSheet(context);
-        } else {
-          ref.read(careControllerProvider.notifier).startWalk();
-        }
-      },
-    ),
-    'care:custom' => (
-      icon: Icons.spa_outlined,
-      label: '自定义护理',
-      color: colors.secondaryContainer,
-      onColor: colors.onSecondaryContainer,
-      action: () => showCareActivitySheet(context),
-    ),
-    'more:records' => (
-      icon: Icons.grid_view_rounded,
-      label: '更多记录',
-      color: colors.surfaceContainerHigh,
-      onColor: colors.onSurface,
-      action: () => showAddRecordSheet(context),
-    ),
-    _ => (
-      icon: Icons.monitor_weight_outlined,
-      label: '体重',
-      color: colors.primaryContainer,
-      onColor: colors.onPrimaryContainer,
-      action: () => showHealthRecordSheet(context, type: 'weight'),
-    ),
-  };
 }
 
 class _TodayCard extends ConsumerWidget {
@@ -1347,7 +1057,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
 
     setState(() => _isSaving = true);
     try {
-      final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+      final petId = await ref
+          .read(petRepositoryProvider)
+          .requireSelectedRealPetId();
       final now = DateTime.now();
       var scheduledAt = DateTime(
         _date.year,
@@ -1927,21 +1639,4 @@ String _errorMessage(Object error) {
   if (error is FormatException) return error.message;
   if (error is StateError) return error.message;
   return '操作失败，请稍后重试';
-}
-
-class _NotificationButton extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dueCount = ref.watch(dueRecommendationCountProvider);
-    return IconButton.filledTonal(
-      tooltip: '通知中心',
-      onPressed: () => context.push('/home/notifications'),
-      icon: dueCount > 0
-          ? Badge(
-              label: Text('$dueCount'),
-              child: const Icon(Icons.notifications_none_rounded),
-            )
-          : const Icon(Icons.notifications_none_rounded),
-    );
-  }
 }

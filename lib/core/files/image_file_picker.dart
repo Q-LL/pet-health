@@ -7,3 +7,6 @@ import 'image_file_picker_types.dart';
 export 'image_file_picker_types.dart';
 
 Future<PickedImageFile?> pickPetPhotoFile() => platform.pickPetPhotoFile();
+
+Future<bool> recoverLostPetPhotoSelection() =>
+    platform.recoverLostPetPhotoSelection();

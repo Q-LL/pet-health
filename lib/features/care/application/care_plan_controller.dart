@@ -192,7 +192,9 @@ class CarePlanController extends Notifier<CarePlanState> {
     CarePlanCandidate candidate,
     ScheduleRule schedule,
   ) async {
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final repository = ref.read(carePlanRepositoryProvider);
     final ruleString = scheduleRuleCodec.encode(schedule);
     final nextDueAt = await _initialNextDueAt(
@@ -235,7 +237,9 @@ class CarePlanController extends Notifier<CarePlanState> {
   }
 
   Future<void> disable(String candidateId) async {
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final repository = ref.read(carePlanRepositoryProvider);
     final existing = await repository.findByCandidate(petId, candidateId);
     if (existing != null) {
@@ -260,7 +264,9 @@ class CarePlanController extends Notifier<CarePlanState> {
   }
 
   Future<void> dismiss(String candidateId) async {
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     await ref.read(carePlanRepositoryProvider).dismiss(petId, candidateId);
   }
 
@@ -299,7 +305,9 @@ class CarePlanController extends Notifier<CarePlanState> {
     required int cycleDays,
     String reason = '',
   }) async {
-    final petId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+    final petId = await ref
+        .read(petRepositoryProvider)
+        .requireSelectedRealPetId();
     final repository = ref.read(carePlanRepositoryProvider);
     final candidateId = 'custom_${_uuid.v4()}';
     final rule = CustomCycleRule(cycleDays);

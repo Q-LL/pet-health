@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/navigation/popup_route_visibility.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/care/presentation/care_coverage_page.dart';
 import '../features/care/presentation/care_plans_page.dart';
 import '../features/health_tips/presentation/health_dynamics_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/knowledge/presentation/knowledge_page.dart';
-import '../features/notifications/presentation/notification_center_page.dart';
 import '../features/pets/presentation/pets_page.dart';
 import '../features/records/presentation/add_record_sheet.dart';
 import '../features/records/presentation/records_history_page.dart';
@@ -15,16 +15,28 @@ import '../features/reminders/presentation/reminders_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+final popupRouteVisibilityController = PopupRouteVisibilityController();
+final _rootPopupObserver = PopupRouteVisibilityObserver(
+  popupRouteVisibilityController,
+);
+final _branchPopupObservers = List<PopupRouteVisibilityObserver>.generate(
+  4,
+  (_) => PopupRouteVisibilityObserver(popupRouteVisibilityController),
+);
 
 final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
+  observers: [_rootPopupObserver],
   initialLocation: '/home',
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          AppShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) => AppShell(
+        navigationShell: navigationShell,
+        showRecordAction: state.uri.path == '/home',
+      ),
       branches: [
         StatefulShellBranch(
+          observers: [_branchPopupObservers[0]],
           routes: [
             GoRoute(
               path: '/home',
@@ -39,10 +51,6 @@ final appRouter = GoRouter(
                   builder: (_, _) => const CareCoveragePage(),
                 ),
                 GoRoute(
-                  path: 'notifications',
-                  builder: (_, _) => const NotificationCenterPage(),
-                ),
-                GoRoute(
                   path: 'reminders',
                   builder: (_, _) => const RemindersPage(),
                 ),
@@ -55,6 +63,7 @@ final appRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
+          observers: [_branchPopupObservers[1]],
           routes: [
             GoRoute(
               path: '/calendar',
@@ -69,9 +78,11 @@ final appRouter = GoRouter(
           ],
         ),
         StatefulShellBranch(
+          observers: [_branchPopupObservers[2]],
           routes: [GoRoute(path: '/pets', builder: (_, _) => const PetsPage())],
         ),
         StatefulShellBranch(
+          observers: [_branchPopupObservers[3]],
           routes: [
             GoRoute(
               path: '/settings',
@@ -99,57 +110,62 @@ final appRouter = GoRouter(
 );
 
 class AppShell extends StatelessWidget {
-  const AppShell({required this.navigationShell, super.key});
+  const AppShell({
+    required this.navigationShell,
+    required this.showRecordAction,
+    super.key,
+  });
 
   final StatefulNavigationShell navigationShell;
+  final bool showRecordAction;
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = navigationShell.currentIndex >= 2
-        ? navigationShell.currentIndex + 1
-        : navigationShell.currentIndex;
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          if (index == 2) {
-            showAddRecordSheet(context);
-            return;
-          }
-          final branchIndex = index > 2 ? index - 1 : index;
-          navigationShell.goBranch(
-            branchIndex,
-            initialLocation: branchIndex == navigationShell.currentIndex,
-          );
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: '首页',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month_rounded),
-            label: '日历',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            selectedIcon: Icon(Icons.add_circle_rounded),
-            label: '记录',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets_rounded),
-            label: '狗狗',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: '设置',
-          ),
-        ],
+    return AnimatedBuilder(
+      animation: popupRouteVisibilityController,
+      builder: (context, _) => Scaffold(
+        body: navigationShell,
+        floatingActionButton:
+            showRecordAction && !popupRouteVisibilityController.hasVisiblePopup
+            ? FloatingActionButton.extended(
+                tooltip: '新增记录',
+                onPressed: () => showAddRecordSheet(context),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('记录'),
+              )
+            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: (index) {
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: '首页',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month_rounded),
+              label: '日历',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.pets_outlined),
+              selectedIcon: Icon(Icons.pets_rounded),
+              label: '狗狗',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings_rounded),
+              label: '设置',
+            ),
+          ],
+        ),
       ),
     );
   }

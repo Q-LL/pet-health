@@ -50,6 +50,17 @@ void main() {
     expect(await pets.watchPets().first, hasLength(2));
   });
 
+  test('user-authored writes require a real selected dog', () async {
+    await pets.ensureSelectedPetId();
+    expect(
+      pets.requireSelectedRealPetId,
+      throwsA(isA<RealPetRequiredException>()),
+    );
+
+    final pet = await pets.create(const PetDraft(name: '团子'));
+    expect(await pets.requireSelectedRealPetId(), pet.id);
+  });
+
   test('deleting selected pet selects a remaining local pet', () async {
     final first = await pets.savePet(const PetDraft(name: '团子'));
     final second = await pets.savePet(const PetDraft(name: '旺财'));

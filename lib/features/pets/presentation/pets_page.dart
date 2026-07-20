@@ -100,16 +100,26 @@ class _PetsPageState extends ConsumerState<PetsPage> {
       builder: (_) => _PetEditorDialog(pet: pet),
     );
     if (result == null || !context.mounted) return;
+    final repository = ref.read(petRepositoryProvider);
+    late final PetProfile savedPet;
     try {
-      final repository = ref.read(petRepositoryProvider);
-      late final PetProfile savedPet;
       if (pet == null) {
         savedPet = await repository.create(result.draft);
       } else {
         savedPet = await repository.update(pet.id, result.draft);
       }
-      final photo = result.photo;
-      if (photo != null) {
+    } on Object catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('档案保存失败：$error')));
+      }
+      return;
+    }
+
+    final photo = result.photo;
+    if (photo != null) {
+      try {
         await ref
             .read(petPhotoRepositoryProvider)
             .add(
@@ -119,13 +129,19 @@ class _PetsPageState extends ConsumerState<PetsPage> {
               mediaType: photo.mediaType,
               setAsAvatar: true,
             );
+      } on Object catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('档案已保存，但头像保存失败：$error。可以重新编辑档案再试一次。')),
+          );
+        }
+        return;
       }
-    } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('保存失败：$error')));
-      }
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(pet == null ? '狗狗档案已创建' : '狗狗档案已更新')),
+      );
     }
   }
 
