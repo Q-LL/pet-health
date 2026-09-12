@@ -1,10 +1,10 @@
 # 毛健康本地数据接口文档
 
-> 版本：0.9
+> 版本：1.0
 > 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
 
-当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、健康记录、护理活动、护理计划、护理覆盖统计、提醒、系统本地通知、遛狗实时活动、本地健康动态和本地知识库。就诊、处方、通用附件、导出、备份恢复和 OCR 尚未进入本接口文档。
+当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、爱宠时光、健康记录、护理活动、护理计划、护理覆盖统计、提醒、系统本地通知、遛狗实时活动、本地健康动态和本地知识库。就诊、处方、通用附件、导出、备份恢复和 OCR 尚未进入本接口文档。
 
 ## 1. 前端接入原则
 
@@ -24,6 +24,8 @@
 | `petsProvider` | `AsyncValue<List<PetProfile>>` | 实时狗狗列表（不含筛选） |
 | `selectedPetIdProvider` | `AsyncValue<String>` | 当前狗狗 ID |
 | `petPhotoRepositoryProvider` | `PetPhotoRepository` | 狗狗照片、头像和本地文件管理 |
+| `memoryRepositoryProvider` | `MemoryRepository` | 爱宠时光、Emoji 和系统相册引用管理 |
+| `albumAssetServiceProvider` | `AlbumAssetService` | 相册选择、缩略图、播放句柄和引用权限 |
 | `healthRecordRepositoryProvider` | `HealthRecordRepository` | 健康记录读写 |
 | `careRepositoryProvider` | `CareRepository` | 洗澡、遛狗等护理活动 |
 | `carePlanRepositoryProvider` | `CarePlanRepository` | 护理计划持久化、完成日志和到期计算 |
@@ -52,6 +54,7 @@
 | `filteredRemindersProvider` | `ReminderFilter` | `AsyncValue<List<Reminder>>` | 按来源类型、启用状态、时间筛选提醒 |
 | `todayRemindersProvider` | `String` (petId) | `AsyncValue<List<Reminder>>` | 今日启用且未暂停的提醒 |
 | `filteredPetPhotosProvider` | `PetPhotoFilter` | `AsyncValue<List<PetPhoto>>` | 按关键词筛选狗狗照片 |
+| `memoriesForPetProvider` | `String` (petId) | `AsyncValue<List<PetMemoryEntry>>` | 按时间倒序返回爱宠时光 |
 
 前端读取示例：
 
@@ -307,6 +310,77 @@ Future<int> count(String petId, {String? keyword})
 ```
 
 返回该狗狗符合关键词筛选条件的照片总数。
+
+## 4.1 爱宠时光接口
+
+源文件：
+
+- `lib/features/memories/data/memory_repository.dart`
+- `lib/core/files/album_asset_service.dart`
+
+### 数据边界
+
+- `memory_entries` 保存狗狗、发生时间、随笔、可选 Emoji 和创建/更新时间。
+- `memory_media_refs` 只保存系统相册引用、类型、顺序、尺寸、时长和拍摄时间，不保存媒体字节。
+- iOS 引用为 PhotoKit 本地标识；Android 引用为持久 `content://` URI。
+- 缩略图位于系统临时目录，采用 100 MB LRU；清除缓存不会删除日志或系统相册原件。
+- Web/桌面端不提供持久系统相册引用，页面只显示手机端使用提示。
+
+### 时间线 CRUD
+
+```dart
+Stream<List<PetMemoryEntry>> watchForPet(
+  String petId, {
+  int? limit,
+  int offset = 0,
+})
+
+Future<List<PetMemoryEntry>> findForPet(...)
+Future<PetMemoryEntry?> getById(String id)
+
+Future<PetMemoryEntry> create({
+  required String petId,
+  required DateTime occurredAt,
+  required String note,
+  required List<AlbumAssetReference> media,
+  String? moodEmoji,
+})
+
+Future<PetMemoryEntry> update(
+  String id, {
+  required DateTime occurredAt,
+  required String note,
+  required List<AlbumAssetReference> media,
+  String? moodEmoji,
+})
+
+Future<bool> delete(String id)
+Future<void> deleteAllForPet(String petId)
+Future<int> count(String petId)
+Future<int> distinctReferenceCount()
+```
+
+- 时间线按 `occurredAt`、`createdAt` 倒序。
+- 日志必须至少包含随笔或媒体；Emoji 可空，但非空时必须是一个完整 Unicode Emoji。
+- 媒体只允许“不限数量图片”或“单个视频”，不允许图视频混排或同篇重复引用。
+- 删除日志不删除系统相册内容；同一引用没有其他日志使用时才释放 Android 持久权限。
+- Android 在 4,500 个不同引用时由 UI 预警，Repository 拒绝超过 5,000 个引用。
+
+### 相册服务
+
+```dart
+Future<List<AlbumAssetReference>> pickImages()
+Future<AlbumAssetReference?> pickVideo()
+Future<Uint8List?> requestThumbnail(String platformRef, {int size = 512})
+Future<Uint8List?> requestPreview(String platformRef, {int size = 2048})
+Future<String?> openAsset(String platformRef)
+Future<bool> checkAvailability(String platformRef)
+Future<void> releaseReference(String platformRef)
+Future<int> cacheUsageBytes()
+Future<void> clearCache()
+```
+
+相册权限撤销、媒体被删除或云端读取失败时，读取方法返回不可用状态；页面保留日志文字、日期和 Emoji，并提供编辑后重新选择的恢复路径。
 
 ## 5. 健康记录接口
 
@@ -783,8 +857,6 @@ Future<List<ReminderLog>> findLogs(String reminderId, {int? limit})
 - 数据不足时返回空内容或数据质量提示，不生成诊断结论。
 - 每条建议带 `reason` 或 `evidence`，便于页面解释“为什么出现”。
 - 护理数据只作为上下文和完成情况，不自动推断疾病因果关系。
-
-## 12. 错误约定
 
 ## 12. 本地知识库接口
 
