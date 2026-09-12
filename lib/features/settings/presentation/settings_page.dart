@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/page_frame.dart';
+import '../../memories/data/memory_repository.dart';
 import '../data/app_settings_repository.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -54,6 +55,7 @@ class SettingsPage extends ConsumerWidget {
                 '备份与恢复',
                 '完整保存记录和照片附件',
               ),
+              _MemoryCacheTile(),
             ],
           ),
           const SizedBox(height: 20),
@@ -86,6 +88,78 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _MemoryCacheTile extends ConsumerStatefulWidget {
+  const _MemoryCacheTile();
+
+  @override
+  ConsumerState<_MemoryCacheTile> createState() => _MemoryCacheTileState();
+}
+
+class _MemoryCacheTileState extends ConsumerState<_MemoryCacheTile> {
+  late Future<int> _usage;
+
+  @override
+  void initState() {
+    super.initState();
+    _usage = _readUsage();
+  }
+
+  Future<int> _readUsage() {
+    return ref.read(albumAssetServiceProvider).cacheUsageBytes();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      leading: const Icon(Icons.photo_library_outlined),
+      title: const Text('爱宠时光缓存'),
+      subtitle: FutureBuilder<int>(
+        future: _usage,
+        builder: (context, snapshot) => Text(
+          snapshot.hasData
+              ? '缩略图占用 ${_formatBytes(snapshot.data!)}，上限 100 MB'
+              : '正在计算缩略图缓存',
+        ),
+      ),
+      trailing: const Icon(Icons.cleaning_services_outlined),
+      onTap: _clear,
+    );
+  }
+
+  Future<void> _clear() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清除爱宠时光缓存？'),
+        content: const Text('只清除可重新生成的缩略图，不会删除日志或系统相册中的媒体。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('清除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(albumAssetServiceProvider).clearCache();
+    if (!mounted) return;
+    setState(() => _usage = _readUsage());
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('爱宠时光缓存已清除')));
+  }
+}
+
+String _formatBytes(int bytes) {
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
 
 class _PrivacyBanner extends StatelessWidget {

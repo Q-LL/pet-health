@@ -91,6 +91,38 @@ class PetPhotos extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@TableIndex(name: 'memory_entries_pet_occurred', columns: {#petId, #occurredAt})
+class MemoryEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get petId =>
+      text().references(Pets, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  TextColumn get moodEmoji => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@TableIndex(name: 'memory_media_entry_position', columns: {#entryId, #position})
+class MemoryMediaRefs extends Table {
+  TextColumn get id => text()();
+  TextColumn get entryId =>
+      text().references(MemoryEntries, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => text()();
+  TextColumn get platformRef => text()();
+  IntColumn get position => integer()();
+  IntColumn get width => integer().nullable()();
+  IntColumn get height => integer().nullable()();
+  IntColumn get durationMs => integer().nullable()();
+  DateTimeColumn get capturedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @TableIndex(
   name: 'care_plans_pet_candidate_unique',
   columns: {#petId, #candidateId},
@@ -185,6 +217,8 @@ class ReminderLogs extends Table {
     HealthRecords,
     AppSettings,
     PetPhotos,
+    MemoryEntries,
+    MemoryMediaRefs,
     CarePlans,
     CarePlanLogs,
     Reminders,
@@ -206,7 +240,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -252,6 +286,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(reminders, reminders.careNote);
         await migrator.addColumn(reminders, reminders.careDetailsJson);
       }
+      if (from < 8) {
+        await migrator.createTable(memoryEntries);
+        await migrator.createTable(memoryMediaRefs);
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -274,6 +312,14 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE UNIQUE INDEX IF NOT EXISTS one_avatar_per_pet '
         'ON pet_photos (pet_id) WHERE is_avatar = 1',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS memory_entries_pet_occurred '
+        'ON memory_entries (pet_id, occurred_at DESC)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS memory_media_entry_position '
+        'ON memory_media_refs (entry_id, position)',
       );
       await customStatement(
         'CREATE INDEX IF NOT EXISTS care_plans_pet_enabled '
