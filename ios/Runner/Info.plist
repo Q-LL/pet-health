@@ -27,7 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>用于从相册选择狗狗头像和健康记录照片。</string>
+	<string>用于选择狗狗头像，以及为爱宠时光保存照片和视频的相册引用。</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

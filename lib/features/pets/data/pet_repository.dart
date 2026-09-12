@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
 import '../../care/data/care_repository.dart' show defaultLocalPetId;
+import '../../memories/data/memory_repository.dart';
 import 'pet_photo_repository.dart';
 import '../domain/pet_filter.dart';
 import '../domain/pet_profile.dart';
@@ -15,6 +16,7 @@ final petRepositoryProvider = Provider<PetRepository>((ref) {
   return PetRepository(
     ref.watch(appDatabaseProvider),
     ref.watch(petPhotoRepositoryProvider),
+    ref.watch(memoryRepositoryProvider),
   );
 });
 
@@ -53,10 +55,12 @@ final filteredPetsProvider = StreamProvider.autoDispose
     });
 
 class PetRepository {
-  PetRepository(this._database, [this._photoRepository]) : _uuid = const Uuid();
+  PetRepository(this._database, [this._photoRepository, this._memoryRepository])
+    : _uuid = const Uuid();
 
   final db.AppDatabase _database;
   final PetPhotoRepository? _photoRepository;
+  final MemoryRepository? _memoryRepository;
   final Uuid _uuid;
 
   Stream<List<PetProfile>> watchPets({
@@ -270,6 +274,7 @@ class PetRepository {
   Future<bool> deletePet(String id) async {
     if (await getById(id) == null) return false;
     await _photoRepository?.deleteAllForPet(id);
+    await _memoryRepository?.deleteAllForPet(id);
     await _database.transaction(() async {
       await (_database.delete(
         _database.pets,

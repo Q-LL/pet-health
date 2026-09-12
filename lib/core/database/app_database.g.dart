@@ -3163,6 +3163,1033 @@ class PetPhotosCompanion extends UpdateCompanion<PetPhoto> {
   }
 }
 
+class $MemoryEntriesTable extends MemoryEntries
+    with TableInfo<$MemoryEntriesTable, MemoryEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemoryEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _petIdMeta = const VerificationMeta('petId');
+  @override
+  late final GeneratedColumn<String> petId = GeneratedColumn<String>(
+    'pet_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES pets (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _moodEmojiMeta = const VerificationMeta(
+    'moodEmoji',
+  );
+  @override
+  late final GeneratedColumn<String> moodEmoji = GeneratedColumn<String>(
+    'mood_emoji',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    petId,
+    occurredAt,
+    note,
+    moodEmoji,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'memory_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemoryEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('pet_id')) {
+      context.handle(
+        _petIdMeta,
+        petId.isAcceptableOrUnknown(data['pet_id']!, _petIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_petIdMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('mood_emoji')) {
+      context.handle(
+        _moodEmojiMeta,
+        moodEmoji.isAcceptableOrUnknown(data['mood_emoji']!, _moodEmojiMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemoryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemoryEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      petId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pet_id'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      moodEmoji: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mood_emoji'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MemoryEntriesTable createAlias(String alias) {
+    return $MemoryEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class MemoryEntry extends DataClass implements Insertable<MemoryEntry> {
+  final String id;
+  final String petId;
+  final DateTime occurredAt;
+  final String note;
+  final String? moodEmoji;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MemoryEntry({
+    required this.id,
+    required this.petId,
+    required this.occurredAt,
+    required this.note,
+    this.moodEmoji,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['pet_id'] = Variable<String>(petId);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['note'] = Variable<String>(note);
+    if (!nullToAbsent || moodEmoji != null) {
+      map['mood_emoji'] = Variable<String>(moodEmoji);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MemoryEntriesCompanion toCompanion(bool nullToAbsent) {
+    return MemoryEntriesCompanion(
+      id: Value(id),
+      petId: Value(petId),
+      occurredAt: Value(occurredAt),
+      note: Value(note),
+      moodEmoji: moodEmoji == null && nullToAbsent
+          ? const Value.absent()
+          : Value(moodEmoji),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MemoryEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemoryEntry(
+      id: serializer.fromJson<String>(json['id']),
+      petId: serializer.fromJson<String>(json['petId']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      note: serializer.fromJson<String>(json['note']),
+      moodEmoji: serializer.fromJson<String?>(json['moodEmoji']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'petId': serializer.toJson<String>(petId),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'note': serializer.toJson<String>(note),
+      'moodEmoji': serializer.toJson<String?>(moodEmoji),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MemoryEntry copyWith({
+    String? id,
+    String? petId,
+    DateTime? occurredAt,
+    String? note,
+    Value<String?> moodEmoji = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => MemoryEntry(
+    id: id ?? this.id,
+    petId: petId ?? this.petId,
+    occurredAt: occurredAt ?? this.occurredAt,
+    note: note ?? this.note,
+    moodEmoji: moodEmoji.present ? moodEmoji.value : this.moodEmoji,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MemoryEntry copyWithCompanion(MemoryEntriesCompanion data) {
+    return MemoryEntry(
+      id: data.id.present ? data.id.value : this.id,
+      petId: data.petId.present ? data.petId.value : this.petId,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      note: data.note.present ? data.note.value : this.note,
+      moodEmoji: data.moodEmoji.present ? data.moodEmoji.value : this.moodEmoji,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryEntry(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('note: $note, ')
+          ..write('moodEmoji: $moodEmoji, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, petId, occurredAt, note, moodEmoji, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemoryEntry &&
+          other.id == this.id &&
+          other.petId == this.petId &&
+          other.occurredAt == this.occurredAt &&
+          other.note == this.note &&
+          other.moodEmoji == this.moodEmoji &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MemoryEntriesCompanion extends UpdateCompanion<MemoryEntry> {
+  final Value<String> id;
+  final Value<String> petId;
+  final Value<DateTime> occurredAt;
+  final Value<String> note;
+  final Value<String?> moodEmoji;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MemoryEntriesCompanion({
+    this.id = const Value.absent(),
+    this.petId = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.moodEmoji = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MemoryEntriesCompanion.insert({
+    required String id,
+    required String petId,
+    required DateTime occurredAt,
+    this.note = const Value.absent(),
+    this.moodEmoji = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       petId = Value(petId),
+       occurredAt = Value(occurredAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<MemoryEntry> custom({
+    Expression<String>? id,
+    Expression<String>? petId,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? note,
+    Expression<String>? moodEmoji,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (petId != null) 'pet_id': petId,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (note != null) 'note': note,
+      if (moodEmoji != null) 'mood_emoji': moodEmoji,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MemoryEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? petId,
+    Value<DateTime>? occurredAt,
+    Value<String>? note,
+    Value<String?>? moodEmoji,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MemoryEntriesCompanion(
+      id: id ?? this.id,
+      petId: petId ?? this.petId,
+      occurredAt: occurredAt ?? this.occurredAt,
+      note: note ?? this.note,
+      moodEmoji: moodEmoji ?? this.moodEmoji,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (petId.present) {
+      map['pet_id'] = Variable<String>(petId.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (moodEmoji.present) {
+      map['mood_emoji'] = Variable<String>(moodEmoji.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('petId: $petId, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('note: $note, ')
+          ..write('moodEmoji: $moodEmoji, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MemoryMediaRefsTable extends MemoryMediaRefs
+    with TableInfo<$MemoryMediaRefsTable, MemoryMediaRef> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemoryMediaRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entryIdMeta = const VerificationMeta(
+    'entryId',
+  );
+  @override
+  late final GeneratedColumn<String> entryId = GeneratedColumn<String>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES memory_entries (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _platformRefMeta = const VerificationMeta(
+    'platformRef',
+  );
+  @override
+  late final GeneratedColumn<String> platformRef = GeneratedColumn<String>(
+    'platform_ref',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _widthMeta = const VerificationMeta('width');
+  @override
+  late final GeneratedColumn<int> width = GeneratedColumn<int>(
+    'width',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _heightMeta = const VerificationMeta('height');
+  @override
+  late final GeneratedColumn<int> height = GeneratedColumn<int>(
+    'height',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _capturedAtMeta = const VerificationMeta(
+    'capturedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> capturedAt = GeneratedColumn<DateTime>(
+    'captured_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entryId,
+    kind,
+    platformRef,
+    position,
+    width,
+    height,
+    durationMs,
+    capturedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'memory_media_refs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemoryMediaRef> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('entry_id')) {
+      context.handle(
+        _entryIdMeta,
+        entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('platform_ref')) {
+      context.handle(
+        _platformRefMeta,
+        platformRef.isAcceptableOrUnknown(
+          data['platform_ref']!,
+          _platformRefMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_platformRefMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('width')) {
+      context.handle(
+        _widthMeta,
+        width.isAcceptableOrUnknown(data['width']!, _widthMeta),
+      );
+    }
+    if (data.containsKey('height')) {
+      context.handle(
+        _heightMeta,
+        height.isAcceptableOrUnknown(data['height']!, _heightMeta),
+      );
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
+    if (data.containsKey('captured_at')) {
+      context.handle(
+        _capturedAtMeta,
+        capturedAt.isAcceptableOrUnknown(data['captured_at']!, _capturedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemoryMediaRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemoryMediaRef(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      platformRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}platform_ref'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      width: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}width'],
+      ),
+      height: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}height'],
+      ),
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
+      capturedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}captured_at'],
+      ),
+    );
+  }
+
+  @override
+  $MemoryMediaRefsTable createAlias(String alias) {
+    return $MemoryMediaRefsTable(attachedDatabase, alias);
+  }
+}
+
+class MemoryMediaRef extends DataClass implements Insertable<MemoryMediaRef> {
+  final String id;
+  final String entryId;
+  final String kind;
+  final String platformRef;
+  final int position;
+  final int? width;
+  final int? height;
+  final int? durationMs;
+  final DateTime? capturedAt;
+  const MemoryMediaRef({
+    required this.id,
+    required this.entryId,
+    required this.kind,
+    required this.platformRef,
+    required this.position,
+    this.width,
+    this.height,
+    this.durationMs,
+    this.capturedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['entry_id'] = Variable<String>(entryId);
+    map['kind'] = Variable<String>(kind);
+    map['platform_ref'] = Variable<String>(platformRef);
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || width != null) {
+      map['width'] = Variable<int>(width);
+    }
+    if (!nullToAbsent || height != null) {
+      map['height'] = Variable<int>(height);
+    }
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    if (!nullToAbsent || capturedAt != null) {
+      map['captured_at'] = Variable<DateTime>(capturedAt);
+    }
+    return map;
+  }
+
+  MemoryMediaRefsCompanion toCompanion(bool nullToAbsent) {
+    return MemoryMediaRefsCompanion(
+      id: Value(id),
+      entryId: Value(entryId),
+      kind: Value(kind),
+      platformRef: Value(platformRef),
+      position: Value(position),
+      width: width == null && nullToAbsent
+          ? const Value.absent()
+          : Value(width),
+      height: height == null && nullToAbsent
+          ? const Value.absent()
+          : Value(height),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      capturedAt: capturedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(capturedAt),
+    );
+  }
+
+  factory MemoryMediaRef.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemoryMediaRef(
+      id: serializer.fromJson<String>(json['id']),
+      entryId: serializer.fromJson<String>(json['entryId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      platformRef: serializer.fromJson<String>(json['platformRef']),
+      position: serializer.fromJson<int>(json['position']),
+      width: serializer.fromJson<int?>(json['width']),
+      height: serializer.fromJson<int?>(json['height']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      capturedAt: serializer.fromJson<DateTime?>(json['capturedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'entryId': serializer.toJson<String>(entryId),
+      'kind': serializer.toJson<String>(kind),
+      'platformRef': serializer.toJson<String>(platformRef),
+      'position': serializer.toJson<int>(position),
+      'width': serializer.toJson<int?>(width),
+      'height': serializer.toJson<int?>(height),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'capturedAt': serializer.toJson<DateTime?>(capturedAt),
+    };
+  }
+
+  MemoryMediaRef copyWith({
+    String? id,
+    String? entryId,
+    String? kind,
+    String? platformRef,
+    int? position,
+    Value<int?> width = const Value.absent(),
+    Value<int?> height = const Value.absent(),
+    Value<int?> durationMs = const Value.absent(),
+    Value<DateTime?> capturedAt = const Value.absent(),
+  }) => MemoryMediaRef(
+    id: id ?? this.id,
+    entryId: entryId ?? this.entryId,
+    kind: kind ?? this.kind,
+    platformRef: platformRef ?? this.platformRef,
+    position: position ?? this.position,
+    width: width.present ? width.value : this.width,
+    height: height.present ? height.value : this.height,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    capturedAt: capturedAt.present ? capturedAt.value : this.capturedAt,
+  );
+  MemoryMediaRef copyWithCompanion(MemoryMediaRefsCompanion data) {
+    return MemoryMediaRef(
+      id: data.id.present ? data.id.value : this.id,
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      platformRef: data.platformRef.present
+          ? data.platformRef.value
+          : this.platformRef,
+      position: data.position.present ? data.position.value : this.position,
+      width: data.width.present ? data.width.value : this.width,
+      height: data.height.present ? data.height.value : this.height,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      capturedAt: data.capturedAt.present
+          ? data.capturedAt.value
+          : this.capturedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryMediaRef(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('kind: $kind, ')
+          ..write('platformRef: $platformRef, ')
+          ..write('position: $position, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('capturedAt: $capturedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    entryId,
+    kind,
+    platformRef,
+    position,
+    width,
+    height,
+    durationMs,
+    capturedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemoryMediaRef &&
+          other.id == this.id &&
+          other.entryId == this.entryId &&
+          other.kind == this.kind &&
+          other.platformRef == this.platformRef &&
+          other.position == this.position &&
+          other.width == this.width &&
+          other.height == this.height &&
+          other.durationMs == this.durationMs &&
+          other.capturedAt == this.capturedAt);
+}
+
+class MemoryMediaRefsCompanion extends UpdateCompanion<MemoryMediaRef> {
+  final Value<String> id;
+  final Value<String> entryId;
+  final Value<String> kind;
+  final Value<String> platformRef;
+  final Value<int> position;
+  final Value<int?> width;
+  final Value<int?> height;
+  final Value<int?> durationMs;
+  final Value<DateTime?> capturedAt;
+  final Value<int> rowid;
+  const MemoryMediaRefsCompanion({
+    this.id = const Value.absent(),
+    this.entryId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.platformRef = const Value.absent(),
+    this.position = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.capturedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MemoryMediaRefsCompanion.insert({
+    required String id,
+    required String entryId,
+    required String kind,
+    required String platformRef,
+    required int position,
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.capturedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       entryId = Value(entryId),
+       kind = Value(kind),
+       platformRef = Value(platformRef),
+       position = Value(position);
+  static Insertable<MemoryMediaRef> custom({
+    Expression<String>? id,
+    Expression<String>? entryId,
+    Expression<String>? kind,
+    Expression<String>? platformRef,
+    Expression<int>? position,
+    Expression<int>? width,
+    Expression<int>? height,
+    Expression<int>? durationMs,
+    Expression<DateTime>? capturedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entryId != null) 'entry_id': entryId,
+      if (kind != null) 'kind': kind,
+      if (platformRef != null) 'platform_ref': platformRef,
+      if (position != null) 'position': position,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (capturedAt != null) 'captured_at': capturedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MemoryMediaRefsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? entryId,
+    Value<String>? kind,
+    Value<String>? platformRef,
+    Value<int>? position,
+    Value<int?>? width,
+    Value<int?>? height,
+    Value<int?>? durationMs,
+    Value<DateTime?>? capturedAt,
+    Value<int>? rowid,
+  }) {
+    return MemoryMediaRefsCompanion(
+      id: id ?? this.id,
+      entryId: entryId ?? this.entryId,
+      kind: kind ?? this.kind,
+      platformRef: platformRef ?? this.platformRef,
+      position: position ?? this.position,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      durationMs: durationMs ?? this.durationMs,
+      capturedAt: capturedAt ?? this.capturedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (entryId.present) {
+      map['entry_id'] = Variable<String>(entryId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (platformRef.present) {
+      map['platform_ref'] = Variable<String>(platformRef.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (width.present) {
+      map['width'] = Variable<int>(width.value);
+    }
+    if (height.present) {
+      map['height'] = Variable<int>(height.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (capturedAt.present) {
+      map['captured_at'] = Variable<DateTime>(capturedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryMediaRefsCompanion(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('kind: $kind, ')
+          ..write('platformRef: $platformRef, ')
+          ..write('position: $position, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CarePlansTable extends CarePlans
     with TableInfo<$CarePlansTable, CarePlan> {
   @override
@@ -6186,6 +7213,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HealthRecordsTable healthRecords = $HealthRecordsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $PetPhotosTable petPhotos = $PetPhotosTable(this);
+  late final $MemoryEntriesTable memoryEntries = $MemoryEntriesTable(this);
+  late final $MemoryMediaRefsTable memoryMediaRefs = $MemoryMediaRefsTable(
+    this,
+  );
   late final $CarePlansTable carePlans = $CarePlansTable(this);
   late final $CarePlanLogsTable carePlanLogs = $CarePlanLogsTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
@@ -6197,6 +7228,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index carePetType = Index(
     'care_pet_type',
     'CREATE INDEX care_pet_type ON care_activities (pet_id, type)',
+  );
+  late final Index memoryEntriesPetOccurred = Index(
+    'memory_entries_pet_occurred',
+    'CREATE INDEX memory_entries_pet_occurred ON memory_entries (pet_id, occurred_at)',
+  );
+  late final Index memoryMediaEntryPosition = Index(
+    'memory_media_entry_position',
+    'CREATE INDEX memory_media_entry_position ON memory_media_refs (entry_id, position)',
   );
   late final Index carePlansPetCandidateUnique = Index(
     'care_plans_pet_candidate_unique',
@@ -6212,12 +7251,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     healthRecords,
     appSettings,
     petPhotos,
+    memoryEntries,
+    memoryMediaRefs,
     carePlans,
     carePlanLogs,
     reminders,
     reminderLogs,
     carePetOccurredAt,
     carePetType,
+    memoryEntriesPetOccurred,
+    memoryMediaEntryPosition,
     carePlansPetCandidateUnique,
   ];
   @override
@@ -6242,6 +7285,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('pet_photos', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'pets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('memory_entries', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'memory_entries',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('memory_media_refs', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -6369,6 +7426,24 @@ final class $$PetsTableReferences
     ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_petPhotosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MemoryEntriesTable, List<MemoryEntry>>
+  _memoryEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.memoryEntries,
+    aliasName: 'pets__id__memory_entries__pet_id',
+  );
+
+  $$MemoryEntriesTableProcessedTableManager get memoryEntriesRefs {
+    final manager = $$MemoryEntriesTableTableManager(
+      $_db,
+      $_db.memoryEntries,
+    ).filter((f) => f.petId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_memoryEntriesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6568,6 +7643,31 @@ class $$PetsTableFilterComposer extends Composer<_$AppDatabase, $PetsTable> {
           }) => $$PetPhotosTableFilterComposer(
             $db: $db,
             $table: $db.petPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> memoryEntriesRefs(
+    Expression<bool> Function($$MemoryEntriesTableFilterComposer f) f,
+  ) {
+    final $$MemoryEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.memoryEntries,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.memoryEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6856,6 +7956,31 @@ class $$PetsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> memoryEntriesRefs<T extends Object>(
+    Expression<T> Function($$MemoryEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$MemoryEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.memoryEntries,
+      getReferencedColumn: (t) => t.petId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.memoryEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> carePlansRefs<T extends Object>(
     Expression<T> Function($$CarePlansTableAnnotationComposer a) f,
   ) {
@@ -6949,6 +8074,7 @@ class $$PetsTableTableManager
             bool careActivitiesRefs,
             bool healthRecordsRefs,
             bool petPhotosRefs,
+            bool memoryEntriesRefs,
             bool carePlansRefs,
             bool carePlanLogsRefs,
             bool remindersRefs,
@@ -7040,6 +8166,7 @@ class $$PetsTableTableManager
                 careActivitiesRefs = false,
                 healthRecordsRefs = false,
                 petPhotosRefs = false,
+                memoryEntriesRefs = false,
                 carePlansRefs = false,
                 carePlanLogsRefs = false,
                 remindersRefs = false,
@@ -7050,6 +8177,7 @@ class $$PetsTableTableManager
                     if (careActivitiesRefs) db.careActivities,
                     if (healthRecordsRefs) db.healthRecords,
                     if (petPhotosRefs) db.petPhotos,
+                    if (memoryEntriesRefs) db.memoryEntries,
                     if (carePlansRefs) db.carePlans,
                     if (carePlanLogsRefs) db.carePlanLogs,
                     if (remindersRefs) db.reminders,
@@ -7107,6 +8235,22 @@ class $$PetsTableTableManager
                             table,
                             p0,
                           ).petPhotosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.petId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (memoryEntriesRefs)
+                        await $_getPrefetchedData<Pet, $PetsTable, MemoryEntry>(
+                          currentTable: table,
+                          referencedTable: $$PetsTableReferences
+                              ._memoryEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) => $$PetsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).memoryEntriesRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.petId == item.id,
@@ -7185,6 +8329,7 @@ typedef $$PetsTableProcessedTableManager =
         bool careActivitiesRefs,
         bool healthRecordsRefs,
         bool petPhotosRefs,
+        bool memoryEntriesRefs,
         bool carePlansRefs,
         bool carePlanLogsRefs,
         bool remindersRefs,
@@ -8730,6 +9875,872 @@ typedef $$PetPhotosTableProcessedTableManager =
       (PetPhoto, $$PetPhotosTableReferences),
       PetPhoto,
       PrefetchHooks Function({bool petId})
+    >;
+typedef $$MemoryEntriesTableCreateCompanionBuilder =
+    MemoryEntriesCompanion Function({
+      required String id,
+      required String petId,
+      required DateTime occurredAt,
+      Value<String> note,
+      Value<String?> moodEmoji,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MemoryEntriesTableUpdateCompanionBuilder =
+    MemoryEntriesCompanion Function({
+      Value<String> id,
+      Value<String> petId,
+      Value<DateTime> occurredAt,
+      Value<String> note,
+      Value<String?> moodEmoji,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$MemoryEntriesTableReferences
+    extends BaseReferences<_$AppDatabase, $MemoryEntriesTable, MemoryEntry> {
+  $$MemoryEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $PetsTable _petIdTable(_$AppDatabase db) =>
+      db.pets.createAlias('memory_entries__pet_id__pets__id');
+
+  $$PetsTableProcessedTableManager get petId {
+    final $_column = $_itemColumn<String>('pet_id')!;
+
+    final manager = $$PetsTableTableManager(
+      $_db,
+      $_db.pets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_petIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$MemoryMediaRefsTable, List<MemoryMediaRef>>
+  _memoryMediaRefsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.memoryMediaRefs,
+    aliasName: 'memory_entries__id__memory_media_refs__entry_id',
+  );
+
+  $$MemoryMediaRefsTableProcessedTableManager get memoryMediaRefsRefs {
+    final manager = $$MemoryMediaRefsTableTableManager(
+      $_db,
+      $_db.memoryMediaRefs,
+    ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _memoryMediaRefsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$MemoryEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $MemoryEntriesTable> {
+  $$MemoryEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get moodEmoji => $composableBuilder(
+    column: $table.moodEmoji,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PetsTableFilterComposer get petId {
+    final $$PetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableFilterComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> memoryMediaRefsRefs(
+    Expression<bool> Function($$MemoryMediaRefsTableFilterComposer f) f,
+  ) {
+    final $$MemoryMediaRefsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.memoryMediaRefs,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryMediaRefsTableFilterComposer(
+            $db: $db,
+            $table: $db.memoryMediaRefs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MemoryEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemoryEntriesTable> {
+  $$MemoryEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get moodEmoji => $composableBuilder(
+    column: $table.moodEmoji,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PetsTableOrderingComposer get petId {
+    final $$PetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MemoryEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemoryEntriesTable> {
+  $$MemoryEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get moodEmoji =>
+      $composableBuilder(column: $table.moodEmoji, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$PetsTableAnnotationComposer get petId {
+    final $$PetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.petId,
+      referencedTable: $db.pets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> memoryMediaRefsRefs<T extends Object>(
+    Expression<T> Function($$MemoryMediaRefsTableAnnotationComposer a) f,
+  ) {
+    final $$MemoryMediaRefsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.memoryMediaRefs,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryMediaRefsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.memoryMediaRefs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MemoryEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemoryEntriesTable,
+          MemoryEntry,
+          $$MemoryEntriesTableFilterComposer,
+          $$MemoryEntriesTableOrderingComposer,
+          $$MemoryEntriesTableAnnotationComposer,
+          $$MemoryEntriesTableCreateCompanionBuilder,
+          $$MemoryEntriesTableUpdateCompanionBuilder,
+          (MemoryEntry, $$MemoryEntriesTableReferences),
+          MemoryEntry,
+          PrefetchHooks Function({bool petId, bool memoryMediaRefsRefs})
+        > {
+  $$MemoryEntriesTableTableManager(_$AppDatabase db, $MemoryEntriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemoryEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MemoryEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MemoryEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> petId = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                Value<String?> moodEmoji = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemoryEntriesCompanion(
+                id: id,
+                petId: petId,
+                occurredAt: occurredAt,
+                note: note,
+                moodEmoji: moodEmoji,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String petId,
+                required DateTime occurredAt,
+                Value<String> note = const Value.absent(),
+                Value<String?> moodEmoji = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MemoryEntriesCompanion.insert(
+                id: id,
+                petId: petId,
+                occurredAt: occurredAt,
+                note: note,
+                moodEmoji: moodEmoji,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MemoryEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({petId = false, memoryMediaRefsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (memoryMediaRefsRefs) db.memoryMediaRefs,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (petId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.petId,
+                                    referencedTable:
+                                        $$MemoryEntriesTableReferences
+                                            ._petIdTable(db),
+                                    referencedColumn:
+                                        $$MemoryEntriesTableReferences
+                                            ._petIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (memoryMediaRefsRefs)
+                        await $_getPrefetchedData<
+                          MemoryEntry,
+                          $MemoryEntriesTable,
+                          MemoryMediaRef
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MemoryEntriesTableReferences
+                              ._memoryMediaRefsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MemoryEntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).memoryMediaRefsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.entryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$MemoryEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemoryEntriesTable,
+      MemoryEntry,
+      $$MemoryEntriesTableFilterComposer,
+      $$MemoryEntriesTableOrderingComposer,
+      $$MemoryEntriesTableAnnotationComposer,
+      $$MemoryEntriesTableCreateCompanionBuilder,
+      $$MemoryEntriesTableUpdateCompanionBuilder,
+      (MemoryEntry, $$MemoryEntriesTableReferences),
+      MemoryEntry,
+      PrefetchHooks Function({bool petId, bool memoryMediaRefsRefs})
+    >;
+typedef $$MemoryMediaRefsTableCreateCompanionBuilder =
+    MemoryMediaRefsCompanion Function({
+      required String id,
+      required String entryId,
+      required String kind,
+      required String platformRef,
+      required int position,
+      Value<int?> width,
+      Value<int?> height,
+      Value<int?> durationMs,
+      Value<DateTime?> capturedAt,
+      Value<int> rowid,
+    });
+typedef $$MemoryMediaRefsTableUpdateCompanionBuilder =
+    MemoryMediaRefsCompanion Function({
+      Value<String> id,
+      Value<String> entryId,
+      Value<String> kind,
+      Value<String> platformRef,
+      Value<int> position,
+      Value<int?> width,
+      Value<int?> height,
+      Value<int?> durationMs,
+      Value<DateTime?> capturedAt,
+      Value<int> rowid,
+    });
+
+final class $$MemoryMediaRefsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MemoryMediaRefsTable, MemoryMediaRef> {
+  $$MemoryMediaRefsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MemoryEntriesTable _entryIdTable(_$AppDatabase db) => db.memoryEntries
+      .createAlias('memory_media_refs__entry_id__memory_entries__id');
+
+  $$MemoryEntriesTableProcessedTableManager get entryId {
+    final $_column = $_itemColumn<String>('entry_id')!;
+
+    final manager = $$MemoryEntriesTableTableManager(
+      $_db,
+      $_db.memoryEntries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_entryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MemoryMediaRefsTableFilterComposer
+    extends Composer<_$AppDatabase, $MemoryMediaRefsTable> {
+  $$MemoryMediaRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get platformRef => $composableBuilder(
+    column: $table.platformRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get width => $composableBuilder(
+    column: $table.width,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get height => $composableBuilder(
+    column: $table.height,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MemoryEntriesTableFilterComposer get entryId {
+    final $$MemoryEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.memoryEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.memoryEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MemoryMediaRefsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemoryMediaRefsTable> {
+  $$MemoryMediaRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get platformRef => $composableBuilder(
+    column: $table.platformRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get width => $composableBuilder(
+    column: $table.width,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get height => $composableBuilder(
+    column: $table.height,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MemoryEntriesTableOrderingComposer get entryId {
+    final $$MemoryEntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.memoryEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryEntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.memoryEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MemoryMediaRefsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemoryMediaRefsTable> {
+  $$MemoryMediaRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get platformRef => $composableBuilder(
+    column: $table.platformRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get width =>
+      $composableBuilder(column: $table.width, builder: (column) => column);
+
+  GeneratedColumn<int> get height =>
+      $composableBuilder(column: $table.height, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => column,
+  );
+
+  $$MemoryEntriesTableAnnotationComposer get entryId {
+    final $$MemoryEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.memoryEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MemoryEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.memoryEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MemoryMediaRefsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemoryMediaRefsTable,
+          MemoryMediaRef,
+          $$MemoryMediaRefsTableFilterComposer,
+          $$MemoryMediaRefsTableOrderingComposer,
+          $$MemoryMediaRefsTableAnnotationComposer,
+          $$MemoryMediaRefsTableCreateCompanionBuilder,
+          $$MemoryMediaRefsTableUpdateCompanionBuilder,
+          (MemoryMediaRef, $$MemoryMediaRefsTableReferences),
+          MemoryMediaRef,
+          PrefetchHooks Function({bool entryId})
+        > {
+  $$MemoryMediaRefsTableTableManager(
+    _$AppDatabase db,
+    $MemoryMediaRefsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemoryMediaRefsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MemoryMediaRefsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MemoryMediaRefsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> entryId = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> platformRef = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
+                Value<DateTime?> capturedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemoryMediaRefsCompanion(
+                id: id,
+                entryId: entryId,
+                kind: kind,
+                platformRef: platformRef,
+                position: position,
+                width: width,
+                height: height,
+                durationMs: durationMs,
+                capturedAt: capturedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String entryId,
+                required String kind,
+                required String platformRef,
+                required int position,
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
+                Value<DateTime?> capturedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemoryMediaRefsCompanion.insert(
+                id: id,
+                entryId: entryId,
+                kind: kind,
+                platformRef: platformRef,
+                position: position,
+                width: width,
+                height: height,
+                durationMs: durationMs,
+                capturedAt: capturedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MemoryMediaRefsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({entryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (entryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.entryId,
+                                referencedTable:
+                                    $$MemoryMediaRefsTableReferences
+                                        ._entryIdTable(db),
+                                referencedColumn:
+                                    $$MemoryMediaRefsTableReferences
+                                        ._entryIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MemoryMediaRefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemoryMediaRefsTable,
+      MemoryMediaRef,
+      $$MemoryMediaRefsTableFilterComposer,
+      $$MemoryMediaRefsTableOrderingComposer,
+      $$MemoryMediaRefsTableAnnotationComposer,
+      $$MemoryMediaRefsTableCreateCompanionBuilder,
+      $$MemoryMediaRefsTableUpdateCompanionBuilder,
+      (MemoryMediaRef, $$MemoryMediaRefsTableReferences),
+      MemoryMediaRef,
+      PrefetchHooks Function({bool entryId})
     >;
 typedef $$CarePlansTableCreateCompanionBuilder =
     CarePlansCompanion Function({
@@ -10901,6 +12912,10 @@ class $AppDatabaseManager {
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$PetPhotosTableTableManager get petPhotos =>
       $$PetPhotosTableTableManager(_db, _db.petPhotos);
+  $$MemoryEntriesTableTableManager get memoryEntries =>
+      $$MemoryEntriesTableTableManager(_db, _db.memoryEntries);
+  $$MemoryMediaRefsTableTableManager get memoryMediaRefs =>
+      $$MemoryMediaRefsTableTableManager(_db, _db.memoryMediaRefs);
   $$CarePlansTableTableManager get carePlans =>
       $$CarePlansTableTableManager(_db, _db.carePlans);
   $$CarePlanLogsTableTableManager get carePlanLogs =>

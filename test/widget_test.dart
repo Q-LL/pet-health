@@ -101,7 +101,8 @@ void main() {
     await tester.tap(find.text('爱宠时光'));
     await tester.pumpAndSettle();
 
-    expect(find.text('还没有成长时光'), findsOneWidget);
+    expect(find.text('还没有爱宠时光'), findsOneWidget);
+    expect(find.textContaining('iPhone 或 Android'), findsOneWidget);
     expect(find.text('第一次体检'), findsNothing);
     expect(find.text('来到家里'), findsNothing);
     await disposeTestApp(tester);
