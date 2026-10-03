@@ -1,0 +1,864 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/notifications/notification_service.dart';
+import '../../../core/ui/ui.dart';
+import '../../care/domain/care_activity_spec.dart';
+import '../../pets/data/pet_repository.dart';
+import '../../records/domain/health_record_spec.dart';
+import '../data/reminder_repository.dart';
+import '../domain/reminder_models.dart';
+import 'reminder_presenters.dart';
+
+Future<void> showReminderSheet(BuildContext context, {Reminder? reminder}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: AppMotion.medium,
+      reverseDuration: AppMotion.fast,
+    ),
+    builder: (_) => _ReminderSheet(reminder: reminder),
+  );
+}
+
+class _ReminderSheet extends ConsumerStatefulWidget {
+  const _ReminderSheet({this.reminder});
+
+  final Reminder? reminder;
+
+  @override
+  ConsumerState<_ReminderSheet> createState() => _ReminderSheetState();
+}
+
+class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _recordTitleController = TextEditingController();
+  final _recordNoteController = TextEditingController();
+  final _recordValueController = TextEditingController();
+  final _customUnitController = TextEditingController();
+  final _detailControllers = <String, TextEditingController>{};
+  final _carePlaceController = TextEditingController();
+  final _careNoteController = TextEditingController();
+  final _careDetailControllers = <String, TextEditingController>{};
+  late DateTime _date;
+  TimeOfDay _time = TimeOfDay.now();
+  String _sourceType = 'manual';
+  String _completionMode = 'none';
+  String _completionTarget = 'health';
+  String _recordType = 'custom';
+  String _careType = 'bath';
+  String? _recordUnit;
+  String _repeatMode = 'once';
+  int _intervalDays = 2;
+  final Set<int> _weekdays = {DateTime.now().weekday};
+  var _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _date = DateTime(now.year, now.month, now.day);
+    _recordUnit = healthRecordSpecFor(_recordType).defaultUnit;
+    final reminder = widget.reminder;
+    if (reminder == null) {
+      _syncReminderDetailControllers();
+      _syncCareReminderDetailControllers();
+    } else {
+      _applyReminder(reminder);
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _recordTitleController.dispose();
+    _recordNoteController.dispose();
+    _recordValueController.dispose();
+    _customUnitController.dispose();
+    _carePlaceController.dispose();
+    _careNoteController.dispose();
+    for (final controller in _detailControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _careDetailControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final recordSpec = healthRecordSpecFor(_recordType);
+    final careSpec = careActivitySpecFor(_careType);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        8,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.reminder == null ? '新增提醒' : '编辑提醒',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: _sourceType,
+                    decoration: const InputDecoration(labelText: '提醒目的'),
+                    items: const [
+                      DropdownMenuItem(value: 'care_plan', child: Text('护理计划')),
+                      DropdownMenuItem(value: 'manual', child: Text('普通提醒')),
+                      DropdownMenuItem(value: 'food', child: Text('喂食')),
+                      DropdownMenuItem(value: 'water', child: Text('饮水')),
+                      DropdownMenuItem(value: 'medication', child: Text('用药')),
+                      DropdownMenuItem(value: 'vaccine', child: Text('疫苗')),
+                      DropdownMenuItem(value: 'deworming', child: Text('驱虫')),
+                      DropdownMenuItem(value: 'symptom', child: Text('症状观察')),
+                      DropdownMenuItem(value: 'bath', child: Text('洗澡')),
+                      DropdownMenuItem(value: 'oral', child: Text('口腔护理')),
+                      DropdownMenuItem(value: 'combing', child: Text('梳毛')),
+                      DropdownMenuItem(value: 'styling', child: Text('美容')),
+                      DropdownMenuItem(value: 'nail', child: Text('指甲护理')),
+                      DropdownMenuItem(value: 'ear', child: Text('耳部护理')),
+                      DropdownMenuItem(value: 'eye', child: Text('眼部护理')),
+                      DropdownMenuItem(value: 'paw', child: Text('足爪护理')),
+                      DropdownMenuItem(
+                        value: 'environment',
+                        child: Text('用品 / 环境清洁'),
+                      ),
+                      DropdownMenuItem(value: 'visit', child: Text('就诊 / 复诊')),
+                    ],
+                    onChanged: (value) => _changeSourceType(value!),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _titleController,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(
+                      labelText: '提醒内容 *',
+                      prefixIcon: Icon(Icons.notifications_none_rounded),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? '提醒内容不能为空'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.event_outlined),
+                    title: const Text('提醒日期'),
+                    subtitle: Text(formatReminderDate(_date)),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: _pickDate,
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.schedule_rounded),
+                    title: const Text('提醒时间'),
+                    subtitle: Text(_time.format(context)),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: _pickTime,
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: _repeatMode,
+                    decoration: const InputDecoration(labelText: '提醒频率'),
+                    items: const [
+                      DropdownMenuItem(value: 'once', child: Text('一次')),
+                      DropdownMenuItem(value: 'daily', child: Text('每天')),
+                      DropdownMenuItem(
+                        value: 'interval_d',
+                        child: Text('每隔 N 天'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'weekly_days',
+                        child: Text('每周指定日期'),
+                      ),
+                      DropdownMenuItem(value: 'monthly', child: Text('每月')),
+                    ],
+                    onChanged: (value) => setState(() {
+                      _repeatMode = value!;
+                    }),
+                  ),
+                  if (_repeatMode == 'interval_d') ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Expanded(child: Text('间隔天数')),
+                        IconButton(
+                          tooltip: '减少',
+                          onPressed: _intervalDays <= 2
+                              ? null
+                              : () => setState(() {
+                                  _intervalDays--;
+                                }),
+                          icon: const Icon(Icons.remove_rounded),
+                        ),
+                        Text('$_intervalDays 天'),
+                        IconButton(
+                          tooltip: '增加',
+                          onPressed: () => setState(() {
+                            _intervalDays++;
+                          }),
+                          icon: const Icon(Icons.add_rounded),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_repeatMode == 'weekly_days') ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (var day = 1; day <= 7; day++)
+                          FilterChip(
+                            label: Text(weekdayLabel(day)),
+                            selected: _weekdays.contains(day),
+                            onSelected: (selected) => setState(() {
+                              if (selected) {
+                                _weekdays.add(day);
+                              } else if (_weekdays.length > 1) {
+                                _weekdays.remove(day);
+                              }
+                            }),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '每周 ${_weekdays.length} 次',
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  Text(
+                    '完成后动作',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SegmentedButton<String>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: 'none', label: Text('只完成')),
+                      ButtonSegment(value: 'ask_record', label: Text('填写')),
+                      ButtonSegment(value: 'auto_record', label: Text('自动记录')),
+                    ],
+                    selected: {_completionMode},
+                    onSelectionChanged: (selection) {
+                      setState(() => _completionMode = selection.single);
+                    },
+                  ),
+                  if (_completionMode != 'none') ...[
+                    const SizedBox(height: 14),
+                    SegmentedButton<String>(
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: 'health', label: Text('健康')),
+                        ButtonSegment(value: 'care', label: Text('护理')),
+                      ],
+                      selected: {_completionTarget},
+                      onSelectionChanged: (selection) {
+                        setState(() => _completionTarget = selection.single);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    if (_completionTarget == 'health') ...[
+                      DropdownButtonFormField<String>(
+                        initialValue: _recordType,
+                        decoration: const InputDecoration(labelText: '绑定健康类型'),
+                        items: healthRecordLabels.entries
+                            .map(
+                              (entry) => DropdownMenuItem(
+                                value: entry.key,
+                                child: Text(entry.value),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) => _changeRecordType(value!),
+                      ),
+                      if (_completionMode == 'auto_record') ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _recordTitleController,
+                          decoration: InputDecoration(
+                            labelText: '记录标题',
+                            hintText: recordSpec.defaultTitle,
+                          ),
+                        ),
+                        for (final field in recordSpec.fields) ...[
+                          const SizedBox(height: 12),
+                          _ReminderDetailField(
+                            spec: field,
+                            controller: _detailControllers[field.key]!,
+                            requireValue: true,
+                          ),
+                        ],
+                        if (recordSpec.hasNumericValue) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextFormField(
+                                  controller: _recordValueController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  decoration: InputDecoration(
+                                    labelText: '${recordSpec.numericLabel} *',
+                                  ),
+                                  validator: (value) {
+                                    final text = value?.trim() ?? '';
+                                    if (text.isEmpty) {
+                                      return '自动记录请预填写${recordSpec.numericLabel}';
+                                    }
+                                    return double.tryParse(text) == null
+                                        ? '请输入有效数值'
+                                        : null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: _ReminderUnitField(
+                                  unit: _recordUnit,
+                                  customController: _customUnitController,
+                                  options: recordSpec.unitOptions,
+                                  onChanged: (value) =>
+                                      setState(() => _recordUnit = value),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _recordNoteController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: recordSpec.noteLabel,
+                          ),
+                        ),
+                      ],
+                    ] else ...[
+                      DropdownButtonFormField<String>(
+                        initialValue: _careType,
+                        decoration: const InputDecoration(labelText: '绑定护理类型'),
+                        items: careActivityLabels.entries
+                            .where((entry) => entry.key != 'walk')
+                            .map(
+                              (entry) => DropdownMenuItem(
+                                value: entry.key,
+                                child: Text(entry.value),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) => _changeCareType(value!),
+                      ),
+                      if (_completionMode == 'auto_record') ...[
+                        for (final field in careSpec.fields) ...[
+                          const SizedBox(height: 12),
+                          _ReminderCareDetailField(
+                            spec: field,
+                            controller: _careDetailControllers[field.key]!,
+                            requireValue: true,
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _carePlaceController,
+                          decoration: InputDecoration(
+                            labelText: careSpec.placeLabel,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _careNoteController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: careSpec.noteLabel,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ],
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
+                    onPressed: _isSaving ? null : _save,
+                    icon: const Icon(Icons.save_rounded),
+                    label: Text(
+                      _isSaving
+                          ? '保存中...'
+                          : widget.reminder == null
+                          ? '保存提醒'
+                          : '保存修改',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _completionMode == 'none'
+                  ? '提醒只保存在本机，系统通知接入前会显示在首页今天列表。'
+                  : '绑定记录后，完成提醒可以自动生成记录，或先打开表单让你确认后再保存。',
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(context: context, initialTime: _time);
+    if (picked != null) setState(() => _time = picked);
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+    );
+    if (picked != null) {
+      setState(() => _date = DateTime(picked.year, picked.month, picked.day));
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final petId = await ref
+          .read(petRepositoryProvider)
+          .requireSelectedRealPetId();
+      final now = DateTime.now();
+      var scheduledAt = DateTime(
+        _date.year,
+        _date.month,
+        _date.day,
+        _time.hour,
+        _time.minute,
+      );
+      final repeatRule = _buildRepeatRule();
+      if (repeatRule != null && !scheduledAt.isAfter(now)) {
+        scheduledAt = ReminderRepeatRule.parse(
+          repeatRule,
+        )!.nextOccurrenceAfter(scheduledAt, now);
+      }
+      if (_repeatMode == 'once' && scheduledAt.isBefore(now)) {
+        throw const FormatException('一次提醒的日期和时间不能早于现在');
+      }
+
+      final existing = widget.reminder;
+      final draft = ReminderDraft(
+        petId: existing?.petId ?? petId,
+        sourceType: _sourceType,
+        sourceId: existing?.sourceId,
+        title: _titleController.text.trim(),
+        scheduledAt: scheduledAt,
+        repeatRule: repeatRule,
+        notificationId: existing?.notificationId,
+        completionMode: _completionMode,
+        completionTarget: _completionTarget,
+        recordType: _completionMode == 'none' || _completionTarget != 'health'
+            ? null
+            : _recordType,
+        recordTitle:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : _recordTitleController.text.trim(),
+        recordNumericValue:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : double.tryParse(_recordValueController.text.trim()),
+        recordUnit:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? null
+            : _resolvedReminderUnit(healthRecordSpecFor(_recordType)),
+        recordNote:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? ''
+            : _recordNoteController.text,
+        recordDetails:
+            _completionMode != 'auto_record' || _completionTarget != 'health'
+            ? const {}
+            : _collectReminderDetails(),
+        careType: _completionMode == 'none' || _completionTarget != 'care'
+            ? null
+            : _careType,
+        carePlace:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _carePlaceController.text
+            : '',
+        careNote:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _careNoteController.text
+            : '',
+        careDetails:
+            _completionMode == 'auto_record' && _completionTarget == 'care'
+            ? _collectCareReminderDetails()
+            : const {},
+        enabled: existing?.enabled ?? true,
+        paused: existing?.paused ?? false,
+      );
+      final reminder = existing == null
+          ? await ref.read(reminderRepositoryProvider).create(draft)
+          : await ref
+                .read(reminderRepositoryProvider)
+                .update(existing.id, draft);
+      if (reminder.enabled && !reminder.paused) {
+        await notificationService.scheduleReminder(reminder);
+      } else {
+        await notificationService.cancelReminder(reminder);
+      }
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(reminderErrorMessage(error))));
+    }
+  }
+
+  void _applyReminder(Reminder reminder) {
+    final local = reminder.scheduledAt.toLocal();
+    _date = DateTime(local.year, local.month, local.day);
+    _time = TimeOfDay.fromDateTime(local);
+    _sourceType = reminder.sourceType;
+    _completionMode = reminder.completionMode;
+    _completionTarget = reminder.completionTarget;
+    _recordType = recordTypeForReminder(reminder);
+    _careType = careTypeForReminder(reminder);
+    _titleController.text = reminder.title;
+    _recordTitleController.text = reminder.recordTitle ?? '';
+    _recordNoteController.text = reminder.recordNote;
+    _recordValueController.text = reminder.recordNumericValue?.toString() ?? '';
+    _recordUnit =
+        reminder.recordUnit ?? healthRecordSpecFor(_recordType).defaultUnit;
+    if (_recordUnit != null &&
+        !healthRecordSpecFor(_recordType).unitOptions.contains(_recordUnit)) {
+      _customUnitController.text = _recordUnit!;
+      _recordUnit = '__custom__';
+    }
+    _carePlaceController.text = reminder.carePlace;
+    _careNoteController.text = reminder.careNote;
+    _applyRepeatRule(reminder.repeatRule);
+    _syncReminderDetailControllers();
+    for (final entry in reminder.recordDetails.entries) {
+      _detailControllers[entry.key]?.text = entry.value;
+    }
+    _syncCareReminderDetailControllers();
+    for (final entry in reminder.careDetails.entries) {
+      _careDetailControllers[entry.key]?.text = entry.value;
+    }
+  }
+
+  void _applyRepeatRule(String? repeatRule) {
+    _repeatMode = 'once';
+    if (repeatRule == null || repeatRule.isEmpty) return;
+    if (repeatRule == 'daily') {
+      _repeatMode = 'daily';
+    } else if (repeatRule == 'monthly') {
+      _repeatMode = 'monthly';
+    } else if (repeatRule.startsWith('interval:') && repeatRule.endsWith('d')) {
+      final value = int.tryParse(
+        repeatRule.substring(9, repeatRule.length - 1),
+      );
+      if (value != null && value > 0) {
+        _repeatMode = 'interval_d';
+        _intervalDays = value;
+      }
+    } else if (repeatRule.startsWith('weekly_days:')) {
+      final days = repeatRule
+          .substring(12)
+          .split(',')
+          .map((part) => int.tryParse(part.trim()))
+          .whereType<int>()
+          .where((day) => day >= 1 && day <= 7)
+          .toSet();
+      if (days.isNotEmpty) {
+        _repeatMode = 'weekly_days';
+        _weekdays
+          ..clear()
+          ..addAll(days);
+      }
+    }
+  }
+
+  void _changeSourceType(String value) {
+    setState(() {
+      _sourceType = value;
+      if (_titleController.text.trim().isEmpty) {
+        _titleController.text = defaultReminderTitle(value);
+      }
+      if (value != 'manual' && value != 'visit') {
+        _completionMode = _completionMode == 'none'
+            ? 'ask_record'
+            : _completionMode;
+        if (isCareReminderSource(value)) {
+          _completionTarget = 'care';
+          _setCareType(value);
+        } else {
+          _completionTarget = 'health';
+          _setRecordType(defaultHealthRecordTypeForReminder(value));
+        }
+      }
+    });
+  }
+
+  void _changeRecordType(String value) {
+    setState(() => _setRecordType(value));
+  }
+
+  void _changeCareType(String value) {
+    setState(() => _setCareType(value));
+  }
+
+  void _setRecordType(String value) {
+    _recordType = value;
+    final spec = healthRecordSpecFor(value);
+    _recordUnit = spec.defaultUnit;
+    _recordValueController.clear();
+    _customUnitController.clear();
+    if (_recordTitleController.text.trim().isEmpty) {
+      _recordTitleController.text = spec.defaultTitle;
+    }
+    _syncReminderDetailControllers();
+  }
+
+  void _setCareType(String value) {
+    _careType = value;
+    _carePlaceController.clear();
+    _careNoteController.clear();
+    _syncCareReminderDetailControllers();
+  }
+
+  void _syncReminderDetailControllers() {
+    final spec = healthRecordSpecFor(_recordType);
+    final nextKeys = spec.fields.map((field) => field.key).toSet();
+    for (final key in _detailControllers.keys.toList()) {
+      if (!nextKeys.contains(key)) {
+        _detailControllers.remove(key)?.dispose();
+      }
+    }
+    for (final field in spec.fields) {
+      _detailControllers.putIfAbsent(field.key, () => TextEditingController());
+    }
+  }
+
+  Map<String, String> _collectReminderDetails() {
+    return {
+      for (final entry in _detailControllers.entries)
+        if (entry.value.text.trim().isNotEmpty)
+          entry.key: entry.value.text.trim(),
+    };
+  }
+
+  void _syncCareReminderDetailControllers() {
+    final spec = careActivitySpecFor(_careType);
+    final nextKeys = spec.fields.map((field) => field.key).toSet();
+    for (final key in _careDetailControllers.keys.toList()) {
+      if (!nextKeys.contains(key)) {
+        _careDetailControllers.remove(key)?.dispose();
+      }
+    }
+    for (final field in spec.fields) {
+      _careDetailControllers.putIfAbsent(
+        field.key,
+        () => TextEditingController(),
+      );
+    }
+  }
+
+  Map<String, String> _collectCareReminderDetails() {
+    return {
+      for (final entry in _careDetailControllers.entries)
+        if (entry.value.text.trim().isNotEmpty)
+          entry.key: entry.value.text.trim(),
+    };
+  }
+
+  String? _buildRepeatRule() {
+    return switch (_repeatMode) {
+      'daily' => 'daily',
+      'monthly' => 'monthly',
+      'interval_d' => 'interval:${_intervalDays}d',
+      'weekly_days' => 'weekly_days:${(_weekdays.toList()..sort()).join(',')}',
+      _ => null,
+    };
+  }
+
+  String? _resolvedReminderUnit(HealthRecordTypeSpec spec) {
+    if (!spec.hasNumericValue) return null;
+    if (_recordUnit == '__custom__') {
+      final custom = _customUnitController.text.trim();
+      return custom.isEmpty ? spec.defaultUnit : custom;
+    }
+    return _recordUnit ?? spec.defaultUnit;
+  }
+}
+
+class _ReminderDetailField extends StatelessWidget {
+  const _ReminderDetailField({
+    required this.spec,
+    required this.controller,
+    required this.requireValue,
+  });
+
+  final HealthRecordFieldSpec spec;
+  final TextEditingController controller;
+  final bool requireValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final required = requireValue && spec.required;
+    if (spec.isChoice) {
+      final currentValue = spec.options.contains(controller.text)
+          ? controller.text
+          : null;
+      return DropdownButtonFormField<String>(
+        initialValue: currentValue,
+        decoration: InputDecoration(
+          labelText: '${spec.label}${required ? ' *' : ''}',
+        ),
+        items: [
+          const DropdownMenuItem(value: '', child: Text('完成时填写')),
+          for (final option in spec.options)
+            DropdownMenuItem(value: option, child: Text(option)),
+        ],
+        validator: (value) => required && (value == null || value.isEmpty)
+            ? '请选择${spec.label}'
+            : null,
+        onChanged: (value) => controller.text = value ?? '',
+      );
+    }
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: '${spec.label}${required ? ' *' : ''}',
+        hintText: requireValue ? spec.placeholder : '完成时可再填写',
+      ),
+      validator: (value) => required && (value == null || value.trim().isEmpty)
+          ? '请填写${spec.label}'
+          : null,
+    );
+  }
+}
+
+class _ReminderUnitField extends StatelessWidget {
+  const _ReminderUnitField({
+    required this.unit,
+    required this.customController,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String? unit;
+  final TextEditingController customController;
+  final List<String> options;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final knownUnit = unit != null && options.contains(unit);
+    if (unit != null && unit != '__custom__' && !knownUnit) {
+      customController.text = unit!;
+    }
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: knownUnit ? unit : '__custom__',
+          decoration: const InputDecoration(labelText: '单位'),
+          items: [
+            for (final option in options)
+              DropdownMenuItem(value: option, child: Text(option)),
+            const DropdownMenuItem(value: '__custom__', child: Text('自定义')),
+          ],
+          onChanged: onChanged,
+        ),
+        if (!knownUnit && unit != null) ...[
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: customController,
+            decoration: const InputDecoration(labelText: '自定义单位'),
+            validator: (value) =>
+                value == null || value.trim().isEmpty ? '请填写单位' : null,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ReminderCareDetailField extends StatelessWidget {
+  const _ReminderCareDetailField({
+    required this.spec,
+    required this.controller,
+    required this.requireValue,
+  });
+
+  final CareActivityFieldSpec spec;
+  final TextEditingController controller;
+  final bool requireValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final required = requireValue && spec.required;
+    if (spec.isChoice) {
+      final currentValue = spec.options.contains(controller.text)
+          ? controller.text
+          : null;
+      return DropdownButtonFormField<String>(
+        initialValue: currentValue,
+        decoration: InputDecoration(
+          labelText: '${spec.label}${required ? ' *' : ''}',
+        ),
+        items: [
+          const DropdownMenuItem(value: '', child: Text('完成时填写')),
+          for (final option in spec.options)
+            DropdownMenuItem(value: option, child: Text(option)),
+        ],
+        validator: (value) => required && (value == null || value.isEmpty)
+            ? '请选择${spec.label}'
+            : null,
+        onChanged: (value) => controller.text = value ?? '',
+      );
+    }
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: '${spec.label}${required ? ' *' : ''}',
+        hintText: requireValue ? spec.placeholder : '完成时可再填写',
+      ),
+      validator: (value) => required && (value == null || value.trim().isEmpty)
+          ? '请填写${spec.label}'
+          : null,
+    );
+  }
+}

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/files/image_file_picker.dart';
@@ -80,7 +81,7 @@ class _PetHealthAppState extends ConsumerState<PetHealthApp>
   }) async {
     if (_showingWalkFinishSheet || !mounted) return;
     _showingWalkFinishSheet = true;
-    appRouter.go('/home');
+    appRouter.go('/today');
     await Future<void>.delayed(Duration.zero);
     final context = rootNavigatorKey.currentContext;
     if (context != null && context.mounted) {
@@ -120,6 +121,9 @@ class _PetHealthAppState extends ConsumerState<PetHealthApp>
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      locale: const Locale('zh', 'CN'),
+      supportedLocales: const [Locale('zh', 'CN')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: appRouter,
     );
   }

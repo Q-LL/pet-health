@@ -30,13 +30,13 @@ class MemoriesTab extends ConsumerWidget {
           data: (items) => items.isEmpty
               ? _EmptyMemoriesState(
                   supported: service.isSupported,
-                  onCreate: () => _openEditor(context, ref, petId),
+                  onCreate: () => showMemoryEditor(context, ref, petId),
                 )
               : _MemoryTimeline(
                   items: items,
                   onEdit: (entry) =>
-                      _openEditor(context, ref, petId, entry: entry),
-                  onDelete: (entry) => _deleteEntry(context, ref, entry),
+                      showMemoryEditor(context, ref, petId, entry: entry),
+                  onDelete: (entry) => deleteMemoryEntry(context, ref, entry),
                 ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _LoadError(
@@ -50,7 +50,7 @@ class MemoriesTab extends ConsumerWidget {
             child: FloatingActionButton.extended(
               heroTag: 'new-memory',
               tooltip: '记录新的爱宠时光',
-              onPressed: () => _openEditor(context, ref, petId),
+              onPressed: () => showMemoryEditor(context, ref, petId),
               icon: const Icon(Icons.add_rounded),
               label: const Text('写随笔'),
             ),
@@ -82,7 +82,7 @@ class _MemoryTimeline extends StatelessWidget {
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
-            child: _MemoryCard(
+            child: MemoryCard(
               entry: entry,
               onEdit: () => onEdit(entry),
               onDelete: () => onDelete(entry),
@@ -94,8 +94,9 @@ class _MemoryTimeline extends StatelessWidget {
   }
 }
 
-class _MemoryCard extends StatelessWidget {
-  const _MemoryCard({
+class MemoryCard extends StatelessWidget {
+  const MemoryCard({
+    super.key,
     required this.entry,
     required this.onEdit,
     required this.onDelete,
@@ -1078,7 +1079,7 @@ class _LoadError extends StatelessWidget {
   }
 }
 
-Future<void> _openEditor(
+Future<void> showMemoryEditor(
   BuildContext context,
   WidgetRef ref,
   String petId, {
@@ -1091,7 +1092,7 @@ Future<void> _openEditor(
     );
     return;
   }
-  await Navigator.of(context).push(
+  await Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
       builder: (_) => _MemoryEditorPage(petId: petId, entry: entry),
@@ -1099,7 +1100,27 @@ Future<void> _openEditor(
   );
 }
 
-Future<void> _deleteEntry(
+Future<void> showNewMemory(BuildContext context) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final petId = await container
+      .read(petRepositoryProvider)
+      .requireSelectedRealPetId();
+  if (!context.mounted) return;
+  if (!container.read(albumAssetServiceProvider).isSupported) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('请在 iPhone 或 Android 手机上使用此功能')),
+    );
+    return;
+  }
+  await Navigator.of(context, rootNavigator: true).push<void>(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => _MemoryEditorPage(petId: petId),
+    ),
+  );
+}
+
+Future<void> deleteMemoryEntry(
   BuildContext context,
   WidgetRef ref,
   PetMemoryEntry entry,

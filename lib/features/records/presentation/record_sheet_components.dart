@@ -1,4 +1,70 @@
 import 'package:flutter/material.dart';
+import '../../../core/ui/ui.dart';
+
+/// Scrollable editor with a save action above the keyboard and safe area.
+class RecordEditorFrame extends StatelessWidget {
+  const RecordEditorFrame({
+    required this.title,
+    required this.child,
+    required this.onSave,
+    required this.saving,
+    required this.saveLabel,
+    this.contextInfo,
+    super.key,
+  });
+  final String title;
+  final Widget child;
+  final Widget? contextInfo;
+  final VoidCallback onSave;
+  final bool saving;
+  final String saveLabel;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: SafeArea(
+      bottom: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: AppContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (contextInfo != null) ...[
+                contextInfo!,
+                const SizedBox(height: 20),
+              ],
+              child,
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    ),
+    bottomNavigationBar: Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        top: false,
+        child: AppContent(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: saving ? null : onSave,
+              icon: saving
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_rounded),
+              label: Text(saveLabel),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
 class RecordDateTimeField extends StatelessWidget {
   const RecordDateTimeField({

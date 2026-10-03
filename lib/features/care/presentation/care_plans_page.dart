@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/motion.dart';
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';
 import '../data/care_plan_repository.dart';
@@ -27,7 +26,7 @@ class _CarePlansPageState extends ConsumerState<CarePlansPage> {
     final planState = ref.watch(carePlanControllerProvider);
     final candidates = ref.watch(carePlanCandidatesProvider);
 
-    return PageFrame(
+    return AppPage(
       title: '护理中心',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

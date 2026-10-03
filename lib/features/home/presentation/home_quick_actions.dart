@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/motion.dart';
+import '../../../core/ui/ui.dart';
 import '../../care/application/care_controller.dart';
 import '../../care/presentation/care_sheets.dart';
 import '../../records/presentation/add_record_sheet.dart';
@@ -40,58 +40,61 @@ class HomeQuickActions extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 420;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: compact ? 2 : 4,
-            mainAxisExtent: 104,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: actions.length,
-          itemBuilder: (context, index) {
-            final action = actions[index];
-            return PressableScale(
-              child: Material(
-                color: action.color,
-                borderRadius: BorderRadius.circular(24),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: action.action,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(action.icon, color: action.onColor, size: 26),
-                        Row(
+        final largeText = MediaQuery.textScalerOf(context).scale(16) > 23;
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final action in actions)
+              SizedBox(
+                width:
+                    (constraints.maxWidth - (largeText ? 10 : 30)) /
+                    (largeText ? 2 : 4),
+                child: PressableScale(
+                  child: Material(
+                    color: action.label == '更多记录'
+                        ? colors.primaryContainer
+                        : colors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: action.action,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: Text(
-                                action.label,
-                                style: TextStyle(
-                                  color: action.onColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: colors.primaryContainer,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(
+                                action.icon,
+                                color: colors.primary,
+                                size: 20,
                               ),
                             ),
-                            Icon(
-                              Icons.add_rounded,
-                              color: action.onColor,
-                              size: 18,
+                            const SizedBox(height: 10),
+                            Text(
+                              action.label,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
+          ],
         );
       },
     );

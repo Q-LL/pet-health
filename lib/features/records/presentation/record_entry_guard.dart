@@ -39,7 +39,7 @@ Future<bool> requireRealPetProfile(BuildContext context) async {
     ),
   );
   if (createProfile == true && context.mounted) {
-    context.go('/pets');
+    context.go('/pet');
   }
   return false;
 }

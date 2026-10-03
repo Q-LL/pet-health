@@ -24,7 +24,7 @@ class RelatedKnowledgeLink extends ConsumerWidget {
         final colors = Theme.of(context).colorScheme;
         return InkWell(
           borderRadius: BorderRadius.circular(compact ? 12 : 16),
-          onTap: () => context.push('/settings/knowledge/${article.id}'),
+          onTap: () => context.push('/knowledge/${article.id}'),
           child: Container(
             padding: EdgeInsets.all(compact ? 10 : 12),
             decoration: BoxDecoration(

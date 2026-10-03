@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/motion.dart';
+import '../../../core/ui/ui.dart';
 import '../../records/presentation/add_record_sheet.dart';
 import '../application/care_controller.dart';
 import '../application/care_plan_controller.dart';

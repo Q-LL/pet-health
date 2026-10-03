@@ -2,14 +2,17 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/files/image_file_picker.dart';
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../data/pet_photo_repository.dart';
 import '../data/pet_repository.dart';
 import '../domain/pet_filter.dart';
 import '../domain/pet_profile.dart';
+import '../../records/presentation/record_sheet_components.dart';
 import 'pet_avatar.dart';
+import 'pet_dashboard.dart';
 
 class PetsPage extends ConsumerStatefulWidget {
   const PetsPage({super.key});
@@ -20,43 +23,69 @@ class PetsPage extends ConsumerStatefulWidget {
 
 class _PetsPageState extends ConsumerState<PetsPage> {
   var _keyword = '';
+  var _manage = false;
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   String? get _searchKeyword =>
       _keyword.trim().isEmpty ? null : _keyword.trim();
 
   @override
   Widget build(BuildContext context) {
-    final filter = PetFilter(keyword: _searchKeyword);
+    final filter = PetFilter(keyword: _manage ? _searchKeyword : null);
     final pets = ref.watch(filteredPetsProvider(filter));
     final selectedPetId = ref.watch(selectedPetIdProvider).value;
-    return PageFrame(
+    return AppPage(
       title: '狗狗',
-      subtitle: '每只狗狗都有独立、连续的健康履历。',
+      compact: true,
+      subtitle: _manage ? '每只狗狗都有独立、连续的健康履历。' : null,
       actions: [
-        IconButton.filledTonal(
-          tooltip: '创建狗狗档案',
-          onPressed: () => _editPet(context, ref),
-          icon: const Icon(Icons.add_rounded),
+        IconButton(
+          tooltip: '设置',
+          onPressed: () => context.push('/settings'),
+          icon: const Icon(Icons.settings_outlined),
         ),
+        if (_manage)
+          IconButton.filledTonal(
+            tooltip: '创建狗狗档案',
+            onPressed: () => _editPet(context, ref),
+            icon: const Icon(Icons.add_rounded),
+          ),
         const SizedBox(width: 12),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: '搜索名字、品种、过敏信息…',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: _keyword.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear_rounded),
-                      onPressed: () => setState(() => _keyword = ''),
-                    )
-                  : null,
+          if (_manage) ...[
+            TextButton.icon(
+              onPressed: () => setState(() => _manage = false),
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('返回当前档案'),
             ),
-            onChanged: (value) => setState(() => _keyword = value),
-          ),
-          const SizedBox(height: 16),
+            TextField(
+              controller: _search,
+              decoration: InputDecoration(
+                hintText: '搜索名字、品种、过敏信息…',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: _keyword.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded),
+                        onPressed: () => setState(() {
+                          _search.clear();
+                          _keyword = '';
+                        }),
+                      )
+                    : null,
+              ),
+              onChanged: (value) => setState(() => _keyword = value),
+            ),
+            const SizedBox(height: 16),
+          ],
           pets.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => _ErrorCard(message: error.toString()),
@@ -65,7 +94,27 @@ class _PetsPageState extends ConsumerState<PetsPage> {
                   .where((pet) => !pet.isPlaceholder)
                   .toList(growable: false);
               if (realPets.isEmpty) {
+                if (_manage && _searchKeyword != null) {
+                  return const EmptyState(
+                    title: '没有找到狗狗',
+                    message: '试试其他名字或品种。',
+                  );
+                }
                 return _EmptyPets(onCreate: () => _editPet(context, ref));
+              }
+              if (!_manage) {
+                final current =
+                    realPets
+                        .where((pet) => pet.id == selectedPetId)
+                        .firstOrNull ??
+                    realPets.first;
+                return PetDashboard(
+                  pet: current,
+                  pets: realPets,
+                  onEdit: () => _editPet(context, ref, pet: current),
+                  onCreate: () => _editPet(context, ref),
+                  onManage: () => setState(() => _manage = true),
+                );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,16 +144,20 @@ class _PetsPageState extends ConsumerState<PetsPage> {
     WidgetRef ref, {
     PetProfile? pet,
   }) async {
-    final result = await showDialog<_PetEditorResult>(
-      context: context,
-      builder: (_) => _PetEditorDialog(pet: pet),
-    );
+    final result = await Navigator.of(context, rootNavigator: true)
+        .push<_PetEditorResult>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => _PetEditorPage(pet: pet),
+          ),
+        );
     if (result == null || !context.mounted) return;
     final repository = ref.read(petRepositoryProvider);
     late final PetProfile savedPet;
     try {
       if (pet == null) {
         savedPet = await repository.create(result.draft);
+        await repository.selectPet(savedPet.id);
       } else {
         savedPet = await repository.update(pet.id, result.draft);
       }
@@ -310,13 +363,13 @@ class _PetCard extends StatelessWidget {
   }
 }
 
-class _PetEditorDialog extends StatefulWidget {
-  const _PetEditorDialog({this.pet});
+class _PetEditorPage extends StatefulWidget {
+  const _PetEditorPage({this.pet});
 
   final PetProfile? pet;
 
   @override
-  State<_PetEditorDialog> createState() => _PetEditorDialogState();
+  State<_PetEditorPage> createState() => _PetEditorPageState();
 }
 
 class _MiniInfoChip extends StatelessWidget {
@@ -346,7 +399,7 @@ class _MiniInfoChip extends StatelessWidget {
   }
 }
 
-class _PetEditorDialogState extends State<_PetEditorDialog> {
+class _PetEditorPageState extends State<_PetEditorPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   String? _species;
@@ -383,134 +436,122 @@ class _PetEditorDialogState extends State<_PetEditorDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.pet == null ? '创建狗狗档案' : '编辑狗狗档案'),
-    content: SizedBox(
-      width: 480,
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _PhotoPickerPreview(
-                pet: widget.pet,
-                bytes: _previewBytes,
-                onPick: _pickPhoto,
-              ),
-              const SizedBox(height: 18),
-              TextFormField(
-                controller: _name,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: '名字 *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? '请填写狗狗名字' : null,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String?>(
-                initialValue: _species,
-                decoration: const InputDecoration(labelText: '类型'),
-                items: const [
-                  DropdownMenuItem<String?>(value: null, child: Text('未填写')),
-                  DropdownMenuItem(value: '小型犬', child: Text('小型犬')),
-                  DropdownMenuItem(value: '中型犬', child: Text('中型犬')),
-                  DropdownMenuItem(value: '大型犬', child: Text('大型犬')),
-                  DropdownMenuItem(value: '幼犬', child: Text('幼犬')),
-                  DropdownMenuItem(value: '老年犬', child: Text('老年犬')),
-                ],
-                onChanged: (value) => setState(() => _species = value),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _breed,
-                decoration: const InputDecoration(labelText: '品种'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String?>(
-                initialValue: _sex,
-                decoration: const InputDecoration(labelText: '性别'),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('未填写')),
-                  DropdownMenuItem(value: 'male', child: Text('公')),
-                  DropdownMenuItem(value: 'female', child: Text('母')),
-                  DropdownMenuItem(value: 'unknown', child: Text('未知 / 其他')),
-                ],
-                onChanged: (value) => setState(() => _sex = value),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final value = await showDatePicker(
-                    context: context,
-                    initialDate: _birthday ?? DateTime.now(),
-                    firstDate: DateTime(1990),
-                    lastDate: DateTime.now(),
-                  );
-                  if (value != null) setState(() => _birthday = value);
-                },
-                icon: const Icon(Icons.cake_outlined),
-                label: Text(
-                  _birthday == null
-                      ? '出生日期（未填写）'
-                      : '出生日期：${_birthday!.year}-${_birthday!.month.toString().padLeft(2, '0')}-${_birthday!.day.toString().padLeft(2, '0')}',
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<bool?>(
-                initialValue: _neutered,
-                decoration: const InputDecoration(labelText: '绝育状态'),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('未填写')),
-                  DropdownMenuItem(value: true, child: Text('已绝育')),
-                  DropdownMenuItem(value: false, child: Text('未绝育')),
-                ],
-                onChanged: (value) => setState(() => _neutered = value),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _allergies,
-                decoration: const InputDecoration(labelText: '过敏信息'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _conditions,
-                decoration: const InputDecoration(labelText: '慢性病或长期关注事项'),
-                maxLines: 2,
-              ),
-            ],
+  Widget build(BuildContext context) => RecordEditorFrame(
+    title: widget.pet == null ? '创建狗狗档案' : '编辑狗狗档案',
+    onSave: _submit,
+    saving: false,
+    saveLabel: '保存',
+    child: Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PhotoPickerPreview(
+            pet: widget.pet,
+            bytes: _previewBytes,
+            onPick: _pickPhoto,
           ),
-        ),
+          const SizedBox(height: 18),
+          TextFormField(
+            controller: _name,
+            autofocus: widget.pet == null,
+            decoration: const InputDecoration(labelText: '名字 *'),
+            validator: (value) =>
+                value == null || value.trim().isEmpty ? '请填写狗狗名字' : null,
+          ),
+          const SizedBox(height: 16),
+          ChoiceGroup<String>(
+            label: '类型',
+            selected: _species,
+            allowDeselect: true,
+            options: const [
+              Choice('小型犬', '小型犬'),
+              Choice('中型犬', '中型犬'),
+              Choice('大型犬', '大型犬'),
+              Choice('幼犬', '幼犬'),
+              Choice('老年犬', '老年犬'),
+            ],
+            onChanged: (value) => setState(() => _species = value),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _breed,
+            decoration: const InputDecoration(labelText: '品种'),
+          ),
+          const SizedBox(height: 16),
+          ChoiceGroup<String>(
+            label: '性别',
+            selected: _sex,
+            allowDeselect: true,
+            options: const [
+              Choice('male', '公'),
+              Choice('female', '母'),
+              Choice('unknown', '未知'),
+            ],
+            onChanged: (value) => setState(() => _sex = value),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final value = await showDatePicker(
+                context: context,
+                initialDate: _birthday ?? DateTime.now(),
+                firstDate: DateTime(1990),
+                lastDate: DateTime.now(),
+              );
+              if (value != null && mounted) setState(() => _birthday = value);
+            },
+            icon: const Icon(Icons.cake_outlined),
+            label: Text(
+              _birthday == null
+                  ? '出生日期（未填写）'
+                  : '出生日期：${_birthday!.year}-${_birthday!.month}-${_birthday!.day}',
+            ),
+          ),
+          const SizedBox(height: 16),
+          ChoiceGroup<bool>(
+            label: '绝育状态',
+            selected: _neutered,
+            allowDeselect: true,
+            options: const [Choice(true, '已绝育'), Choice(false, '未绝育')],
+            onChanged: (value) => setState(() => _neutered = value),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _allergies,
+            decoration: const InputDecoration(labelText: '过敏信息（可选）'),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _conditions,
+            decoration: const InputDecoration(labelText: '慢性病 / 长期关注（可选）'),
+            maxLines: 2,
+          ),
+        ],
       ),
     ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('取消'),
-      ),
-      FilledButton(
-        onPressed: () {
-          if (!_formKey.currentState!.validate()) return;
-          Navigator.pop(
-            context,
-            _PetEditorResult(
-              draft: PetDraft(
-                name: _name.text,
-                species: _species ?? '',
-                breed: _breed.text,
-                sex: _sex,
-                birthday: _birthday,
-                neutered: _neutered,
-                allergies: _allergies.text,
-                chronicConditions: _conditions.text,
-              ),
-              photo: _pickedPhoto,
-            ),
-          );
-        },
-        child: const Text('保存'),
-      ),
-    ],
   );
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(
+      context,
+      _PetEditorResult(
+        draft: PetDraft(
+          name: _name.text,
+          species: _species,
+          breed: _breed.text,
+          sex: _sex,
+          birthday: _birthday,
+          neutered: _neutered,
+          allergies: _allergies.text,
+          chronicConditions: _conditions.text,
+          avatarPath: widget.pet?.avatarPath,
+        ),
+        photo: _pickedPhoto,
+      ),
+    );
+  }
 
   Future<void> _pickPhoto() async {
     try {

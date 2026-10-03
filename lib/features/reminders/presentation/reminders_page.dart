@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/notifications/notification_service.dart';
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_spec.dart';
 import '../../care/domain/care_models.dart';
-import '../../home/presentation/home_page.dart';
+import '../../reminders/presentation/reminder_editor.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../records/data/health_record_repository.dart';
 import '../../records/domain/health_record.dart';
@@ -54,7 +54,7 @@ class RemindersPage extends ConsumerWidget {
         ? const AsyncValue<List<ReminderSnapshot>>.loading()
         : ref.watch(reminderSnapshotsProvider(selectedPetId));
 
-    return PageFrame(
+    return AppPage(
       title: '提醒管理',
       subtitle: '查看未完成和已完成提醒，调整重复提醒或取消不再需要的提醒。',
       child: snapshots.when(

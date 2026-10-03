@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../data/knowledge_repository.dart';
 import '../domain/knowledge_article.dart';
 
@@ -26,7 +26,7 @@ class _KnowledgePageState extends ConsumerState<KnowledgePage> {
       ),
     );
 
-    return PageFrame(
+    return AppPage(
       title: '本地知识库',
       subtitle: '离线参考手册：用于观察、记录、护理和就医准备，不替代兽医诊断。',
       child: Column(
@@ -90,11 +90,11 @@ class KnowledgeArticlePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final article = ref.watch(knowledgeArticleProvider(articleId));
     return article.when(
-      loading: () => const PageFrame(
+      loading: () => const AppPage(
         title: '本地知识库',
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, _) => const PageFrame(
+      error: (_, _) => const AppPage(
         title: '本地知识库',
         child: _KnowledgeEmpty(
           icon: Icons.error_outline_rounded,
@@ -104,7 +104,7 @@ class KnowledgeArticlePage extends ConsumerWidget {
       ),
       data: (item) {
         if (item == null) {
-          return const PageFrame(
+          return const AppPage(
             title: '本地知识库',
             child: _KnowledgeEmpty(
               icon: Icons.menu_book_outlined,
@@ -113,7 +113,7 @@ class KnowledgeArticlePage extends ConsumerWidget {
             ),
           );
         }
-        return PageFrame(
+        return AppPage(
           title: item.title,
           subtitle: '${item.categoryLabel} · ${item.severityLabel}',
           child: _ArticleDetail(article: item),
@@ -182,7 +182,7 @@ class _ArticleCard extends StatelessWidget {
           ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => context.push('/settings/knowledge/${article.id}'),
+        onTap: () => context.push('/knowledge/${article.id}'),
       ),
     );
   }

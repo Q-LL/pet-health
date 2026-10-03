@@ -74,21 +74,20 @@ class _PetFallbackIcon extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.primaryContainer,
-            colors.tertiaryContainer.withValues(alpha: .8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: colors.primaryContainer,
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Icon(
-          pet.species == '狗' ? Icons.pets_rounded : Icons.cruelty_free_rounded,
-          size: iconSize,
-          color: colors.onPrimaryContainer,
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.1,
+          child: Text(
+            pet.name.characters.firstOrNull ?? '狗',
+            style: TextStyle(
+              fontSize: iconSize,
+              fontWeight: FontWeight.w700,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
         ),
       ),
     );

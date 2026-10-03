@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../application/care_coverage.dart';
 
 class CareCoveragePage extends ConsumerWidget {
@@ -10,7 +10,7 @@ class CareCoveragePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(careCoverageDetailProvider);
-    return PageFrame(
+    return AppPage(
       title: '护理完成率',
       child: detail.when(
         loading: () => const Center(child: CircularProgressIndicator()),

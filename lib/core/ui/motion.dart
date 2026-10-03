@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppMotion {
+  /// Press feedback, check toggles.
   static const fast = Duration(milliseconds: 180);
-  static const medium = Duration(milliseconds: 360);
-  static const slow = Duration(milliseconds: 560);
+
+  /// Segment switches, list insertions, sheets.
+  static const medium = Duration(milliseconds: 280);
+
+  /// First-frame page entrance.
+  static const slow = Duration(milliseconds: 420);
   static const emphasized = Curves.easeOutCubic;
+
+  /// [duration], or zero when the platform asks for reduced motion.
+  static Duration of(BuildContext context, [Duration duration = medium]) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }
 
 class EntranceAnimation extends StatelessWidget {
@@ -26,7 +35,7 @@ class EntranceAnimation extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: total,
+      duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : total,
       curve: Interval(delayFraction, 1, curve: AppMotion.emphasized),
       child: child,
       builder: (context, value, child) => Opacity(
@@ -68,7 +77,9 @@ class _PressableScaleState extends State<PressableScale> {
         onPointerCancel: (_) => _setScale(1),
         child: AnimatedScale(
           scale: _scale,
-          duration: AppMotion.fast,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : AppMotion.fast,
           curve: AppMotion.emphasized,
           child: widget.child,
         ),

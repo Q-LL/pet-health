@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../../care/application/care_plan_controller.dart';
 import '../../care/application/care_recommendation.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../records/presentation/add_record_sheet.dart';
 import '../../reminders/data/reminder_repository.dart';
 import '../../reminders/domain/reminder_models.dart';
+
+/// Items waiting in the inbox: due care suggestions plus open reminders
+/// for the selected pet. Drives the badge on the today header.
+final inboxCountProvider = Provider.autoDispose<int>((ref) {
+  final due = ref.watch(dueRecommendationCountProvider);
+  final petId = ref.watch(selectedPetIdProvider).value;
+  if (petId == null) return due;
+  final reminders = ref.watch(todayRemindersProvider(petId)).value ?? const [];
+  return due + reminders.where((reminder) => reminder.enabled).length;
+});
 
 class NotificationCenterPage extends ConsumerWidget {
   const NotificationCenterPage({super.key});
@@ -24,7 +34,7 @@ class NotificationCenterPage extends ConsumerWidget {
         .where((r) => r.isRecommended)
         .toList();
 
-    return PageFrame(
+    return AppPage(
       title: '通知中心',
       subtitle: '护理提醒和系统通知都会出现在这里。',
       child: reminders.when(

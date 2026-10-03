@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../application/health_dynamics_provider.dart';
 import '../domain/health_dynamics.dart';
 import '../domain/health_summary.dart';
@@ -14,7 +14,7 @@ class HealthDynamicsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dynamics = ref.watch(healthDynamicsProvider);
 
-    return PageFrame(
+    return AppPage(
       title: '详细动态',
       subtitle: '基于体重、饮食、饮水、排泄、症状和护理记录生成的本地洞察。',
       child: dynamics.when(

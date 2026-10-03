@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../../memories/data/memory_repository.dart';
 import '../data/app_settings_repository.dart';
 
@@ -12,7 +12,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quickActions = ref.watch(quickActionIdsProvider);
-    return PageFrame(
+    return AppPage(
       title: '设置',
       subtitle: '管理知识、数据和隐私。',
       child: Column(
@@ -37,27 +37,13 @@ class SettingsPage extends ConsumerWidget {
                   loading: () => '正在读取配置',
                   error: (_, _) => '点击重新设置',
                 ),
-                onTap: () => _showQuickActionSheet(context),
+                onTap: () => showQuickActionSheet(context),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          const SectionHeader('数据与协作'),
-          const _SettingsGroup(
-            children: [
-              _SettingsTile(
-                Icons.description_outlined,
-                '健康摘要与导出',
-                '整理就诊时需要的健康履历',
-              ),
-              _SettingsTile(
-                Icons.cloud_download_outlined,
-                '备份与恢复',
-                '完整保存记录和照片附件',
-              ),
-              _MemoryCacheTile(),
-            ],
-          ),
+          const SectionHeader('本机数据'),
+          const _SettingsGroup(children: [_MemoryCacheTile()]),
           const SizedBox(height: 20),
           const SectionHeader('知识与隐私'),
           _SettingsGroup(
@@ -66,7 +52,7 @@ class SettingsPage extends ConsumerWidget {
                 Icons.menu_book_outlined,
                 '本地知识库',
                 '离线查看观察、记录、护理和就医准备',
-                onTap: () => context.push('/settings/knowledge'),
+                onTap: () => context.push('/knowledge'),
               ),
               const _SettingsTile(
                 Icons.shield_outlined,
@@ -241,13 +227,13 @@ class _SettingsTile extends StatelessWidget {
       leading: Icon(icon),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right_rounded),
+      trailing: onTap == null ? null : const Icon(Icons.chevron_right_rounded),
       onTap: onTap,
     );
   }
 }
 
-Future<void> _showQuickActionSheet(BuildContext context) {
+Future<void> showQuickActionSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,

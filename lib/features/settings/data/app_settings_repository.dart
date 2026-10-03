@@ -4,7 +4,7 @@ import '../../../core/database/app_database.dart' as db;
 import '../../../core/database/database_provider.dart';
 
 const quickActionSettingKey = 'home.quick_actions';
-const defaultQuickActionIds = ['health:weight', 'care:bath', 'care:walk'];
+const defaultQuickActionIds = ['health:weight', 'health:food', 'health:water'];
 const fixedMoreRecordActionId = 'more:records';
 
 final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
@@ -79,7 +79,7 @@ const quickActionOptions = [
   ),
   QuickActionOption(
     id: 'health:food',
-    label: '喂食',
+    label: '饮食',
     kind: 'health',
     type: 'food',
   ),

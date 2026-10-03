@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/motion.dart';
+import '../../../core/ui/ui.dart';
 import '../application/care_controller.dart';
 import '../application/care_coverage.dart';
 import '../application/care_plan_controller.dart';
@@ -250,7 +250,7 @@ class _CareCoverageBadge extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/home/care-coverage'),
+        onTap: () => context.go('/care?seg=insight'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -302,7 +302,7 @@ class _CareCenterLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: () => context.push('/home/care-plans'),
+      onTap: () => context.go('/care?seg=plans'),
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),

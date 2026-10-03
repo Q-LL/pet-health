@@ -2,9 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/page_frame.dart';
+import '../../../core/ui/ui.dart';
 import '../../care/application/care_plan_controller.dart';
 import '../../care/data/care_plan_repository.dart';
 import '../../care/data/care_repository.dart';
@@ -23,7 +22,9 @@ const _pageStep = 20;
 enum _RecordFilter { all, health, care }
 
 class RecordsHistoryPage extends ConsumerStatefulWidget {
-  const RecordsHistoryPage({super.key});
+  const RecordsHistoryPage({this.initialHealthType, super.key});
+
+  final String? initialHealthType;
 
   @override
   ConsumerState<RecordsHistoryPage> createState() => _RecordsHistoryPageState();
@@ -35,6 +36,23 @@ class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
   String? _healthType;
   String? _careType;
   var _limit = _pageStep;
+
+  @override
+  void initState() {
+    super.initState();
+    _healthType = widget.initialHealthType;
+    if (_healthType != null) _filter = _RecordFilter.health;
+  }
+
+  @override
+  void didUpdateWidget(RecordsHistoryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialHealthType != widget.initialHealthType) {
+      _healthType = widget.initialHealthType;
+      _filter = _healthType == null ? _RecordFilter.all : _RecordFilter.health;
+      _resetLimit();
+    }
+  }
 
   String? get _searchKeyword =>
       _keyword.trim().isEmpty ? null : _keyword.trim();
@@ -69,16 +87,8 @@ class _RecordsHistoryPageState extends ConsumerState<RecordsHistoryPage> {
         ? const AsyncValue<List<CareActivity>>.loading()
         : ref.watch(filteredCareActivitiesProvider(careFilter));
 
-    return PageFrame(
+    return AppPage(
       title: '历史记录',
-      actions: [
-        IconButton.filledTonal(
-          tooltip: '返回日历',
-          onPressed: () => context.go('/calendar'),
-          icon: const Icon(Icons.calendar_month_rounded),
-        ),
-        const SizedBox(width: 12),
-      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
