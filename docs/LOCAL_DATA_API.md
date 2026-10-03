@@ -1,10 +1,12 @@
 # 毛健康本地数据接口文档
 
-> 版本：1.0
-> 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储  
+> 更新：2026-10-03
+> 数据位置：设备本地 SQLite；Web 调试时保存在当前浏览器本地存储
 > 网络依赖：无；本文中的“接口”均为 Dart Repository API，不是 HTTP API
 
 当前文档覆盖已经实现的本地数据接口：狗狗档案、狗狗照片、爱宠时光、健康记录、护理活动、护理计划、护理覆盖统计、提醒、系统本地通知、遛狗实时活动、本地健康动态和本地知识库。就诊、处方、通用附件、导出、备份恢复和 OCR 尚未进入本接口文档。
+
+用户数据库 schema v8，知识数据库 schema v2。表与文件关系见 [架构说明](ARCHITECTURE.md)，页面入口见 [UI 说明](UI_REFACTOR.md)。具体参数和返回类型以对应源文件为准。
 
 ## 1. 前端接入原则
 
@@ -12,7 +14,9 @@
 - 所有实体 ID 为 UUID 字符串；第一个占位狗狗可能保留 `local-default-pet`。
 - Repository 输入输出的时间统一为 UTC，页面展示时调用 `toLocal()`。
 - `watch...` 返回实时 `Stream`，数据库变化后页面会自动收到新数据。
-- 删除狗狗会通过 SQLite 外键级联删除其健康记录、护理记录、照片、护理计划、护理计划日志、提醒和提醒日志。
+- 用户新增记录前必须调用 `requireSelectedRealPetId()`；`ensureSelectedPetId()` 只用于初始化读取，可能返回占位档案，不能作为写入授权。
+- 页面订阅按狗狗 ID 隔离，切换档案后更新对应 Provider；查询使用 `[from, to)`，不把当天上界设为 23:59:59。
+- 删除狗狗通过 `PetRepository` 调用照片 / 相册引用清理，再由 SQLite 外键级联删除健康、护理、照片、时光、计划、提醒及日志。
 
 ## 2. Riverpod 入口
 
@@ -34,6 +38,10 @@
 | `careCoverageDetailProvider` | `AsyncValue<CareCoverageDetail>` | 本周计划进度、近 6 周和近 6 个月覆盖率 |
 | `reminderRepositoryProvider` | `ReminderRepository` | 提醒的创建、修改、暂停、完成和执行日志 |
 | `careControllerProvider` | `CareState` | 当前狗狗的护理页面状态 |
+| `persistedCareStateProvider` | `AsyncValue<CareState>` | 按当前狗狗读取已持久化护理与遛狗状态 |
+| `walkElapsedProvider` | `AsyncValue<Duration>` | 根据进行中遛狗的开始时间更新计时显示 |
+| `appSettingsRepositoryProvider` | `AppSettingsRepository` | 三项可配置快捷记录的读取与保存 |
+| `quickActionIdsProvider` | `AsyncValue<List<String>>` | 当前快捷记录配置；更多入口固定保留 |
 | `healthTipsProvider` | `AsyncValue<List<HealthTip>>` | 基于档案、记录和护理计划生成本地健康建议 |
 | `healthSummaryProvider` | `AsyncValue<HealthSummary>` | 聚合近 30/60 天记录、体重历史和护理覆盖率生成摘要 |
 | `healthDynamicsProvider` | `AsyncValue<HealthDynamics>` | 健康动态页聚合摘要、优先洞察和建议 |
@@ -52,7 +60,7 @@
 | `filteredCareActivitiesProvider` | `CareActivityFilter` | `AsyncValue<List<CareActivity>>` | 按类型、日期、关键词筛选护理记录 |
 | `carePlansForPetProvider` | `String` (petId) | `AsyncValue<List<CarePlan>>` | 实时狗狗护理计划列表 |
 | `filteredRemindersProvider` | `ReminderFilter` | `AsyncValue<List<Reminder>>` | 按来源类型、启用状态、时间筛选提醒 |
-| `todayRemindersProvider` | `String` (petId) | `AsyncValue<List<Reminder>>` | 今日启用且未暂停的提醒 |
+| `todayRemindersProvider` | `String` (petId) | `AsyncValue<List<Reminder>>` | 逾期及今天内启用、未暂停的待办提醒 |
 | `filteredPetPhotosProvider` | `PetPhotoFilter` | `AsyncValue<List<PetPhoto>>` | 按关键词筛选狗狗照片 |
 | `memoriesForPetProvider` | `String` (petId) | `AsyncValue<List<PetMemoryEntry>>` | 按时间倒序返回爱宠时光 |
 
@@ -212,14 +220,17 @@ final pet = await ref.read(petRepositoryProvider).create(
 ```dart
 Stream<String> watchSelectedPetId()
 Future<String> ensureSelectedPetId()
+Future<String> requireSelectedRealPetId()
 Future<void> selectPet(String id)
 Future<bool> delete(String id)
 Future<bool> deletePet(String id)
 ```
 
 - 当前选择保存在本地 `app_settings` 表。
+- `ensureSelectedPetId` 可以创建 / 返回占位档案，用于稳定首次启动的读取流程。
+- `requireSelectedRealPetId` 返回真实当前狗狗；必要时选择第一只真实狗狗，无真实档案则抛出 `RealPetRequiredException`，由页面引导创建。
 - 删除返回是否实际删除到狗狗。
-- 删除狗狗会级联删除健康记录、护理记录、照片、护理计划、提醒及其日志数据库行，并删除 App 私有目录中的照片文件。
+- 删除狗狗会清理健康记录、护理记录、照片、时光及媒体引用、护理计划、提醒及其日志，并清理应用照片文件和不再使用的相册引用权限；不删除系统相册原件。
 - 删除当前狗狗后自动选择剩余狗狗；没有狗狗时重新创建占位档案。
 
 ## 4. 狗狗照片接口
@@ -488,7 +499,9 @@ Future<HealthRecord> save(HealthRecordDraft draft, {String? id})
 - `weight` 必须填写 `numericValue`。
 
 ```dart
-final selectedId = await ref.read(petRepositoryProvider).ensureSelectedPetId();
+final selectedId = await ref
+    .read(petRepositoryProvider)
+    .requireSelectedRealPetId();
 await ref.read(healthRecordRepositoryProvider).create(
   HealthRecordDraft(
     petId: selectedId,
@@ -616,6 +629,8 @@ Future<WalkRecord?> finishWalk(...)
 
 页面通常直接使用 `careControllerProvider`，不需要自行组合这些方法。
 
+`CareController.finishWalk` 先保存结束状态并关闭通知，再返回记录；地点和备注使用 `updateWalkDetails` 补充。不要把结束写入延迟到补充表单提交之后。
+
 ## 7. 护理计划接口
 
 源文件：`lib/features/care/data/care_plan_repository.dart`
@@ -669,20 +684,26 @@ Future<List<CarePlanLog>> findLogs(String planId, {int? limit})
 ### 到期计算
 
 ```dart
-Future<void> recalculateNextDue(String planId)
+Future<void> recalculateNextDue(
+  String planId, {
+  List<DateTime>? completedAt,
+})
 ```
 
-根据最近一次 `completed` 日志和固定周期 `scheduleRule` 重新计算 `nextDueAt`。当前支持：
+使用 `scheduleRuleCodec.decodeAny` 解码周期，并交由 `careReminderEngine` 根据执行日志、完成时间和当前日期计算 `nextDueAt`。当前结构化编码如下：
 
-| 格式 | 示例 | 计算方式 |
+| 规则 | 示例编码 | 含义 |
 |---|---|---|
-| `每天` | `每天` | 加 1 天 |
-| `每 N 天` | `每 3 天` | 加 N 天 |
-| `每 N 周` | `每 2 周` | 加 N 周 |
-| `每周 N 次` | `每周 3 次` | 按一周均匀分布，向上取整天数 |
-| 每周一次类文案 | `每周 1 次`、`每周一次`、`每周观察` | 加 7 天 |
+| `DailyRule` | `daily` | 每天 |
+| `IntervalDayRule` | `interval:3d` | 每 3 天 |
+| `WeeklyTimesRule` | `weekly_times:3` | 每周 3 次 |
+| `WeeklyDayRule` | `weekly_days:1,3,5` | 每周指定星期 |
+| `CustomCycleRule` | `custom:14` | 自定义 14 天周期 |
+| `EventDrivenRule` | `event:walk` | 遛狗等事件触发 |
 
-事件触发或历史驱动文案（如 `每次遛狗后询问`、`根据历史间隔`）不会推导固定日期，`nextDueAt` 保持为空，后续由对应规则引擎补充。
+新代码通过 `scheduleRuleCodec.encode` 保存规则，不用展示文案作为新协议。`decodeAny` 兼容旧中文规则；“根据历史” / “自定义”前缀按兼容规则解为 14 天周期，事件型和无法识别的规则不在此方法中重算固定日期。护理计划编码与下方提醒重复编码是两个独立协议。
+
+完成护理计划时，页面优先使用 `CarePlanController.logCompletionWithActivity` 关联护理活动与计划日志；普通新增记录的撤销不用于这种关联保存。
 
 ## 8. 护理覆盖统计接口
 
@@ -865,7 +886,7 @@ Future<List<ReminderLog>> findLogs(String reminderId, {int? limit})
 - `lib/core/knowledge/knowledge_database.dart`
 - `lib/features/knowledge/data/knowledge_repository.dart`
 
-本地知识库使用独立 `knowledge.sqlite`，与用户数据 `user.sqlite` 分离。当前定位是离线参考手册：帮助用户观察、记录、护理和准备就医；不参与 AI 问答，不提供诊断、处方、剂量或治疗方案。
+本地知识库与用户数据库分离，内置条目在数据库创建或迁移时写入，页面只读使用；数据库本身并非以只读权限打开。它帮助用户观察、记录、护理和准备就医，不参与 AI 问答，不提供诊断、处方、剂量或治疗方案。
 
 ### 数据表
 
@@ -919,6 +940,7 @@ Future<List<KnowledgeSource>> sourcesForArticle(String articleId)
 |---|---|---|
 | `FormatException` | 类型、时间范围、分页或必填字段不合法 | 显示字段错误，不关闭编辑表单 |
 | `StateError` | 更新的记录不存在 | 刷新列表并提示记录可能已被删除 |
+| `RealPetRequiredException` | 没有真实狗狗档案可用于写入 | 引导创建档案，阻止记录保存 |
 | SQLite 外键错误 | `petId` 不存在 | 刷新当前狗狗，阻止保存 |
 | `UnsupportedError` | 当前平台不支持本地照片存储 | 禁用照片入口并保留其他档案功能 |
 
@@ -930,15 +952,15 @@ Future<List<KnowledgeSource>> sourcesForArticle(String articleId)
 
 ```bash
 flutter pub get
-dart run build_runner build
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 运行完整检查：
 
 ```bash
-flutter analyze
-flutter test
-flutter build web
+flutter analyze --no-pub
+flutter test --no-pub
+flutter build web --no-pub --release
 ```
 
 只运行数据层测试：
@@ -960,11 +982,13 @@ flutter test test/features/health_tips/health_dynamics_engine_test.dart
 ## 15. 手工验收
 
 1. 执行 `flutter run -d chrome` 或连接手机运行。
-2. 打开“狗狗”，创建第一只狗狗；确认占位页面变成狗狗卡片。
-3. 再创建第二只狗狗，点击卡片切换“当前”标记。
-4. 回到首页，为当前狗狗记录洗澡并开始遛狗。
+2. 打开“狗狗”，创建第一只狗狗；确认占位页面变成真实档案摘要。
+3. 再创建第二只狗狗，通过档案切换入口选择；确认今天、时间线和照护读取新狗狗的数据。
+4. 通过 ＋ 记录洗澡并开始遛狗，切换主页面确认底部计时条仍可用。
 5. 完全关闭并重新打开 App，确认当前狗狗、洗澡记录和进行中的遛狗仍存在。
-6. 结束遛狗，再次重启，确认时长和地点仍存在。
+6. 结束遛狗，分别检查取消补充表单和保存地点两种情况；再次重启，确认结束状态、时长和已保存地点仍存在。
 7. 删除狗狗前确认警告文案；删除后确认自动选择剩余狗狗。
 
 开发调试需要清空全部本地数据时，应卸载 App 或清除站点存储。不要在正式功能中直接删除 SQLite 文件。
+
+原生权限、通知和实时活动验收清单见 [开发状态](DEVELOPMENT_PLAN.md)。Web 数据检查不替代设备验收。
