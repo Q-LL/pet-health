@@ -46,12 +46,6 @@ macos/.symlinks/
 web/drift_worker.js.deps
 web/drift_worker.js.map
 
-.qoder/
-
-# Machine-specific assistant configuration and generated notes
-.claude/
-.zcode/
-
 # Local build logs
 *.log
 **/.derived-data-log-*
