@@ -45,11 +45,17 @@ flutter run -d chrome
 flutter run -d <device-id>
 ```
 
-修改 Drift 表结构后重新生成代码：
+修改用户数据库表结构时，先提升 `schemaVersion`，再生成代码、表结构快照和迁移步骤：
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
+
+```bash
+dart run drift_dev make-migrations
+```
+
+快照保存在 `drift_schemas/`，迁移测试位于 `test/drift/`。
 
 Web 数据保存在当前浏览器中，与手机数据库独立。爱宠时光的系统相册引用仅在 iOS / Android 实现；Web 不调度系统通知，也不支持 Live Activity。
 
@@ -75,7 +81,7 @@ docs/                   # 当前架构、接口、开发状态和 UI 说明
 android/、ios/、web/     # 平台工程与 Web 数据库运行资源
 ```
 
-用户数据库 schema v8，知识数据库 schema v2，两者分别保存。页面通过 Repository / Provider 使用数据；详细接口约定见 [本地数据接口](docs/LOCAL_DATA_API.md)。
+用户数据库 schema v8，知识数据库 schema v2，两者分别保存。用户数据库以 v8 为升级基线，更早的开发版数据库打开时会清空重建。页面通过 Repository / Provider 使用数据；详细接口约定见 [本地数据接口](docs/LOCAL_DATA_API.md)。
 
 ## 检查与构建
 

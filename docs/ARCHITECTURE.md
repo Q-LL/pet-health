@@ -64,6 +64,8 @@ flowchart TD
 | `care_plans`、`care_plan_logs` | 护理计划及执行日志 |
 | `reminders`、`reminder_logs` | 提醒、完成后记录模板及操作日志 |
 
+**升级基线**：v8 是首个保留升级路径的版本，表结构快照见 `drift_schemas/app/drift_schema_v8.json`。v8 之前的开发版数据库不再迁移，打开时在一个事务内删除全部表并按当前结构重建，旧数据不保留。v9 起每个版本都需要快照，并通过 `make-migrations` 生成的 `stepByStep` 步骤逐版本升级，不在升级中直接对当前表定义调用 `createTable`。
+
 狗狗相关数据使用外键级联；`memory_media_refs` 经时光条目关联狗狗。删除狗狗由 `PetRepository` 先调用照片和时光清理，再删除数据库行并重新选择档案。页面不要直接删表或数据库文件。
 
 占位档案用于首次启动的读取流程。用户新增记录前必须通过 `requireSelectedRealPetId()` 获取真实档案；无档案时先引导创建。
@@ -98,7 +100,7 @@ Web 使用 `web/sqlite3.wasm` 和 `web/drift_worker.js`，浏览器数据与手�
 
 ## 维护约定
 
-- 数据库结构变更须更新 schema、迁移、生成代码和迁移测试。
+- 数据库结构变更须提升 `schemaVersion`，运行 `dart run drift_dev make-migrations` 生成快照与迁移步骤，并在 `test/drift/app/migration_test.dart` 补充升级与数据保留测试。
 - 页面按狗狗 ID 订阅数据，切换档案后更新订阅，避免上一只狗狗的数据残留。
 - 通知是数据库状态的执行通道，不作为提醒或遛狗的唯一数据源。
 - 新功能的状态先更新到 [开发状态](DEVELOPMENT_PLAN.md)，页面及接口变化同步更新对应文档。

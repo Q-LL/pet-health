@@ -248,48 +248,14 @@ class AppDatabase extends _$AppDatabase {
       await migrator.createAll();
     },
     onUpgrade: (migrator, from, to) async {
-      if (from < 2) {
-        await migrator.createTable(healthRecords);
-        await migrator.createTable(appSettings);
-      }
-      if (from < 3) {
-        await migrator.createTable(petPhotos);
-      }
-      if (from < 4) {
-        await migrator.createTable(carePlans);
-        await migrator.createTable(carePlanLogs);
-        await migrator.createTable(reminders);
-        await migrator.createTable(reminderLogs);
-      }
-      if (from < 5) {
-        await _deduplicateCarePlans();
-        await customStatement(
-          'CREATE UNIQUE INDEX IF NOT EXISTS care_plans_pet_candidate_unique '
-          'ON care_plans (pet_id, candidate_id)',
-        );
-      }
-      if (from < 6) {
-        await migrator.addColumn(healthRecords, healthRecords.detailsJson);
-        await migrator.addColumn(reminders, reminders.completionMode);
-        await migrator.addColumn(reminders, reminders.recordType);
-        await migrator.addColumn(reminders, reminders.recordTitle);
-        await migrator.addColumn(reminders, reminders.recordNumericValue);
-        await migrator.addColumn(reminders, reminders.recordUnit);
-        await migrator.addColumn(reminders, reminders.recordNote);
-        await migrator.addColumn(reminders, reminders.recordDetailsJson);
-      }
-      if (from < 7) {
-        await migrator.addColumn(careActivities, careActivities.detailsJson);
-        await migrator.addColumn(reminders, reminders.completionTarget);
-        await migrator.addColumn(reminders, reminders.careType);
-        await migrator.addColumn(reminders, reminders.carePlace);
-        await migrator.addColumn(reminders, reminders.careNote);
-        await migrator.addColumn(reminders, reminders.careDetailsJson);
-      }
+      // v8 是升级基线：更早的开发版数据库不再迁移，直接清空后按当前结构重建。
       if (from < 8) {
-        await migrator.createTable(memoryEntries);
-        await migrator.createTable(memoryMediaRefs);
+        await _recreateSchema(migrator);
+        return;
       }
+      // 之后每次修改表结构：先提升 schemaVersion，再运行
+      // `dart run drift_dev make-migrations` 生成新版本快照与逐版本升级步骤，
+      // 在这里通过 stepByStep 接入，并补充对应的迁移测试。
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -325,11 +291,6 @@ class AppDatabase extends _$AppDatabase {
         'CREATE INDEX IF NOT EXISTS care_plans_pet_enabled '
         'ON care_plans (pet_id, enabled)',
       );
-      await _deduplicateCarePlans();
-      await customStatement(
-        'CREATE UNIQUE INDEX IF NOT EXISTS care_plans_pet_candidate_unique '
-        'ON care_plans (pet_id, candidate_id)',
-      );
       await customStatement(
         'CREATE INDEX IF NOT EXISTS care_plan_logs_plan_occurred '
         'ON care_plan_logs (plan_id, occurred_at DESC)',
@@ -349,22 +310,18 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
-  Future<void> _deduplicateCarePlans() async {
-    await customStatement('''
-DELETE FROM care_plans
-WHERE id NOT IN (
-  SELECT id
-  FROM (
-    SELECT
-      id,
-      ROW_NUMBER() OVER (
-        PARTITION BY pet_id, candidate_id
-        ORDER BY enabled DESC, updated_at DESC, created_at DESC
-      ) AS row_number
-    FROM care_plans
-  )
-  WHERE row_number = 1
-)
-''');
+  Future<void> _recreateSchema(Migrator migrator) async {
+    await transaction(() async {
+      final tables = await customSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'table' "
+        "AND name NOT LIKE 'sqlite_%'",
+      ).get();
+      for (final table in tables) {
+        await customStatement(
+          'DROP TABLE IF EXISTS "${table.read<String>('name')}"',
+        );
+      }
+      await migrator.createAll();
+    });
   }
 }
