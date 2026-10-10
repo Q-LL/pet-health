@@ -61,7 +61,6 @@ final healthSummaryProvider = FutureProvider<HealthSummary>((ref) async {
 
   // 4. 获取护理覆盖率（本周 + 上周）
   final coverage = await ref.read(careCoverageProvider.future);
-  final previousWeekCoverage = await _computePreviousWeekCoverage(ref);
 
   // 5. 构建上下文
   final context = HealthSummaryContext(
@@ -89,7 +88,7 @@ final healthSummaryProvider = FutureProvider<HealthSummary>((ref) async {
         .toList(),
     weightHistory: weightHistory,
     weeklyCoverageRate: coverage.weeklyRate,
-    previousWeekCoverageRate: previousWeekCoverage,
+    previousWeekCoverageRate: coverage.previousWeekRate,
     enabledPlanCount: coverage.totalActivePlans,
     now: now,
   );
@@ -97,21 +96,3 @@ final healthSummaryProvider = FutureProvider<HealthSummary>((ref) async {
   // 6. 运行引擎
   return _summaryEngine.generate(context);
 });
-
-/// 计算上周护理覆盖率。
-///
-/// 复用 careCoverageProvider 的计算逻辑，但查询上周的时间窗口。
-Future<double> _computePreviousWeekCoverage(Ref ref) async {
-  // 简化实现：使用当前覆盖率的趋势估算
-  // 实际应该查询上周的护理日志计算
-  final coverage = await ref.read(careCoverageProvider.future);
-
-  // 如果有连续达标周数，说明上周也是达标的
-  if (coverage.currentStreak >= 2) {
-    // 上周也达标，假设覆盖率相近
-    return coverage.weeklyRate;
-  }
-
-  // 否则返回一个保守估计
-  return coverage.weeklyRate * 0.9;
-}

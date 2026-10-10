@@ -9,7 +9,7 @@ HealthSummaryContext _ctx({
   List<SummaryHealthRecord> previousRecords = const [],
   List<SummaryWeightRecord> weightHistory = const [],
   double weeklyCoverageRate = 1.0,
-  double previousWeekCoverageRate = 1.0,
+  double? previousWeekCoverageRate = 1.0,
   int enabledPlanCount = 0,
   DateTime? now,
 }) {
@@ -301,6 +301,37 @@ void main() {
 
     test('数据不足时洞察为 null', () {
       final summary = _engine.generate(_ctx());
+      expect(summary.crossInsight, isNull);
+    });
+
+    test('上月没有记录时不与上月比较，也不给出稳定结论', () {
+      final summary = _engine.generate(
+        _ctx(
+          recentRecords: [
+            SummaryHealthRecord(
+              type: 'weight',
+              occurredAt: DateTime(2026, 6, 24),
+            ),
+          ],
+        ),
+      );
+
+      expect(summary.recordMetric!.trend, 'none');
+      expect(summary.recordMetric!.comparison, isNot(contains('持平')));
+      expect(summary.hasComparison, isFalse);
+      expect(summary.crossInsight, isNull);
+    });
+
+    test('上周没有应完成的计划时护理不做对比', () {
+      final summary = _engine.generate(
+        _ctx(
+          enabledPlanCount: 1,
+          weeklyCoverageRate: 0.5,
+          previousWeekCoverageRate: null,
+        ),
+      );
+
+      expect(summary.careMetric!.trend, 'none');
       expect(summary.crossInsight, isNull);
     });
   });

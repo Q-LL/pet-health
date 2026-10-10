@@ -6,6 +6,7 @@ import '../../care/application/care_controller.dart';
 import '../../care/data/care_repository.dart';
 import '../../care/domain/care_activity_filter.dart';
 import '../../care/domain/care_activity_spec.dart';
+import '../../memories/data/memory_repository.dart';
 import '../../pets/data/pet_repository.dart';
 import '../data/health_record_repository.dart';
 import '../domain/health_record_filter.dart';
@@ -195,14 +196,16 @@ class RecordHubSheet extends ConsumerWidget {
                   colors.surfaceContainer,
                   colors.primary,
                 ),
-                const SizedBox(width: 8),
-                lifeAction(
-                  '写时光',
-                  Icons.photo_library_outlined,
-                  () => select('memory', 'memory'),
-                  AppColors.of(context).apricot,
-                  AppColors.of(context).onApricot,
-                ),
+                if (ref.watch(albumAssetServiceProvider).isSupported) ...[
+                  const SizedBox(width: 8),
+                  lifeAction(
+                    '写时光',
+                    Icons.photo_library_outlined,
+                    () => select('memory', 'memory'),
+                    AppColors.of(context).apricot,
+                    AppColors.of(context).onApricot,
+                  ),
+                ],
               ],
             ),
           ],

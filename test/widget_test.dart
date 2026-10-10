@@ -22,6 +22,7 @@ import 'package:pet_health/features/pets/data/pet_repository.dart';
 import 'package:pet_health/features/pets/domain/pet_profile.dart';
 import 'package:pet_health/features/records/data/health_record_repository.dart';
 import 'package:pet_health/features/records/domain/health_record.dart';
+import 'package:pet_health/features/records/presentation/record_hub_sheet.dart';
 import 'package:pet_health/features/reminders/data/reminder_repository.dart';
 import 'package:pet_health/features/reminders/domain/reminder_models.dart';
 
@@ -605,7 +606,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('新增记录'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('饮食'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(RecordHubSheet),
+        matching: find.text('饮食'),
+      ),
+    );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );

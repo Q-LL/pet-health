@@ -8,6 +8,7 @@ import '../../care/application/care_coverage.dart';
 import '../../care/application/care_recommendation.dart';
 import '../../care/presentation/care_page.dart';
 import '../../care/presentation/care_sheets.dart';
+import '../../health_tips/application/health_dynamics_provider.dart';
 import '../../memories/data/memory_repository.dart';
 import '../../memories/domain/memory_entry.dart';
 import '../../records/data/health_record_repository.dart';
@@ -20,12 +21,6 @@ final homeWeightProvider = StreamProvider.autoDispose
       (ref, petId) => ref
           .watch(healthRecordRepositoryProvider)
           .watchForPet(petId, type: 'weight', limit: 1),
-    );
-final homeWaterProvider = StreamProvider.autoDispose
-    .family<List<HealthRecord>, String>(
-      (ref, petId) => ref
-          .watch(healthRecordRepositoryProvider)
-          .watchForPet(petId, type: 'water', limit: 1),
     );
 
 final homeRecentRecordProvider = StreamProvider.autoDispose
@@ -336,6 +331,9 @@ class HomeMemoryPreview extends ConsumerWidget {
                       ? '时光暂时没有读到，点击再看看'
                       : memory?.note.isNotEmpty == true
                       ? memory!.note
+                      : memory == null &&
+                            !ref.watch(albumAssetServiceProvider).isSupported
+                      ? '在 iPhone 或 Android 上记录爱宠时光'
                       : memory == null
                       ? '留下属于你们的第一段时光'
                       : '珍藏这段陪伴',
@@ -359,31 +357,45 @@ class HomeMemoryPreview extends ConsumerWidget {
   }
 }
 
+/// The highest-priority signal from the health dynamics engine.
 class HomeSignalPreview extends ConsumerWidget {
-  const HomeSignalPreview({required this.petId, super.key});
-  final String petId;
+  const HomeSignalPreview({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final water = ref.watch(homeWaterProvider(petId));
-    final latest = water.value?.firstOrNull;
-    final message = water.hasError
-        ? '饮水记录暂时没有读到'
-        : water.isLoading
+    final dynamics = ref.watch(healthDynamicsProvider);
+    final top = dynamics.value?.priorityInsights.firstOrNull;
+    final alert = top?.tone == 'alert';
+    final accent = AppColors.of(context);
+    final message = dynamics.hasError && !dynamics.hasValue
+        ? '健康动态暂时没有读到，点击再看看'
+        : !dynamics.hasValue
         ? '正在读取记录'
-        : latest == null
-        ? '还没有饮水记录'
-        : DateTime.now().difference(latest.occurredAt).inDays >= 3
-        ? '最近 3 天没有饮水记录'
-        : '最近饮水记录：${_date(latest.occurredAt)}';
+        : top != null
+        ? top.title
+        : dynamics.value!.summary.hasComparison
+        ? '最近没有需要特别留意的变化'
+        : '记录还不多，多记几次就能看到变化';
     return SectionCard(
-      color: Theme.of(context).colorScheme.primaryContainer,
+      color: alert
+          ? accent.apricot
+          : Theme.of(context).colorScheme.primaryContainer,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       child: ListRow(
         title: '健康信号',
         subtitle: message,
-        leading: const IconBadge(Icons.water_drop_outlined),
-        onTap: () => context.go(CareSegment.insight.location),
+        leading: alert
+            ? IconBadge(
+                Icons.priority_high_rounded,
+                background: accent.overdueMark,
+                foreground: accent.onApricot,
+              )
+            : IconBadge(
+                top == null
+                    ? Icons.insights_outlined
+                    : Icons.visibility_outlined,
+              ),
+        onTap: () => context.push('/care/dynamics'),
       ),
     );
   }

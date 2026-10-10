@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/ui/ui.dart';
+import '../../pets/presentation/no_pet_profile_view.dart';
 import '../../reminders/presentation/reminder_editor.dart';
 import 'care_plans_page.dart';
 import 'care_todo_body.dart';
@@ -25,16 +27,16 @@ enum CareSegment {
 }
 
 /// The 照护 tab: reminders, care plans and insights in one place.
-class CarePage extends StatefulWidget {
+class CarePage extends ConsumerStatefulWidget {
   const CarePage({this.segment = CareSegment.todo, super.key});
 
   final CareSegment segment;
 
   @override
-  State<CarePage> createState() => _CarePageState();
+  ConsumerState<CarePage> createState() => _CarePageState();
 }
 
-class _CarePageState extends State<CarePage> {
+class _CarePageState extends ConsumerState<CarePage> {
   late var _segment = widget.segment;
 
   /// Segments are built on first visit and kept alive afterwards.
@@ -54,6 +56,7 @@ class _CarePageState extends State<CarePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasPet = ref.watch(hasRealPetProvider);
     return SafeArea(
       bottom: false,
       child: Column(
@@ -79,41 +82,48 @@ class _CarePageState extends State<CarePage> {
                   onPressed: () => context.push('/knowledge'),
                   icon: const Icon(Icons.search_rounded),
                 ),
-                IconButton.filledTonal(
-                  tooltip: '新增提醒',
-                  onPressed: () => showReminderSheet(context),
-                  icon: const Icon(Icons.add_alarm_rounded),
-                ),
+                if (hasPet)
+                  IconButton.filledTonal(
+                    tooltip: '新增提醒',
+                    onPressed: () => showReminderSheet(context),
+                    icon: const Icon(Icons.add_alarm_rounded),
+                  ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppContent(
-            child: SegmentedButton<CareSegment>(
-              showSelectedIcon: false,
-              segments: [
-                for (final segment in CareSegment.values)
-                  ButtonSegment(value: segment, label: Text(segment.label)),
-              ],
-              selected: {_segment},
-              onSelectionChanged: (selection) =>
-                  context.go(selection.single.location),
+          if (!hasPet)
+            const AppContent(
+              child: NoPetProfileView(message: '提醒和护理计划都属于具体的狗狗，创建档案后就能安排。'),
+            )
+          else ...[
+            const SizedBox(height: AppSpacing.md),
+            AppContent(
+              child: SegmentedButton<CareSegment>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final segment in CareSegment.values)
+                    ButtonSegment(value: segment, label: Text(segment.label)),
+                ],
+                selected: {_segment},
+                onSelectionChanged: (selection) =>
+                    context.go(selection.single.location),
+              ),
             ),
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _segment.index,
-              children: [
-                for (final segment in CareSegment.values)
-                  _visited.contains(segment)
-                      ? TickerMode(
-                          enabled: segment == _segment,
-                          child: _SegmentBody(segment: segment),
-                        )
-                      : const SizedBox.shrink(),
-              ],
+            Expanded(
+              child: IndexedStack(
+                index: _segment.index,
+                children: [
+                  for (final segment in CareSegment.values)
+                    _visited.contains(segment)
+                        ? TickerMode(
+                            enabled: segment == _segment,
+                            child: _SegmentBody(segment: segment),
+                          )
+                        : const SizedBox.shrink(),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

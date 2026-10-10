@@ -11,6 +11,7 @@ import '../../memories/data/memory_repository.dart';
 import '../../memories/domain/memory_entry.dart';
 import '../../memories/presentation/memories_page.dart';
 import '../../pets/data/pet_repository.dart';
+import '../../pets/presentation/no_pet_profile_view.dart';
 import '../../records/data/health_record_repository.dart';
 import '../../records/domain/health_record.dart';
 import '../../records/domain/health_record_filter.dart';
@@ -128,121 +129,135 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: _selectedDay,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-                        if (date != null && mounted) _selectDay(date);
-                      },
-                      icon: const Icon(Icons.calendar_today_outlined, size: 16),
-                      label: Text(
-                        '${_selectedDay.year}年${_selectedDay.month}月',
-                      ),
-                    ),
-                  ),
-                  SegmentedButton<bool>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('列表')),
-                      ButtonSegment(value: true, label: Text('日历')),
-                    ],
-                    selected: {_calendar},
-                    onSelectionChanged: (value) =>
-                        setState(() => _calendar = value.single),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (_calendar)
-                SectionCard(
-                  padding: EdgeInsets.zero,
-                  child: MediaQuery.withClampedTextScaling(
-                    maxScaleFactor: 1.2,
-                    child: CalendarDatePicker(
-                      initialDate: _selectedDay,
-                      currentDate: DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
-                      onDateChanged: _selectDay,
-                    ),
-                  ),
+              if (!ref.watch(hasRealPetProvider))
+                const NoPetProfileView(
+                  message: '健康、护理、遛狗和时光都会按狗狗归档，创建档案后在这里回看。',
                 )
-              else
-                _WeekStrip(day: _selectedDay, onChanged: _selectDay),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final option in TimelineFilter.values)
-                    ChoiceChip(
-                      label: Text(option.label),
-                      showCheckmark: false,
-                      selected: filter == option,
-                      onSelected: (_) =>
-                          context.go('/timeline?type=${option.query}'),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (error != null)
-                ErrorView(
-                  title: '部分记录暂时没有读到',
-                  message: describeError(error),
-                  onRetry: () {
-                    ref.invalidate(filteredHealthRecordsProvider(healthFilter));
-                    ref.invalidate(filteredCareActivitiesProvider(careFilter));
-                    if (petId != null) {
-                      ref.invalidate(memoriesForPetProvider(petId));
-                    }
-                  },
-                ),
-              if (health.isLoading || care.isLoading || memories.isLoading)
-                const LoadingView(label: '正在翻开记录')
-              else if (entries.isEmpty && error == null)
-                EmptyState(
-                  icon: filter == TimelineFilter.memory
-                      ? Icons.photo_library_outlined
-                      : Icons.event_note_outlined,
-                  title: filter == TimelineFilter.memory
-                      ? '还没有爱宠时光'
-                      : '这段时间还没有记录',
-                  message:
-                      filter == TimelineFilter.memory &&
-                          !ref.watch(albumAssetServiceProvider).isSupported
-                      ? '在 iPhone 或 Android 上写随笔、选择照片，留下你们的时光。'
-                      : '点底部“＋”记一笔，或选择其他日期回看。',
-                )
-              else
-                for (var i = 0; i < entries.length; i++) ...[
-                  if (i == 0 || _day(entries[i].at) != _day(entries[i - 1].at))
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, bottom: 10),
-                      child: Text(
-                        _dateLabel(entries[i].at),
-                        style: TextStyle(
-                          color: colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
+              else ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedDay,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                          );
+                          if (date != null && mounted) _selectDay(date);
+                        },
+                        icon: const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                        ),
+                        label: Text(
+                          '${_selectedDay.year}年${_selectedDay.month}月',
                         ),
                       ),
                     ),
-                  _JournalCard(entry: entries[i]),
-                  const SizedBox(height: 10),
-                ],
-              if (!_calendar)
-                TextButton.icon(
-                  onPressed: () => setState(() => _days += 7),
-                  icon: const Icon(Icons.expand_more_rounded),
-                  label: const Text('查看更早的记录'),
+                    SegmentedButton<bool>(
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: false, label: Text('列表')),
+                        ButtonSegment(value: true, label: Text('日历')),
+                      ],
+                      selected: {_calendar},
+                      onSelectionChanged: (value) =>
+                          setState(() => _calendar = value.single),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                if (_calendar)
+                  SectionCard(
+                    padding: EdgeInsets.zero,
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: 1.2,
+                      child: CalendarDatePicker(
+                        initialDate: _selectedDay,
+                        currentDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                        onDateChanged: _selectDay,
+                      ),
+                    ),
+                  )
+                else
+                  _WeekStrip(day: _selectedDay, onChanged: _selectDay),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final option in TimelineFilter.values)
+                      ChoiceChip(
+                        label: Text(option.label),
+                        showCheckmark: false,
+                        selected: filter == option,
+                        onSelected: (_) =>
+                            context.go('/timeline?type=${option.query}'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (error != null)
+                  ErrorView(
+                    title: '部分记录暂时没有读到',
+                    message: describeError(error),
+                    onRetry: () {
+                      ref.invalidate(
+                        filteredHealthRecordsProvider(healthFilter),
+                      );
+                      ref.invalidate(
+                        filteredCareActivitiesProvider(careFilter),
+                      );
+                      if (petId != null) {
+                        ref.invalidate(memoriesForPetProvider(petId));
+                      }
+                    },
+                  ),
+                if (health.isLoading || care.isLoading || memories.isLoading)
+                  const LoadingView(label: '正在翻开记录')
+                else if (entries.isEmpty && error == null)
+                  EmptyState(
+                    icon: filter == TimelineFilter.memory
+                        ? Icons.photo_library_outlined
+                        : Icons.event_note_outlined,
+                    title: filter == TimelineFilter.memory
+                        ? '还没有爱宠时光'
+                        : '这段时间还没有记录',
+                    message:
+                        filter == TimelineFilter.memory &&
+                            !ref.watch(albumAssetServiceProvider).isSupported
+                        ? '在 iPhone 或 Android 上写随笔、选择照片，留下你们的时光。'
+                        : '点底部“＋”记一笔，或选择其他日期回看。',
+                  )
+                else
+                  for (var i = 0; i < entries.length; i++) ...[
+                    if (i == 0 ||
+                        _day(entries[i].at) != _day(entries[i - 1].at))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 10),
+                        child: Text(
+                          _dateLabel(entries[i].at),
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    _JournalCard(entry: entries[i]),
+                    const SizedBox(height: 10),
+                  ],
+                if (!_calendar)
+                  TextButton.icon(
+                    onPressed: () => setState(() => _days += 7),
+                    icon: const Icon(Icons.expand_more_rounded),
+                    label: const Text('查看更早的记录'),
+                  ),
+              ],
             ],
           ),
         ),

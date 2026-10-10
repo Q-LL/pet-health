@@ -141,6 +141,8 @@ class _OverviewPanel extends StatelessWidget {
                   ? '发现 $alertCount 个高优先级信号，建议先处理优先关注里的项目。'
                   : watchCount > 0
                   ? '有 $watchCount 个变化值得继续观察，当前没有明显高风险信号。'
+                  : !dynamics.summary.hasComparison
+                  ? '记录还不多，持续记录几周后，这里会显示前后变化。'
                   : '整体变化平稳，继续保持记录和护理节奏。',
               style: TextStyle(
                 color: colors.onPrimaryContainer.withValues(alpha: .82),

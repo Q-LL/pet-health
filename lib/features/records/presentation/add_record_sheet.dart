@@ -25,6 +25,8 @@ void _recordSaved(
     SnackBar(
       content: Text(message),
       duration: const Duration(seconds: 5),
+      // A SnackBar with an action persists by default; undo should expire.
+      persist: false,
       action: undo == null
           ? null
           : SnackBarAction(

@@ -13,6 +13,7 @@ class CareCoverage {
     required this.weeklyRate,
     required this.currentStreak,
     required this.coverageLevel,
+    this.previousWeekRate,
   });
 
   /// 开启的非事件驱动计划总数。
@@ -32,6 +33,9 @@ class CareCoverage {
 
   /// 覆盖率等级：'excellent' | 'good' | 'needs_improvement'。
   final String coverageLevel;
+
+  /// 上周覆盖率；上周还没有应完成的计划时为 null。
+  final double? previousWeekRate;
 }
 
 class CarePlanCoverageProgress {
@@ -132,6 +136,13 @@ final careCoverageProvider = FutureProvider<CareCoverage>((ref) async {
     currentRate: rate,
   );
 
+  final previousWeek = await _periodTotals(
+    activePlans,
+    careRepository,
+    weekStart.subtract(const Duration(days: 7)),
+    weekStart,
+  );
+
   String level;
   if (rate >= 0.9) {
     level = 'excellent';
@@ -148,6 +159,9 @@ final careCoverageProvider = FutureProvider<CareCoverage>((ref) async {
     weeklyRate: rate,
     currentStreak: streak,
     coverageLevel: level,
+    previousWeekRate: previousWeek.$2 > 0
+        ? (previousWeek.$1 / previousWeek.$2).clamp(0.0, 1.0).toDouble()
+        : null,
   );
 });
 

@@ -136,7 +136,7 @@ _quickActionForId(
       colors,
       type: 'food',
       icon: Icons.restaurant_outlined,
-      label: '喂食',
+      label: '饮食',
     ),
     'health:medication' => _healthAction(
       context,

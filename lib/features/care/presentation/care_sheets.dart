@@ -123,21 +123,6 @@ class _FinishWalkSheetState extends ConsumerState<_FinishWalkSheet> {
               prefixIcon: Icon(Icons.park_outlined),
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.route_outlined),
-                SizedBox(width: 10),
-                Expanded(child: Text('GPS 路线将在后续版本作为可选功能加入')),
-              ],
-            ),
-          ),
           const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: _saving ? null : _saveDetails,

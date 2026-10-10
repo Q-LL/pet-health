@@ -22,8 +22,11 @@ class MetricItem {
   /// 对比文本，如"↑0.3 kg"、"+5 条"、"↑12%"。
   final String comparison;
 
-  /// 趋势方向：'up' | 'down' | 'stable'。
+  /// 趋势方向：'up' | 'down' | 'stable'，上期没有数据可比时为 'none'。
   final String trend;
+
+  /// 是否有上期数据作对比。
+  bool get hasComparison => trend != 'none';
 
   /// 趋势是否为正向（好方向）。
   ///
@@ -52,7 +55,7 @@ class MetricItem {
 
   /// 根据趋势返回合适的颜色提示。
   Color trendColor(ColorScheme colors, {bool positiveIsGood = true}) {
-    if (trend == 'stable') return colors.onSurfaceVariant;
+    if (trend == 'stable' || trend == 'none') return colors.onSurfaceVariant;
     final isGood = positiveIsGood ? (trend == 'up') : (trend == 'down');
     return isGood ? colors.primary : colors.error;
   }
@@ -62,6 +65,7 @@ class MetricItem {
     return switch (trend) {
       'up' => Icons.trending_up_rounded,
       'down' => Icons.trending_down_rounded,
+      'none' => Icons.horizontal_rule_rounded,
       _ => Icons.trending_flat_rounded,
     };
   }
@@ -110,6 +114,10 @@ class HealthSummary {
       dietMetric != null ||
       symptomMetric != null;
 
+  /// 是否至少有一项指标能与上期对比；否则不应给出"平稳"之类的结论。
+  bool get hasComparison =>
+      visibleMetrics.any((metric) => metric.hasComparison);
+
   /// 获取所有非空指标列表，用于 UI 渲染。
   List<MetricItem> get visibleMetrics => [
     ?weightMetric,
@@ -148,8 +156,8 @@ class HealthSummaryContext {
   /// 本周护理覆盖率 (0.0–1.0)。
   final double weeklyCoverageRate;
 
-  /// 上周护理覆盖率 (0.0–1.0)。
-  final double previousWeekCoverageRate;
+  /// 上周护理覆盖率 (0.0–1.0)；上周没有应完成的计划时为 null。
+  final double? previousWeekCoverageRate;
 
   /// 已开启的护理计划数量。
   final int enabledPlanCount;

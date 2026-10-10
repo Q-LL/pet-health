@@ -82,7 +82,7 @@ class HomePage extends ConsumerWidget {
                                     child: const HomeQuickActions(),
                                   ),
                                   const SizedBox(height: 24),
-                                  HomeSignalPreview(petId: pet.id),
+                                  const HomeSignalPreview(),
                                   const SizedBox(height: 16),
                                   HomeMemoryPreview(petId: pet.id),
                                   const SizedBox(height: 16),

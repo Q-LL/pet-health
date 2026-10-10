@@ -4,6 +4,7 @@ import '../../care/application/care_coverage.dart';
 import '../../care/application/care_plan_controller.dart';
 import '../../pets/data/pet_repository.dart';
 import '../../records/data/health_record_repository.dart';
+import '../../records/domain/health_record.dart';
 import '../domain/health_dynamics.dart';
 import '../domain/health_summary.dart';
 import '../domain/health_tip.dart';
@@ -14,6 +15,15 @@ import 'health_tips_engine.dart';
 const _dynamicsEngine = HealthDynamicsEngine();
 const _summaryEngine = HealthSummaryEngine();
 const _tipsEngine = HealthTipsEngine();
+
+/// Emits on every write to this pet's health records, so the dynamics below
+/// are recomputed after a record is added, edited or deleted.
+final _healthRecordChangesProvider = StreamProvider.autoDispose
+    .family<List<HealthRecord>, String>(
+      (ref, petId) => ref
+          .watch(healthRecordRepositoryProvider)
+          .watchForPet(petId, limit: 1),
+    );
 
 final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
   final selectedPetId = ref.watch(selectedPetIdProvider).value;
@@ -27,6 +37,7 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
     return HealthDynamics(petName: '', generatedAt: DateTime.now());
   }
 
+  ref.watch(_healthRecordChangesProvider(selectedPetId));
   final repository = ref.read(healthRecordRepositoryProvider);
   final now = DateTime.now();
   final thirtyDaysAgo = now.subtract(const Duration(days: 30));
@@ -45,6 +56,8 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
             record.occurredAt.isBefore(thirtyDaysAgo),
       )
       .toList(growable: false);
+  // A rebuild or disposal makes this computation stale; stop querying.
+  if (!ref.mounted) return HealthDynamics(petName: '', generatedAt: now);
   final weightRecords = await repository.findForPet(
     selectedPetId,
     type: 'weight',
@@ -64,6 +77,7 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
       .reversed
       .toList();
 
+  if (!ref.mounted) return HealthDynamics(petName: '', generatedAt: now);
   final planState = ref.watch(carePlanControllerProvider);
   final enabledPlans = planState.enabledPlans.values.toList();
   final hasDewormingPlan = enabledPlans.any(
@@ -71,6 +85,7 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
         plan.careType == 'deworming' || plan.candidateId.contains('deworm'),
   );
   final coverage = await ref.read(careCoverageProvider.future);
+  if (!ref.mounted) return HealthDynamics(petName: '', generatedAt: now);
 
   final petProfile = PetTipsProfile(
     id: pet.id,
@@ -142,9 +157,7 @@ final healthDynamicsProvider = FutureProvider<HealthDynamics>((ref) async {
         )
         .toList(),
     weeklyCoverageRate: coverage.weeklyRate,
-    previousWeekCoverageRate: coverage.currentStreak >= 2
-        ? coverage.weeklyRate
-        : coverage.weeklyRate * 0.9,
+    previousWeekCoverageRate: coverage.previousWeekRate,
     enabledPlanCount: coverage.totalActivePlans,
     now: now,
   );

@@ -36,7 +36,7 @@ class NotificationCenterPage extends ConsumerWidget {
 
     return AppPage(
       title: '通知中心',
-      subtitle: '护理提醒和系统通知都会出现在这里。',
+      subtitle: '今天到期的提醒和值得处理的护理计划。',
       child: reminders.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorMessage(error: error),
@@ -292,7 +292,7 @@ class _EmptyNotification extends StatelessWidget {
             Text('暂时没有新通知', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
-              '护理计划到期和系统提醒都会出现在这里',
+              '今天到期的提醒和护理计划会出现在这里',
               textAlign: TextAlign.center,
               style: TextStyle(color: colors.onSurfaceVariant),
             ),

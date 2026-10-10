@@ -7,6 +7,9 @@ import '../domain/health_summary.dart';
 class HealthSummaryEngine {
   const HealthSummaryEngine();
 
+  /// 上一周期没有任何健康记录时，月度对比没有基线。
+  static const _noBaseline = '上月暂无记录';
+
   /// 生成健康摘要。
   HealthSummary generate(HealthSummaryContext ctx) {
     final weightMetric = _computeWeight(ctx);
@@ -137,7 +140,10 @@ class HealthSummaryEngine {
     String trend;
     String comparison;
 
-    if (change.abs() <= 1) {
+    if (ctx.previousRecords.isEmpty) {
+      trend = 'none';
+      comparison = _noBaseline;
+    } else if (change.abs() <= 1) {
       trend = 'stable';
       comparison = '与上月持平';
     } else if (change > 0) {
@@ -165,13 +171,16 @@ class HealthSummaryEngine {
 
     final currentRate = ctx.weeklyCoverageRate;
     final previousRate = ctx.previousWeekCoverageRate;
-    final change = currentRate - previousRate;
+    final change = previousRate == null ? 0.0 : currentRate - previousRate;
     final currentPercent = (currentRate * 100).round();
 
     String trend;
     String comparison;
 
-    if (change.abs() < 0.05) {
+    if (previousRate == null) {
+      trend = 'none';
+      comparison = '上周暂无计划';
+    } else if (change.abs() < 0.05) {
       trend = 'stable';
       comparison = '与上周持平';
     } else if (change > 0) {
@@ -203,7 +212,10 @@ class HealthSummaryEngine {
     String trend;
     String comparison;
 
-    if (change.abs() <= 1) {
+    if (ctx.previousRecords.isEmpty) {
+      trend = 'none';
+      comparison = _noBaseline;
+    } else if (change.abs() <= 1) {
       trend = 'stable';
       comparison = '与上月持平';
     } else if (change > 0) {
@@ -240,7 +252,10 @@ class HealthSummaryEngine {
     String trend;
     String comparison;
 
-    if (change.abs() <= 1) {
+    if (ctx.previousRecords.isEmpty) {
+      trend = 'none';
+      comparison = _noBaseline;
+    } else if (change.abs() <= 1) {
       trend = 'stable';
       comparison = '与上月持平';
     } else if (change > 0) {
@@ -310,9 +325,16 @@ class HealthSummaryEngine {
       insights.add('多系统出现异常信号，建议做一次系统性体检排查。');
     }
 
-    // 规刡6：所有指标都稳定/正向 → 鼓励（但必须有数据）
+    // 规则6：所有指标都稳定/正向 → 鼓励（必须至少有一项能与上期对比）
+    final compared = [
+      ?weight,
+      ?record,
+      ?care,
+      ?diet,
+      ?symptom,
+    ].where((metric) => metric.hasComparison);
     if (insights.isEmpty &&
-        (weight != null || record != null || care != null) &&
+        compared.isNotEmpty &&
         (weight?.trend == 'stable' || weight == null) &&
         (record?.trend != 'down') &&
         (care?.trend != 'down')) {
