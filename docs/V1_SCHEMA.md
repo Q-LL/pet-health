@@ -4,6 +4,8 @@
 
 ## 设计原则
 
+> 时间点（`occurredAt` 等）按 UTC 存储。本地日历日期（生日、到家日期、卡片和天气的日期）存成 `yyyy-MM-dd` 文本，不受时区影响；显示顺序由设置里的 `dateFormat` 决定。
+
 1. **所有做过的事放在一张表里。** 健康、护理、遛狗的记录都写进 `entries`。完成计划不另记日志，做完的那条记录本身就代表完成。
 2. **选项存 code，不存显示文字。** 选项都用 Dart enum，按 enum 名存储（如 `stool: soft`），显示时再翻译。用户写的自由文本只放在 `note` 和 `label` 里，引擎从不读取或匹配这两个字段。
 3. **能精确换算的量存标准单位。** 体重存 kg，水量存 ml，距离存 m，温度存 °C，按用户设置的单位显示。食物份量不能精确换算（见"单位"一节），按用户选的单位原样存。
@@ -32,10 +34,11 @@
 | `breedCode` | text? | 预设犬种列表里的 code，如 `golden_retriever` |
 | `breedName` | text? | 预设里没有的犬种由用户手写；只用于显示 |
 | `breedGroup` | enum | 由犬种推导出来，用户可以改；取值见下方 |
-| `avatarPhotoId` | text? | 引用 `pet_photos` |
 | `createdAt`、`updatedAt` | datetime | |
 
 `breedGroup` 的取值：`large_double`、`medium_double`、`small_silky`、`curly`、`small_short`、`large_short`、`mixed`，对应 [COPY_DRAFT 第 6 节](COPY_DRAFT.md#6-犬种分组--breed-groups) 的 7 个分组。
+
+头像沿用 `pet_photos.isAvatar`（每只狗最多一张），不在档案表里另存引用，避免两张表互相引用。
 
 旧表里的 `isPlaceholder`（首次启动时用的占位档案）、过敏和慢性病文本不再保留：没有档案时直接进入引导流程；过敏和慢性病等到做就诊功能时再设计。
 
@@ -165,6 +168,7 @@
 | --- | --- | --- |
 | `selectedPetId` | | |
 | `locale` | `system` / `zh` / `en` | `system` |
+| `dateFormat` | `auto` / `ymd` / `mdy` / `dmy` | `auto`：美国显示 10/12/2026，中文显示 2026-10-12，其他地区显示 12/10/2026 |
 | `unitSystem` | `auto` / `metric` / `imperial` | `auto`：根据系统地区判断，美国用 imperial |
 | `unit.weight` | `kg` / `lb` / `jin` | 跟随 `unitSystem` |
 | `unit.water` | `ml` / `oz` / `cup` | 跟随 `unitSystem` |

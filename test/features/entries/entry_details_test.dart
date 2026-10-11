@@ -1,9 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet_health/core/codes/coded_enum.dart';
+import 'package:pet_health/core/format/date_display.dart';
 import 'package:pet_health/core/units/unit_preferences.dart';
 import 'package:pet_health/core/units/units.dart';
 import 'package:pet_health/features/entries/domain/entry_codes.dart';
 import 'package:pet_health/features/entries/domain/entry_details.dart';
+import 'package:pet_health/features/cards/domain/card_codes.dart';
+import 'package:pet_health/features/pets/domain/pet_codes.dart';
+import 'package:pet_health/features/plans/domain/plan_codes.dart';
+import 'package:pet_health/features/plans/domain/plan_schedule.dart';
 
 /// 所有会写进数据库的 enum。新增 enum 时加到这里。
 const List<List<CodedEnum>> _storedEnums = [
@@ -27,6 +32,15 @@ const List<List<CodedEnum>> _storedEnums = [
   TemperatureUnit.values,
   PortionUnit.values,
   UnitSystem.values,
+  DateDisplayFormat.values,
+  PetSex.values,
+  BirthPrecision.values,
+  BreedGroup.values,
+  WeightCadence.values,
+  PlanScheduleKind.values,
+  PlanSource.values,
+  CardCategory.values,
+  CardFrequency.values,
 ];
 
 /// 每种记录类型各一个填满字段的例子。
