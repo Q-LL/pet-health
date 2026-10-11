@@ -74,5 +74,6 @@ flutter build web --no-pub --release
 | 文档 | 用途 |
 | --- | --- |
 | [v1 开发计划](docs/V1_PLAN.md) | 产品方向、已定决策、12 周排期和验收要求 |
+| [数据结构](docs/V1_SCHEMA.md) | v1 表结构、选项 code、单位与设置、现算数据 |
 | [架构](docs/ARCHITECTURE.md) | 代码分层、媒体与平台边界、维护约定 |
 | [文案草稿](docs/COPY_DRAFT.md) | 中英文语气原则、记录项、每日卡片与年度回顾示例 |
