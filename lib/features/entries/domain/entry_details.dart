@@ -13,6 +13,10 @@ sealed class EntryDetails {
 
   Map<String, Object?> toJson();
 
+  /// 这份细节是否属于 [type]，比如 [MealDetails] 只属于饮食。
+  bool isFor(EntryType type) =>
+      runtimeType == EntryDetails.fromJson(type, const {}).runtimeType;
+
   static EntryDetails fromJson(EntryType type, Map<String, Object?> json) {
     return switch (type) {
       EntryType.meal => MealDetails(
