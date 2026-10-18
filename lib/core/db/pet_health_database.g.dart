@@ -780,16 +780,6 @@ class $PetPresetsTable extends PetPresets
     requiredDuringInsert: false,
   );
   @override
-  late final GeneratedColumnWithTypeConverter<WeightCadence, String>
-  weightCadence = GeneratedColumn<String>(
-    'weight_cadence',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('monthly'),
-  ).withConverter<WeightCadence>($PetPresetsTable.$converterweightCadence);
-  @override
   late final GeneratedColumnWithTypeConverter<List<EntryType>, String>
   quickTypes = GeneratedColumn<String>(
     'quick_types',
@@ -806,7 +796,6 @@ class $PetPresetsTable extends PetPresets
     mealUnit,
     mealsPerDay,
     bowlMl,
-    weightCadence,
     quickTypes,
   ];
   @override
@@ -881,12 +870,6 @@ class $PetPresetsTable extends PetPresets
         DriftSqlType.double,
         data['${effectivePrefix}bowl_ml'],
       ),
-      weightCadence: $PetPresetsTable.$converterweightCadence.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}weight_cadence'],
-        )!,
-      ),
       quickTypes: $PetPresetsTable.$converterquickTypes.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -905,8 +888,6 @@ class $PetPresetsTable extends PetPresets
       const CodedEnumConverter(PortionUnit.values);
   static TypeConverter<PortionUnit?, String?> $convertermealUnitn =
       NullAwareTypeConverter.wrap($convertermealUnit);
-  static TypeConverter<WeightCadence, String> $converterweightCadence =
-      const CodedEnumConverter(WeightCadence.values);
   static TypeConverter<List<EntryType>, String> $converterquickTypes =
       const CodedEnumListConverter(EntryType.values);
 }
@@ -919,7 +900,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
 
   /// 水碗容量，一律按 ml 存。
   final double? bowlMl;
-  final WeightCadence weightCadence;
 
   /// 首页一键记录的类型与顺序。
   final List<EntryType> quickTypes;
@@ -929,7 +909,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
     this.mealUnit,
     this.mealsPerDay,
     this.bowlMl,
-    required this.weightCadence,
     required this.quickTypes,
   });
   @override
@@ -949,11 +928,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
     }
     if (!nullToAbsent || bowlMl != null) {
       map['bowl_ml'] = Variable<double>(bowlMl);
-    }
-    {
-      map['weight_cadence'] = Variable<String>(
-        $PetPresetsTable.$converterweightCadence.toSql(weightCadence),
-      );
     }
     {
       map['quick_types'] = Variable<String>(
@@ -978,7 +952,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
       bowlMl: bowlMl == null && nullToAbsent
           ? const Value.absent()
           : Value(bowlMl),
-      weightCadence: Value(weightCadence),
       quickTypes: Value(quickTypes),
     );
   }
@@ -994,7 +967,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
       mealUnit: serializer.fromJson<PortionUnit?>(json['mealUnit']),
       mealsPerDay: serializer.fromJson<int?>(json['mealsPerDay']),
       bowlMl: serializer.fromJson<double?>(json['bowlMl']),
-      weightCadence: serializer.fromJson<WeightCadence>(json['weightCadence']),
       quickTypes: serializer.fromJson<List<EntryType>>(json['quickTypes']),
     );
   }
@@ -1007,7 +979,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
       'mealUnit': serializer.toJson<PortionUnit?>(mealUnit),
       'mealsPerDay': serializer.toJson<int?>(mealsPerDay),
       'bowlMl': serializer.toJson<double?>(bowlMl),
-      'weightCadence': serializer.toJson<WeightCadence>(weightCadence),
       'quickTypes': serializer.toJson<List<EntryType>>(quickTypes),
     };
   }
@@ -1018,7 +989,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
     Value<PortionUnit?> mealUnit = const Value.absent(),
     Value<int?> mealsPerDay = const Value.absent(),
     Value<double?> bowlMl = const Value.absent(),
-    WeightCadence? weightCadence,
     List<EntryType>? quickTypes,
   }) => PetPresetRow(
     petId: petId ?? this.petId,
@@ -1026,7 +996,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
     mealUnit: mealUnit.present ? mealUnit.value : this.mealUnit,
     mealsPerDay: mealsPerDay.present ? mealsPerDay.value : this.mealsPerDay,
     bowlMl: bowlMl.present ? bowlMl.value : this.bowlMl,
-    weightCadence: weightCadence ?? this.weightCadence,
     quickTypes: quickTypes ?? this.quickTypes,
   );
   PetPresetRow copyWithCompanion(PetPresetsCompanion data) {
@@ -1040,9 +1009,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
           ? data.mealsPerDay.value
           : this.mealsPerDay,
       bowlMl: data.bowlMl.present ? data.bowlMl.value : this.bowlMl,
-      weightCadence: data.weightCadence.present
-          ? data.weightCadence.value
-          : this.weightCadence,
       quickTypes: data.quickTypes.present
           ? data.quickTypes.value
           : this.quickTypes,
@@ -1057,22 +1023,14 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
           ..write('mealUnit: $mealUnit, ')
           ..write('mealsPerDay: $mealsPerDay, ')
           ..write('bowlMl: $bowlMl, ')
-          ..write('weightCadence: $weightCadence, ')
           ..write('quickTypes: $quickTypes')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    petId,
-    mealAmount,
-    mealUnit,
-    mealsPerDay,
-    bowlMl,
-    weightCadence,
-    quickTypes,
-  );
+  int get hashCode =>
+      Object.hash(petId, mealAmount, mealUnit, mealsPerDay, bowlMl, quickTypes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1082,7 +1040,6 @@ class PetPresetRow extends DataClass implements Insertable<PetPresetRow> {
           other.mealUnit == this.mealUnit &&
           other.mealsPerDay == this.mealsPerDay &&
           other.bowlMl == this.bowlMl &&
-          other.weightCadence == this.weightCadence &&
           other.quickTypes == this.quickTypes);
 }
 
@@ -1092,7 +1049,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
   final Value<PortionUnit?> mealUnit;
   final Value<int?> mealsPerDay;
   final Value<double?> bowlMl;
-  final Value<WeightCadence> weightCadence;
   final Value<List<EntryType>> quickTypes;
   final Value<int> rowid;
   const PetPresetsCompanion({
@@ -1101,7 +1057,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
     this.mealUnit = const Value.absent(),
     this.mealsPerDay = const Value.absent(),
     this.bowlMl = const Value.absent(),
-    this.weightCadence = const Value.absent(),
     this.quickTypes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1111,7 +1066,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
     this.mealUnit = const Value.absent(),
     this.mealsPerDay = const Value.absent(),
     this.bowlMl = const Value.absent(),
-    this.weightCadence = const Value.absent(),
     this.quickTypes = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : petId = Value(petId);
@@ -1121,7 +1075,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
     Expression<String>? mealUnit,
     Expression<int>? mealsPerDay,
     Expression<double>? bowlMl,
-    Expression<String>? weightCadence,
     Expression<String>? quickTypes,
     Expression<int>? rowid,
   }) {
@@ -1131,7 +1084,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
       if (mealUnit != null) 'meal_unit': mealUnit,
       if (mealsPerDay != null) 'meals_per_day': mealsPerDay,
       if (bowlMl != null) 'bowl_ml': bowlMl,
-      if (weightCadence != null) 'weight_cadence': weightCadence,
       if (quickTypes != null) 'quick_types': quickTypes,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1143,7 +1095,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
     Value<PortionUnit?>? mealUnit,
     Value<int?>? mealsPerDay,
     Value<double?>? bowlMl,
-    Value<WeightCadence>? weightCadence,
     Value<List<EntryType>>? quickTypes,
     Value<int>? rowid,
   }) {
@@ -1153,7 +1104,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
       mealUnit: mealUnit ?? this.mealUnit,
       mealsPerDay: mealsPerDay ?? this.mealsPerDay,
       bowlMl: bowlMl ?? this.bowlMl,
-      weightCadence: weightCadence ?? this.weightCadence,
       quickTypes: quickTypes ?? this.quickTypes,
       rowid: rowid ?? this.rowid,
     );
@@ -1179,11 +1129,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
     if (bowlMl.present) {
       map['bowl_ml'] = Variable<double>(bowlMl.value);
     }
-    if (weightCadence.present) {
-      map['weight_cadence'] = Variable<String>(
-        $PetPresetsTable.$converterweightCadence.toSql(weightCadence.value),
-      );
-    }
     if (quickTypes.present) {
       map['quick_types'] = Variable<String>(
         $PetPresetsTable.$converterquickTypes.toSql(quickTypes.value),
@@ -1203,7 +1148,6 @@ class PetPresetsCompanion extends UpdateCompanion<PetPresetRow> {
           ..write('mealUnit: $mealUnit, ')
           ..write('mealsPerDay: $mealsPerDay, ')
           ..write('bowlMl: $bowlMl, ')
-          ..write('weightCadence: $weightCadence, ')
           ..write('quickTypes: $quickTypes, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6986,7 +6930,6 @@ typedef $$PetPresetsTableCreateCompanionBuilder =
       Value<PortionUnit?> mealUnit,
       Value<int?> mealsPerDay,
       Value<double?> bowlMl,
-      Value<WeightCadence> weightCadence,
       Value<List<EntryType>> quickTypes,
       Value<int> rowid,
     });
@@ -6997,7 +6940,6 @@ typedef $$PetPresetsTableUpdateCompanionBuilder =
       Value<PortionUnit?> mealUnit,
       Value<int?> mealsPerDay,
       Value<double?> bowlMl,
-      Value<WeightCadence> weightCadence,
       Value<List<EntryType>> quickTypes,
       Value<int> rowid,
     });
@@ -7053,12 +6995,6 @@ class $$PetPresetsTableFilterComposer
   ColumnFilters<double> get bowlMl => $composableBuilder(
     column: $table.bowlMl,
     builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<WeightCadence, WeightCadence, String>
-  get weightCadence => $composableBuilder(
-    column: $table.weightCadence,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnWithTypeConverterFilters<List<EntryType>, List<EntryType>, String>
@@ -7120,11 +7056,6 @@ class $$PetPresetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get weightCadence => $composableBuilder(
-    column: $table.weightCadence,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get quickTypes => $composableBuilder(
     column: $table.quickTypes,
     builder: (column) => ColumnOrderings(column),
@@ -7178,12 +7109,6 @@ class $$PetPresetsTableAnnotationComposer
 
   GeneratedColumn<double> get bowlMl =>
       $composableBuilder(column: $table.bowlMl, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<WeightCadence, String> get weightCadence =>
-      $composableBuilder(
-        column: $table.weightCadence,
-        builder: (column) => column,
-      );
 
   GeneratedColumnWithTypeConverter<List<EntryType>, String> get quickTypes =>
       $composableBuilder(
@@ -7248,7 +7173,6 @@ class $$PetPresetsTableTableManager
                 Value<PortionUnit?> mealUnit = const Value.absent(),
                 Value<int?> mealsPerDay = const Value.absent(),
                 Value<double?> bowlMl = const Value.absent(),
-                Value<WeightCadence> weightCadence = const Value.absent(),
                 Value<List<EntryType>> quickTypes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PetPresetsCompanion(
@@ -7257,7 +7181,6 @@ class $$PetPresetsTableTableManager
                 mealUnit: mealUnit,
                 mealsPerDay: mealsPerDay,
                 bowlMl: bowlMl,
-                weightCadence: weightCadence,
                 quickTypes: quickTypes,
                 rowid: rowid,
               ),
@@ -7268,7 +7191,6 @@ class $$PetPresetsTableTableManager
                 Value<PortionUnit?> mealUnit = const Value.absent(),
                 Value<int?> mealsPerDay = const Value.absent(),
                 Value<double?> bowlMl = const Value.absent(),
-                Value<WeightCadence> weightCadence = const Value.absent(),
                 Value<List<EntryType>> quickTypes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PetPresetsCompanion.insert(
@@ -7277,7 +7199,6 @@ class $$PetPresetsTableTableManager
                 mealUnit: mealUnit,
                 mealsPerDay: mealsPerDay,
                 bowlMl: bowlMl,
-                weightCadence: weightCadence,
                 quickTypes: quickTypes,
                 rowid: rowid,
               ),

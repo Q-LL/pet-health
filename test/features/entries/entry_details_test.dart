@@ -36,7 +36,6 @@ const List<List<CodedEnum>> _storedEnums = [
   PetSex.values,
   BirthPrecision.values,
   BreedGroup.values,
-  WeightCadence.values,
   PlanScheduleKind.values,
   PlanSource.values,
   CardCategory.values,

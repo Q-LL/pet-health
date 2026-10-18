@@ -126,7 +126,6 @@ void main() {
         EntryType.potty,
         EntryType.brushing,
       ]);
-      expect(preset.weightCadence, WeightCadence.monthly);
       expect(preset.mealUnit, PortionUnit.scoop);
     });
 

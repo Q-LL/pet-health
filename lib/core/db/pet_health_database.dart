@@ -57,9 +57,6 @@ class PetPresets extends Table {
 
   /// 水碗容量，一律按 ml 存。
   RealColumn get bowlMl => real().nullable()();
-  TextColumn get weightCadence => text()
-      .map(const CodedEnumConverter(WeightCadence.values))
-      .withDefault(const Constant('monthly'))();
 
   /// 首页一键记录的类型与顺序。
   TextColumn get quickTypes => text()

@@ -38,16 +38,3 @@ enum BreedGroup implements CodedEnum {
   @override
   final String code;
 }
-
-enum WeightCadence implements CodedEnum {
-  weekly('weekly'),
-  biweekly('biweekly'),
-  monthly('monthly'),
-  quarterly('quarterly'),
-  off('off');
-
-  const WeightCadence(this.code);
-
-  @override
-  final String code;
-}

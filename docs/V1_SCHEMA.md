@@ -52,7 +52,6 @@
 | `mealUnit` | enum? | 份量单位；不填时用设置里的默认食物单位 |
 | `mealsPerDay` | int? | 一天几餐，用于学习日常节奏 |
 | `bowlMl` | real? | 水碗容量，一律按 ml 存 |
-| `weightCadence` | enum | `weekly` / `biweekly` / `monthly` / `quarterly` / `off` |
 | `quickTypes` | json | 首页一键记录显示哪些类型、按什么顺序，如 `["meal","water","potty","brushing"]` |
 
 ### `entries`：所有记录
@@ -124,6 +123,8 @@
   例子：选了周一、三、五，周三负责周二到周三。周二已经梳过毛，周三就不再提醒；周三没梳，周四也不补，下一次是周五。
 - `once`：到 `dueAt` 时到期；记了一条匹配的记录后，这个计划就算完成，不再提醒。
 
+**新建狗狗时自动生成的计划**（`source = breed_default`，默认不发通知）：梳毛、洗澡、体重（每 30 天），卷毛犬加美容修剪，大型双层毛 / 小型长丝毛 / 卷毛犬加每周耳朵检查，小型长丝毛加每周眼部清洁，小型短毛加每周刷牙。驱虫和心丝虫药的间隔因地区和兽医建议而不同，不自动生成，由引导流程询问。称重周期也通过体重计划的间隔设置（每周 / 每两周 / 每月 / 每季度），不另存。修改犬种不会自动替换计划，由页面询问后重新套用，只替换自动生成的那些。
+
 **犬种默认值换成星期几**：每周 2 次默认周一、四；3 次默认周一、三、五；4 次默认周一、三、五、日；每天就是 7 天全选。用户可以随时改。
 
 计划只提供"稍后提醒"，不提供"跳过"。没做就是没做，下次到期时间依然从上一次实际完成的时间往后推算。
@@ -175,7 +176,7 @@
 | `unit.distance` | `km` / `mi` | 跟随 `unitSystem` |
 | `unit.temperature` | `c` / `f` | 跟随 `unitSystem` |
 | `unit.food` | `scoop` / `cup` / `g` / `can` / `pouch` | imperial 默认 `cup`，metric 默认 `g` |
-| `weather.city`、`weather.lat`、`weather.lon`、`weather.tz` | | 不填城市就不出天气卡片 |
+| `weather` | JSON：城市名、经纬度、时区 | 不填城市就不出天气卡片；更换或清除城市时清空天气缓存 |
 | `cards.observation`、`cards.coming_up`、`cards.tip`、`cards.moment` | `off` / `less` / `normal` | `normal` |
 
 **单位的优先级**：用户单独设置的单位 > `unitSystem` > 系统地区。每一项都可以在设置里单独改，比如体重用 kg、水量用 oz。

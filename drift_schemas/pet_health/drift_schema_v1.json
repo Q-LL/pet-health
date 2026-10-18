@@ -249,20 +249,6 @@
             "dsl_features": []
           },
           {
-            "name": "weight_cadence",
-            "getter_name": "weightCadence",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": "const CustomExpression('\\'monthly\\'')",
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const CodedEnumConverter(WeightCadence.values)",
-              "dart_type_name": "WeightCadence"
-            }
-          },
-          {
             "name": "quick_types",
             "getter_name": "quickTypes",
             "moor_type": "string",
@@ -1591,7 +1577,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"pet_presets\" (\"pet_id\" TEXT NOT NULL REFERENCES pets (id) ON DELETE CASCADE, \"meal_amount\" REAL NULL, \"meal_unit\" TEXT NULL, \"meals_per_day\" INTEGER NULL, \"bowl_ml\" REAL NULL, \"weight_cadence\" TEXT NOT NULL DEFAULT 'monthly', \"quick_types\" TEXT NOT NULL DEFAULT '[\"meal\",\"water\",\"potty\",\"brushing\"]', PRIMARY KEY (\"pet_id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"pet_presets\" (\"pet_id\" TEXT NOT NULL REFERENCES pets (id) ON DELETE CASCADE, \"meal_amount\" REAL NULL, \"meal_unit\" TEXT NULL, \"meals_per_day\" INTEGER NULL, \"bowl_ml\" REAL NULL, \"quick_types\" TEXT NOT NULL DEFAULT '[\"meal\",\"water\",\"potty\",\"brushing\"]', PRIMARY KEY (\"pet_id\"));"
         }
       ]
     },
