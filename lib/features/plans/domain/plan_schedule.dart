@@ -23,7 +23,7 @@ sealed class PlanSchedule {
 
 /// 从上一次实际完成往后推 [days] 天。
 final class EveryNDays extends PlanSchedule {
-  const EveryNDays(this.days) : assert(days > 0);
+  const EveryNDays(this.days);
 
   final int days;
 
