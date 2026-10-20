@@ -183,7 +183,10 @@ class PlansRepository {
     return a.plan.createdAt.compareTo(b.plan.createdAt);
   }
 
-  /// 每种类型（和 kind）最近一次的时间，只算不晚于 [now] 的记录。
+  /// 每种类型（和细分项）最近一次的时间，只算不晚于 [now] 的记录。
+  ///
+  /// 细分项来自 details 里的 `kind`（其他护理、检查），或驱虫的 `coverage`
+  /// 列表中的每一项：一次复方驱虫同时算作它覆盖的每一类。
   Future<Map<(EntryType, String?), DateTime>> _lastDoneByTypeAndKind(
     String petId,
     DateTime now,
@@ -192,7 +195,11 @@ class PlansRepository {
         .customSelect(
           "SELECT type, json_extract(details, '\$.kind') AS kind, "
           'MAX(occurred_at) AS last FROM entries '
-          'WHERE pet_id = ? AND occurred_at <= ? GROUP BY type, kind',
+          'WHERE pet_id = ?1 AND occurred_at <= ?2 GROUP BY type, kind '
+          'UNION ALL '
+          'SELECT e.type, c.value AS kind, MAX(e.occurred_at) AS last '
+          "FROM entries e, json_each(e.details, '\$.coverage') c "
+          'WHERE e.pet_id = ?1 AND e.occurred_at <= ?2 GROUP BY e.type, c.value',
           variables: [
             Variable.withString(petId),
             Variable.withDateTime(now.toUtc()),
@@ -200,14 +207,15 @@ class PlansRepository {
           readsFrom: {_db.entries},
         )
         .get();
-    return {
-      for (final row in rows)
-        if (decodeCode(EntryType.values, row.read<String>('type'))
-            case final type?)
-          (type, row.readNullable<String>('kind')): row
-              .read<DateTime>('last')
-              .toLocal(),
-    };
+    final latest = <(EntryType, String?), DateTime>{};
+    for (final row in rows) {
+      final type = decodeCode(EntryType.values, row.read<String>('type'));
+      if (type == null) continue;
+      final key = (type, row.readNullable<String>('kind'));
+      final at = row.read<DateTime>('last').toLocal();
+      if (latest[key]?.isAfter(at) != true) latest[key] = at;
+    }
+    return latest;
   }
 
   /// 一次性事项只算关联到它的记录。
@@ -268,6 +276,8 @@ class PlansRepository {
     switch (draft.schedule) {
       case EveryNDays(:final days) when days < 1 || days > 366:
         throw ArgumentError.value(days, 'days', 'Must be 1 to 366');
+      case EveryNMonths(:final months) when months < 1 || months > 24:
+        throw ArgumentError.value(months, 'months', 'Must be 1 to 24');
       case OnWeekdays(:final mask) when mask < 1 || mask > Weekdays.all:
         throw ArgumentError.value(mask, 'weekdays', 'Select at least one day');
       default:
@@ -281,10 +291,16 @@ class PlansRepository {
       throw ArgumentError('A custom plan needs a title');
     }
     final kind = draft.entryKind;
-    if (kind != null &&
-        (draft.entryType != EntryType.otherCare ||
-            decodeCode(OtherCareKind.values, kind) == null)) {
-      throw ArgumentError.value(kind, 'entryKind', 'Only other_care has kinds');
+    if (kind != null) {
+      final List<CodedEnum> kinds = switch (draft.entryType) {
+        EntryType.otherCare => OtherCareKind.values,
+        EntryType.parasitePrevention => ParasiteCoverage.values,
+        EntryType.vetTest => VetTestKind.values,
+        _ => const [],
+      };
+      if (decodeCode(kinds, kind) == null) {
+        throw ArgumentError.value(kind, 'entryKind', 'Not a kind of this type');
+      }
     }
   }
 

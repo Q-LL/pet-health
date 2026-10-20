@@ -156,6 +156,116 @@ void main() {
     });
   });
 
+  group('驱虫与检查', () {
+    Future<Entry> dose(DateTime at, Set<ParasiteCoverage> coverage) =>
+        entries.create(
+          EntryDraft(
+            petId: petId,
+            type: EntryType.parasitePrevention,
+            occurredAt: at,
+            details: ParasitePreventionDetails(coverage: coverage),
+          ),
+        );
+
+    test('按覆盖范围匹配：复方药同时算作它覆盖的每一类', () async {
+      final heartworm = await plans.create(
+        draft(
+          EntryType.parasitePrevention,
+          const EveryNMonths(1),
+          kind: ParasiteCoverage.heartworm.code,
+        ),
+      );
+      final fleas = await plans.create(
+        draft(
+          EntryType.parasitePrevention,
+          const EveryNDays(84),
+          kind: ParasiteCoverage.fleasTicks.code,
+        ),
+      );
+
+      // 只防跳蚤蜱虫的药，不算心丝虫预防。
+      await dose(DateTime(2026, 9, 20), {ParasiteCoverage.fleasTicks});
+      expect((await statusOf(heartworm.id)).lastDoneAt, isNull);
+      expect((await statusOf(fleas.id)).lastDoneAt, DateTime(2026, 9, 20));
+
+      // 复方药同时覆盖两类。
+      await dose(DateTime(2026, 10, 1), {
+        ParasiteCoverage.heartworm,
+        ParasiteCoverage.fleasTicks,
+        ParasiteCoverage.intestinal,
+      });
+      final heartwormStatus = await statusOf(heartworm.id);
+      expect(heartwormStatus.lastDoneAt, DateTime(2026, 10, 1));
+      expect(heartwormStatus.due.dueDay, DateTime(2026, 11, 1));
+      expect(heartwormStatus.due.daysSinceLast, 13);
+      expect((await statusOf(fleas.id)).lastDoneAt, DateTime(2026, 10, 1));
+    });
+
+    test('不指定覆盖范围的驱虫计划，任何一次驱虫都算', () async {
+      final any = await plans.create(
+        draft(EntryType.parasitePrevention, const EveryNMonths(3)),
+      );
+      await dose(DateTime(2026, 10, 2), {ParasiteCoverage.intestinal});
+      expect((await statusOf(any.id)).lastDoneAt, DateTime(2026, 10, 2));
+    });
+
+    test('检查计划按检查项目匹配', () async {
+      final fecal = await plans.create(
+        draft(
+          EntryType.vetTest,
+          const EveryNMonths(6),
+          kind: VetTestKind.fecal.code,
+        ),
+      );
+      await entries.create(
+        EntryDraft(
+          petId: petId,
+          type: EntryType.vetTest,
+          occurredAt: DateTime(2026, 4, 10),
+          details: const VetTestDetails(
+            kind: VetTestKind.heartworm,
+            result: VetTestResult.negative,
+          ),
+        ),
+      );
+      expect((await statusOf(fecal.id)).due.state, PlanState.notStarted);
+
+      await entries.create(
+        EntryDraft(
+          petId: petId,
+          type: EntryType.vetTest,
+          occurredAt: DateTime(2026, 4, 12),
+          details: const VetTestDetails(
+            kind: VetTestKind.fecal,
+            result: VetTestResult.negative,
+          ),
+        ),
+      );
+      final status = await statusOf(fecal.id);
+      expect(status.due.state, PlanState.due);
+      expect(status.due.dueDay, DateTime(2026, 10, 12));
+    });
+
+    test('每 N 个月的排期往返，校验月数和细分项', () async {
+      final plan = await plans.create(
+        draft(EntryType.vetTest, const EveryNMonths(12), kind: 'heartworm'),
+      );
+      expect(plan.schedule, const EveryNMonths(12));
+      for (final bad in [
+        draft(EntryType.vetTest, const EveryNMonths(0)),
+        draft(EntryType.vetTest, const EveryNMonths(25)),
+        draft(
+          EntryType.parasitePrevention,
+          const EveryNMonths(1),
+          kind: 'wings',
+        ),
+        draft(EntryType.bath, const EveryNMonths(1), kind: 'heartworm'),
+      ]) {
+        expect(() => plans.create(bad), throwsArgumentError);
+      }
+    });
+  });
+
   group('状态', () {
     test('每 N 天：没记录时未开始，记了之后按最近一次推算', () async {
       final bath = await plans.create(

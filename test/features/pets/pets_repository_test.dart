@@ -59,8 +59,8 @@ void main() {
           types,
           containsAll([EntryType.brushing, EntryType.bath, EntryType.weight]),
         );
-        expect(types, isNot(contains(EntryType.dewormer)));
-        expect(types, isNot(contains(EntryType.heartworm)));
+        expect(types, isNot(contains(EntryType.parasitePrevention)));
+        expect(types, isNot(contains(EntryType.vetTest)));
       }
     });
 
@@ -180,7 +180,7 @@ void main() {
             scheduleColumns(const EveryNDays(30)).copyWith(
               id: const Value('mine'),
               petId: Value(pet.id),
-              entryType: const Value(EntryType.dewormer),
+              entryType: const Value(EntryType.parasitePrevention),
               createdAt: Value(now.toUtc()),
               updatedAt: Value(now.toUtc()),
             ),
@@ -199,7 +199,7 @@ void main() {
       final plans = await plansOf(pet.id);
       final types = plans.map((p) => p.entryType).toList();
       expect(types, isNot(contains(EntryType.grooming)));
-      expect(types, contains(EntryType.dewormer));
+      expect(types, contains(EntryType.parasitePrevention));
       expect(
         plans.where((p) => p.source == PlanSource.breedDefault),
         hasLength(defaultPlansFor(BreedGroup.largeDouble).length),

@@ -39,8 +39,12 @@ sealed class EntryDetails {
       EntryType.grooming => GroomingDetails(
         where: decodeCode(GroomingPlace.values, json['where']),
       ),
-      EntryType.dewormer => DewormerDetails(
-        coverage: decodeCodeSet(DewormerCoverage.values, json['coverage']),
+      EntryType.parasitePrevention => ParasitePreventionDetails(
+        coverage: decodeCodeSet(ParasiteCoverage.values, json['coverage']),
+      ),
+      EntryType.vetTest => VetTestDetails(
+        kind: decodeCode(VetTestKind.values, json['kind']),
+        result: decodeCode(VetTestResult.values, json['result']),
       ),
       EntryType.earCheck => EarCheckDetails(
         ears: decodeCode(EarCondition.values, json['ears']),
@@ -53,7 +57,6 @@ sealed class EntryDetails {
         status: decodeCode(SymptomStatus.values, json['status']),
       ),
       EntryType.walk ||
-      EntryType.heartworm ||
       EntryType.weight ||
       EntryType.medication ||
       EntryType.vaccine ||
@@ -186,24 +189,24 @@ final class GroomingDetails extends EntryDetails {
   int get hashCode => where.hashCode;
 }
 
-final class DewormerDetails extends EntryDetails {
-  const DewormerDetails({this.coverage = const {}});
+final class ParasitePreventionDetails extends EntryDetails {
+  const ParasitePreventionDetails({this.coverage = const {}});
 
-  final Set<DewormerCoverage> coverage;
+  final Set<ParasiteCoverage> coverage;
 
   @override
   Map<String, Object?> toJson() => {
     // 按 enum 声明顺序输出，保证同样的内容总是得到同样的 JSON。
     if (coverage.isNotEmpty)
       'coverage': [
-        for (final value in DewormerCoverage.values)
+        for (final value in ParasiteCoverage.values)
           if (coverage.contains(value)) value.code,
       ],
   };
 
   @override
   bool operator ==(Object other) =>
-      other is DewormerDetails && setEquals(coverage, other.coverage);
+      other is ParasitePreventionDetails && setEquals(coverage, other.coverage);
 
   @override
   int get hashCode => Object.hashAllUnordered(coverage);
@@ -256,4 +259,21 @@ final class SymptomDetails extends EntryDetails {
 
   @override
   int get hashCode => Object.hash(kind, status);
+}
+
+final class VetTestDetails extends EntryDetails {
+  const VetTestDetails({this.kind, this.result});
+
+  final VetTestKind? kind;
+  final VetTestResult? result;
+
+  @override
+  Map<String, Object?> toJson() => _codes({'kind': kind, 'result': result});
+
+  @override
+  bool operator ==(Object other) =>
+      other is VetTestDetails && kind == other.kind && result == other.result;
+
+  @override
+  int get hashCode => Object.hash(kind, result);
 }

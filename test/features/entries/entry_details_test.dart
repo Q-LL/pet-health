@@ -21,7 +21,9 @@ const List<List<CodedEnum>> _storedEnums = [
   CoatCondition.values,
   BathPlace.values,
   GroomingPlace.values,
-  DewormerCoverage.values,
+  ParasiteCoverage.values,
+  VetTestKind.values,
+  VetTestResult.values,
   EarCondition.values,
   OtherCareKind.values,
   SymptomKind.values,
@@ -53,8 +55,12 @@ const _filled = <EntryType, EntryDetails>{
   EntryType.brushing: BrushingDetails(coat: CoatCondition.heavyShedding),
   EntryType.bath: BathDetails(where: BathPlace.groomer),
   EntryType.grooming: GroomingDetails(where: GroomingPlace.home),
-  EntryType.dewormer: DewormerDetails(
-    coverage: {DewormerCoverage.external, DewormerCoverage.internal},
+  EntryType.parasitePrevention: ParasitePreventionDetails(
+    coverage: {ParasiteCoverage.heartworm, ParasiteCoverage.intestinal},
+  ),
+  EntryType.vetTest: VetTestDetails(
+    kind: VetTestKind.fecal,
+    result: VetTestResult.negative,
   ),
   EntryType.earCheck: EarCheckDetails(ears: EarCondition.redOrSmelly),
   EntryType.otherCare: OtherCareDetails(kind: OtherCareKind.nails),
@@ -90,14 +96,14 @@ void main() {
         'kind': 'poop',
         'stool': 'blood_or_mucus',
       });
-      expect(_filled[EntryType.dewormer]!.toJson(), {
-        'coverage': ['internal', 'external'],
+      expect(_filled[EntryType.parasitePrevention]!.toJson(), {
+        'coverage': ['intestinal', 'heartworm'],
       });
     });
 
     test('未填写的字段不写进 JSON', () {
       expect(const MealDetails().toJson(), isEmpty);
-      expect(const DewormerDetails().toJson(), isEmpty);
+      expect(const ParasitePreventionDetails().toJson(), isEmpty);
     });
 
     test('不认识的 code 按未填写处理，不报错', () {
@@ -109,16 +115,20 @@ void main() {
       });
       expect(details, const PottyDetails(kind: PottyKind.poop));
 
-      final dewormer = EntryDetails.fromJson(EntryType.dewormer, {
-        'coverage': ['internal', 'cosmic'],
+      final dewormer = EntryDetails.fromJson(EntryType.parasitePrevention, {
+        'coverage': ['intestinal', 'cosmic'],
       });
       expect(
         dewormer,
-        const DewormerDetails(coverage: {DewormerCoverage.internal}),
+        const ParasitePreventionDetails(
+          coverage: {ParasiteCoverage.intestinal},
+        ),
       );
       expect(
-        EntryDetails.fromJson(EntryType.dewormer, {'coverage': 'internal'}),
-        const DewormerDetails(),
+        EntryDetails.fromJson(EntryType.parasitePrevention, {
+          'coverage': 'intestinal',
+        }),
+        const ParasitePreventionDetails(),
       );
     });
 

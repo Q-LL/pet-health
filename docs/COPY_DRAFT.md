@@ -45,8 +45,8 @@ One-tap means: tap once to log with your presets; expand only when something's o
 | --- | --- | --- |
 | 洗澡 | Bath | 家里 / 美容店 · At home / Groomer |
 | 美容修剪 | Grooming | 主要给卷毛犬 · Mainly for curly-coated dogs |
-| 广谱驱虫 | Broad-spectrum dewormer | 一次给药可勾选覆盖范围（体内 / 体外），复方药一条记录即可 · One dose can cover several (internal / fleas & ticks) — combo products are one log |
-| 心丝虫药 | Heartworm medication | 按兽医建议开启，默认关闭 · Turned on per your vet's advice; off by default |
+| 驱虫 | Parasite prevention | 勾选覆盖范围：体内寄生虫 / 跳蚤和蜱虫 / 心丝虫预防，复方药一条记录 · Check what it covers: intestinal worms / fleas & ticks / heartworm prevention — a combo product is one log |
+| 检查 | Vet test | 粪检 / 心丝虫检测 / 其他；结果：阴性 / 阳性 / 等结果 · Fecal / heartworm / other; result: negative / positive / pending |
 | 体重 | Weight | 可选称重周期：每周 / 每两周 / 每月 / 每季度 · Check-in: weekly / every 2 weeks / monthly / quarterly |
 | 耳朵检查 | Ear check | 长耳、爱游泳的狗默认开启 · On by default for floppy-eared or water-loving dogs |
 | 其他护理 | Other care | 刷牙、剪指甲、擦眼睛等，用标签区分 · Teeth, nails, eyes, etc. — tagged |
@@ -83,7 +83,9 @@ From your plans, counted from when you actually last did it — not a fixed cale
 
 | 中文 | English |
 | --- | --- |
-| 距离上次广谱驱虫已经 26 天了，这周末记得安排一下。 | It's been 26 days since the last dewormer dose — maybe plan it for this weekend. |
+| 距离上次心丝虫预防已经 30 天了。 | It's been 30 days since the last heartworm prevention dose. |
+| 跳蚤和蜱虫防护按说明下次在 11 月 3 日。 | Next flea & tick dose is due Nov 3, per the label. |
+| 上次粪检是 6 个月前。 | Your last fecal test was 6 months ago. |
 | 上次洗澡是 5 周前。洗完记得把耳朵也擦干。 | Last bath was 5 weeks ago. Remember to dry the ears afterward. |
 | 这周还没检查耳朵。长耳朵的小家伙，一周看一次就好。 | No ear check yet this week — once a week is plenty for those floppy ears. |
 | 上次美容是 5 周前。泰迪一般 4–6 周修剪一次，可以约起来了。 | Last grooming was 5 weeks ago. Poodles usually go every 4–6 weeks — might be time to book. |
@@ -120,6 +122,7 @@ Tied to the season, weather, breed, and recent logs. No tip without a reason.
 | "{name} 可能有肾脏问题。" · "{name} may have kidney issues." | 诊断，而且会吓人 · Diagnosis, and scary |
 | "本周护理完成率仅 40%，继续加油！" · "Only 40% of care done this week. Keep going!" | 打分，让人内疚 · Grading and guilt |
 | "夏季注意防暑。" · "Watch out for heat in summer." | 套话，没有依据 · Generic, no data behind it |
+| "心丝虫预防晚了 5 天！" · "Heartworm prevention is 5 days late!" | 催促；只说距离上次多少天 · Pushy — just say how many days since the last dose |
 | "体重与上月持平。"（上月根本没有记录）· "Weight unchanged from last month." (with no data last month) | 没有数据就下结论 · A conclusion without data |
 
 ---
@@ -133,7 +136,7 @@ Tied to the season, weather, breed, and recent logs. No tip without a reason.
 | 今年，你使用 App 共 {days} 天。在这 {days} 天里： | This year, you used the app on {days} days. In those {days} days: |
 | 你陪它出门 412 次，一共走了大约 538 公里。 | You took 412 walks together — about 334 miles. |
 | 梳毛 236 次。最勤快的是 4 月，正好是换毛季。 | 236 brushings. April was your busiest month — right in shedding season. |
-| 洗澡 14 次，驱虫 12 次，一次都没落下。 | 14 baths and 12 dewormer doses — not a single one missed. |
+| 洗澡 14 次，驱虫 12 次，一次都没落下。 | 14 baths and 12 parasite prevention doses — not a single one missed. |
 | 体重从 29.8 kg 到 31.2 kg，稳稳地长大。 | From 65.7 lb to 68.8 lb — growing steady. |
 | 记下了 37 个时光。 | 37 moments saved. |
 | 最平常的日子，也被认真记住了。 | Even the ordinary days were remembered. |
@@ -171,8 +174,8 @@ Suggested defaults; you can change them anytime. Care-routine guidance, not medi
    Is 2–3 cards a day right? More? Fewer?
 3. 你喂饭用什么计量（杯、克、罐）？知道自家水碗大概多大吗？
    How do you measure food (cups, grams, cans)? Do you roughly know your water bowl's size?
-4. **驱虫**：我们打算分成"广谱驱虫"和"心丝虫药"两项。你平时用的是什么药？一种药覆盖好几种的话，这样记顺手吗？
-   **Parasite meds**: we plan two items — "broad-spectrum dewormer" and "heartworm medication." What do you use? If one product covers several things, does logging it this way feel natural?
+4. **驱虫**：现在按覆盖范围记录（体内寄生虫 / 跳蚤和蜱虫 / 心丝虫预防），每一类可以选"按时用药"或"定期检查、听医生的"。这和你们家的做法对得上吗？
+   **Parasite prevention**: you log what each dose covers (intestinal worms / fleas & ticks / heartworm prevention), and for each one you choose "on a schedule" or "regular tests, following your vet." Does that match how your family does it?
 5. 第 2 节里，哪些你真的会每天点？哪些永远不会碰？
    In section 2, which would you actually tap every day? Which would you never touch?
 6. 英文里有没有哪句读起来不自然，或者不像美国人会说的话？

@@ -85,6 +85,57 @@ void main() {
     });
   });
 
+  group('每 N 个月', () {
+    test('没有记录时不催促', () {
+      expect(
+        evaluatePlan(const EveryNMonths(1), now: _d(12)),
+        const PlanDue(PlanState.notStarted),
+      );
+    });
+
+    test('按自然月推算，日期不变', () {
+      final result = evaluatePlan(
+        const EveryNMonths(1),
+        now: _d(12),
+        lastDoneAt: DateTime(2026, 10, 1, 8),
+      );
+      expect(result.state, PlanState.upcoming);
+      expect(result.dueDay, DateTime(2026, 11, 1));
+      expect(
+        evaluatePlan(
+          const EveryNMonths(6),
+          now: _d(12),
+          lastDoneAt: DateTime(2026, 9, 15),
+        ).dueDay,
+        DateTime(2027, 3, 15),
+      );
+    });
+
+    test('下个月没有这一天时取月底', () {
+      DateTime? dueAfter(DateTime last, int months) => evaluatePlan(
+        EveryNMonths(months),
+        now: last,
+        lastDoneAt: last,
+      ).dueDay;
+      expect(dueAfter(DateTime(2027, 1, 31), 1), DateTime(2027, 2, 28));
+      expect(dueAfter(DateTime(2028, 1, 31), 1), DateTime(2028, 2, 29));
+      expect(dueAfter(DateTime(2026, 8, 31), 6), DateTime(2027, 2, 28));
+      expect(dueAfter(DateTime(2026, 12, 15), 1), DateTime(2027, 1, 15));
+      expect(dueAfter(DateTime(2026, 2, 28), 12), DateTime(2027, 2, 28));
+    });
+
+    test('到期当天和之后都算该做了', () {
+      final result = evaluatePlan(
+        const EveryNMonths(1),
+        now: DateTime(2026, 11, 4),
+        lastDoneAt: DateTime(2026, 10, 1),
+      );
+      expect(result.state, PlanState.due);
+      expect(result.dueDay, DateTime(2026, 11, 1));
+      expect(result.daysSinceLast, 34);
+    });
+  });
+
   group('星期几', () {
     test('选中日当天还没做，就该做了', () {
       expect(

@@ -9,14 +9,18 @@ enum EntryType implements CodedEnum {
   walk('walk'),
   bath('bath'),
   grooming('grooming'),
-  dewormer('dewormer'),
-  heartworm('heartworm'),
+
+  /// 驱虫：一次给药可覆盖体内、跳蚤蜱虫、心丝虫预防中的几类。
+  parasitePrevention('parasite_prevention'),
   weight('weight'),
   earCheck('ear_check'),
   otherCare('other_care'),
   symptom('symptom'),
   medication('medication'),
   vaccine('vaccine'),
+
+  /// 兽医做的检查，比如粪检、心丝虫检测；只记录结果，App 不解读。
+  vetTest('vet_test'),
 
   /// 自定义事项，比如看医生的预约；名称写在记录的 `label` 里。
   custom('custom');
@@ -117,12 +121,38 @@ enum GroomingPlace implements CodedEnum {
   final String code;
 }
 
-/// 广谱驱虫药覆盖的范围；复方药可以多选。
-enum DewormerCoverage implements CodedEnum {
-  internal('internal'),
-  external('external');
+/// 一次驱虫覆盖的范围；复方药可以多选。
+///
+/// 心丝虫预防药杀的是过去约 30 天内进入体内的幼虫，没有"往后的保护期"，
+/// 文案只说距离上次给药的天数，不说保护期。
+enum ParasiteCoverage implements CodedEnum {
+  intestinal('intestinal'),
+  fleasTicks('fleas_ticks'),
+  heartworm('heartworm');
 
-  const DewormerCoverage(this.code);
+  const ParasiteCoverage(this.code);
+
+  @override
+  final String code;
+}
+
+enum VetTestKind implements CodedEnum {
+  fecal('fecal'),
+  heartworm('heartworm'),
+  other('other');
+
+  const VetTestKind(this.code);
+
+  @override
+  final String code;
+}
+
+enum VetTestResult implements CodedEnum {
+  negative('negative'),
+  positive('positive'),
+  pending('pending');
+
+  const VetTestResult(this.code);
 
   @override
   final String code;

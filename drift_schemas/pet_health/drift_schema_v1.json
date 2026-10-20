@@ -376,6 +376,16 @@
             "dsl_features": []
           },
           {
+            "name": "interval_months",
+            "getter_name": "intervalMonths",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
             "name": "weekdays",
             "getter_name": "weekdays",
             "moor_type": "int",
@@ -478,6 +488,7 @@
         "without_rowid": false,
         "constraints": [
           "CHECK (schedule <> 'every_n_days' OR (interval_days IS NOT NULL AND interval_days > 0))",
+          "CHECK (schedule <> 'every_n_months' OR (interval_months IS NOT NULL AND interval_months > 0))",
           "CHECK (schedule <> 'weekdays' OR (weekdays IS NOT NULL AND weekdays BETWEEN 1 AND 127))",
           "CHECK (schedule <> 'once' OR due_at IS NOT NULL)",
           "CHECK (notify_minute IS NULL OR notify_minute BETWEEN 0 AND 1439)"
@@ -1586,7 +1597,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"plans\" (\"id\" TEXT NOT NULL, \"pet_id\" TEXT NOT NULL REFERENCES pets (id) ON DELETE CASCADE, \"entry_type\" TEXT NOT NULL, \"entry_kind\" TEXT NULL, \"title\" TEXT NULL, \"schedule\" TEXT NOT NULL, \"interval_days\" INTEGER NULL, \"weekdays\" INTEGER NULL, \"due_at\" INTEGER NULL, \"notify_minute\" INTEGER NULL, \"snoozed_until\" INTEGER NULL, \"notification_id\" INTEGER NULL, \"source\" TEXT NOT NULL DEFAULT 'user', \"paused\" INTEGER NOT NULL DEFAULT 0 CHECK (\"paused\" IN (0, 1)), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"), CHECK (schedule <> 'every_n_days' OR (interval_days IS NOT NULL AND interval_days > 0)), CHECK (schedule <> 'weekdays' OR (weekdays IS NOT NULL AND weekdays BETWEEN 1 AND 127)), CHECK (schedule <> 'once' OR due_at IS NOT NULL), CHECK (notify_minute IS NULL OR notify_minute BETWEEN 0 AND 1439));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"plans\" (\"id\" TEXT NOT NULL, \"pet_id\" TEXT NOT NULL REFERENCES pets (id) ON DELETE CASCADE, \"entry_type\" TEXT NOT NULL, \"entry_kind\" TEXT NULL, \"title\" TEXT NULL, \"schedule\" TEXT NOT NULL, \"interval_days\" INTEGER NULL, \"interval_months\" INTEGER NULL, \"weekdays\" INTEGER NULL, \"due_at\" INTEGER NULL, \"notify_minute\" INTEGER NULL, \"snoozed_until\" INTEGER NULL, \"notification_id\" INTEGER NULL, \"source\" TEXT NOT NULL DEFAULT 'user', \"paused\" INTEGER NOT NULL DEFAULT 0 CHECK (\"paused\" IN (0, 1)), \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"), CHECK (schedule <> 'every_n_days' OR (interval_days IS NOT NULL AND interval_days > 0)), CHECK (schedule <> 'every_n_months' OR (interval_months IS NOT NULL AND interval_months > 0)), CHECK (schedule <> 'weekdays' OR (weekdays IS NOT NULL AND weekdays BETWEEN 1 AND 127)), CHECK (schedule <> 'once' OR due_at IS NOT NULL), CHECK (notify_minute IS NULL OR notify_minute BETWEEN 0 AND 1439));"
         }
       ]
     },

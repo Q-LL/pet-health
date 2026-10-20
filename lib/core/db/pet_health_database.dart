@@ -137,6 +137,7 @@ class Plans extends Table {
   TextColumn get schedule =>
       text().map(const CodedEnumConverter(PlanScheduleKind.values))();
   IntColumn get intervalDays => integer().nullable()();
+  IntColumn get intervalMonths => integer().nullable()();
 
   /// 星期几位掩码，见 Weekdays。
   IntColumn get weekdays => integer().nullable()();
@@ -163,6 +164,8 @@ class Plans extends Table {
     // SQLite 的 CHECK 只在结果为假时拒绝，NULL 会放行，所以要显式写 IS NOT NULL。
     "CHECK (schedule <> 'every_n_days' OR "
         '(interval_days IS NOT NULL AND interval_days > 0))',
+    "CHECK (schedule <> 'every_n_months' OR "
+        '(interval_months IS NOT NULL AND interval_months > 0))',
     "CHECK (schedule <> 'weekdays' OR "
         '(weekdays IS NOT NULL AND weekdays BETWEEN 1 AND 127))',
     "CHECK (schedule <> 'once' OR due_at IS NOT NULL)",

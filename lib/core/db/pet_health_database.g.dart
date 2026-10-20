@@ -1230,6 +1230,17 @@ class $PlansTable extends Plans with TableInfo<$PlansTable, PlanRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _intervalMonthsMeta = const VerificationMeta(
+    'intervalMonths',
+  );
+  @override
+  late final GeneratedColumn<int> intervalMonths = GeneratedColumn<int>(
+    'interval_months',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _weekdaysMeta = const VerificationMeta(
     'weekdays',
   );
@@ -1337,6 +1348,7 @@ class $PlansTable extends Plans with TableInfo<$PlansTable, PlanRow> {
     title,
     schedule,
     intervalDays,
+    intervalMonths,
     weekdays,
     dueAt,
     notifyMinute,
@@ -1390,6 +1402,15 @@ class $PlansTable extends Plans with TableInfo<$PlansTable, PlanRow> {
         intervalDays.isAcceptableOrUnknown(
           data['interval_days']!,
           _intervalDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('interval_months')) {
+      context.handle(
+        _intervalMonthsMeta,
+        intervalMonths.isAcceptableOrUnknown(
+          data['interval_months']!,
+          _intervalMonthsMeta,
         ),
       );
     }
@@ -1495,6 +1516,10 @@ class $PlansTable extends Plans with TableInfo<$PlansTable, PlanRow> {
         DriftSqlType.int,
         data['${effectivePrefix}interval_days'],
       ),
+      intervalMonths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_months'],
+      ),
       weekdays: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}weekdays'],
@@ -1561,6 +1586,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
   final String? title;
   final PlanScheduleKind schedule;
   final int? intervalDays;
+  final int? intervalMonths;
 
   /// 星期几位掩码，见 Weekdays。
   final int? weekdays;
@@ -1584,6 +1610,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
     this.title,
     required this.schedule,
     this.intervalDays,
+    this.intervalMonths,
     this.weekdays,
     this.dueAt,
     this.notifyMinute,
@@ -1617,6 +1644,9 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
     }
     if (!nullToAbsent || intervalDays != null) {
       map['interval_days'] = Variable<int>(intervalDays);
+    }
+    if (!nullToAbsent || intervalMonths != null) {
+      map['interval_months'] = Variable<int>(intervalMonths);
     }
     if (!nullToAbsent || weekdays != null) {
       map['weekdays'] = Variable<int>(weekdays);
@@ -1659,6 +1689,9 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
       intervalDays: intervalDays == null && nullToAbsent
           ? const Value.absent()
           : Value(intervalDays),
+      intervalMonths: intervalMonths == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intervalMonths),
       weekdays: weekdays == null && nullToAbsent
           ? const Value.absent()
           : Value(weekdays),
@@ -1694,6 +1727,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
       title: serializer.fromJson<String?>(json['title']),
       schedule: serializer.fromJson<PlanScheduleKind>(json['schedule']),
       intervalDays: serializer.fromJson<int?>(json['intervalDays']),
+      intervalMonths: serializer.fromJson<int?>(json['intervalMonths']),
       weekdays: serializer.fromJson<int?>(json['weekdays']),
       dueAt: serializer.fromJson<DateTime?>(json['dueAt']),
       notifyMinute: serializer.fromJson<int?>(json['notifyMinute']),
@@ -1716,6 +1750,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
       'title': serializer.toJson<String?>(title),
       'schedule': serializer.toJson<PlanScheduleKind>(schedule),
       'intervalDays': serializer.toJson<int?>(intervalDays),
+      'intervalMonths': serializer.toJson<int?>(intervalMonths),
       'weekdays': serializer.toJson<int?>(weekdays),
       'dueAt': serializer.toJson<DateTime?>(dueAt),
       'notifyMinute': serializer.toJson<int?>(notifyMinute),
@@ -1736,6 +1771,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
     Value<String?> title = const Value.absent(),
     PlanScheduleKind? schedule,
     Value<int?> intervalDays = const Value.absent(),
+    Value<int?> intervalMonths = const Value.absent(),
     Value<int?> weekdays = const Value.absent(),
     Value<DateTime?> dueAt = const Value.absent(),
     Value<int?> notifyMinute = const Value.absent(),
@@ -1753,6 +1789,9 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
     title: title.present ? title.value : this.title,
     schedule: schedule ?? this.schedule,
     intervalDays: intervalDays.present ? intervalDays.value : this.intervalDays,
+    intervalMonths: intervalMonths.present
+        ? intervalMonths.value
+        : this.intervalMonths,
     weekdays: weekdays.present ? weekdays.value : this.weekdays,
     dueAt: dueAt.present ? dueAt.value : this.dueAt,
     notifyMinute: notifyMinute.present ? notifyMinute.value : this.notifyMinute,
@@ -1776,6 +1815,9 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
       intervalDays: data.intervalDays.present
           ? data.intervalDays.value
           : this.intervalDays,
+      intervalMonths: data.intervalMonths.present
+          ? data.intervalMonths.value
+          : this.intervalMonths,
       weekdays: data.weekdays.present ? data.weekdays.value : this.weekdays,
       dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
       notifyMinute: data.notifyMinute.present
@@ -1804,6 +1846,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
           ..write('title: $title, ')
           ..write('schedule: $schedule, ')
           ..write('intervalDays: $intervalDays, ')
+          ..write('intervalMonths: $intervalMonths, ')
           ..write('weekdays: $weekdays, ')
           ..write('dueAt: $dueAt, ')
           ..write('notifyMinute: $notifyMinute, ')
@@ -1826,6 +1869,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
     title,
     schedule,
     intervalDays,
+    intervalMonths,
     weekdays,
     dueAt,
     notifyMinute,
@@ -1847,6 +1891,7 @@ class PlanRow extends DataClass implements Insertable<PlanRow> {
           other.title == this.title &&
           other.schedule == this.schedule &&
           other.intervalDays == this.intervalDays &&
+          other.intervalMonths == this.intervalMonths &&
           other.weekdays == this.weekdays &&
           other.dueAt == this.dueAt &&
           other.notifyMinute == this.notifyMinute &&
@@ -1866,6 +1911,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
   final Value<String?> title;
   final Value<PlanScheduleKind> schedule;
   final Value<int?> intervalDays;
+  final Value<int?> intervalMonths;
   final Value<int?> weekdays;
   final Value<DateTime?> dueAt;
   final Value<int?> notifyMinute;
@@ -1884,6 +1930,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
     this.title = const Value.absent(),
     this.schedule = const Value.absent(),
     this.intervalDays = const Value.absent(),
+    this.intervalMonths = const Value.absent(),
     this.weekdays = const Value.absent(),
     this.dueAt = const Value.absent(),
     this.notifyMinute = const Value.absent(),
@@ -1903,6 +1950,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
     this.title = const Value.absent(),
     required PlanScheduleKind schedule,
     this.intervalDays = const Value.absent(),
+    this.intervalMonths = const Value.absent(),
     this.weekdays = const Value.absent(),
     this.dueAt = const Value.absent(),
     this.notifyMinute = const Value.absent(),
@@ -1927,6 +1975,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
     Expression<String>? title,
     Expression<String>? schedule,
     Expression<int>? intervalDays,
+    Expression<int>? intervalMonths,
     Expression<int>? weekdays,
     Expression<DateTime>? dueAt,
     Expression<int>? notifyMinute,
@@ -1946,6 +1995,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
       if (title != null) 'title': title,
       if (schedule != null) 'schedule': schedule,
       if (intervalDays != null) 'interval_days': intervalDays,
+      if (intervalMonths != null) 'interval_months': intervalMonths,
       if (weekdays != null) 'weekdays': weekdays,
       if (dueAt != null) 'due_at': dueAt,
       if (notifyMinute != null) 'notify_minute': notifyMinute,
@@ -1967,6 +2017,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
     Value<String?>? title,
     Value<PlanScheduleKind>? schedule,
     Value<int?>? intervalDays,
+    Value<int?>? intervalMonths,
     Value<int?>? weekdays,
     Value<DateTime?>? dueAt,
     Value<int?>? notifyMinute,
@@ -1986,6 +2037,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
       title: title ?? this.title,
       schedule: schedule ?? this.schedule,
       intervalDays: intervalDays ?? this.intervalDays,
+      intervalMonths: intervalMonths ?? this.intervalMonths,
       weekdays: weekdays ?? this.weekdays,
       dueAt: dueAt ?? this.dueAt,
       notifyMinute: notifyMinute ?? this.notifyMinute,
@@ -2026,6 +2078,9 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
     }
     if (intervalDays.present) {
       map['interval_days'] = Variable<int>(intervalDays.value);
+    }
+    if (intervalMonths.present) {
+      map['interval_months'] = Variable<int>(intervalMonths.value);
     }
     if (weekdays.present) {
       map['weekdays'] = Variable<int>(weekdays.value);
@@ -2072,6 +2127,7 @@ class PlansCompanion extends UpdateCompanion<PlanRow> {
           ..write('title: $title, ')
           ..write('schedule: $schedule, ')
           ..write('intervalDays: $intervalDays, ')
+          ..write('intervalMonths: $intervalMonths, ')
           ..write('weekdays: $weekdays, ')
           ..write('dueAt: $dueAt, ')
           ..write('notifyMinute: $notifyMinute, ')
@@ -7278,6 +7334,7 @@ typedef $$PlansTableCreateCompanionBuilder =
       Value<String?> title,
       required PlanScheduleKind schedule,
       Value<int?> intervalDays,
+      Value<int?> intervalMonths,
       Value<int?> weekdays,
       Value<DateTime?> dueAt,
       Value<int?> notifyMinute,
@@ -7298,6 +7355,7 @@ typedef $$PlansTableUpdateCompanionBuilder =
       Value<String?> title,
       Value<PlanScheduleKind> schedule,
       Value<int?> intervalDays,
+      Value<int?> intervalMonths,
       Value<int?> weekdays,
       Value<DateTime?> dueAt,
       Value<int?> notifyMinute,
@@ -7389,6 +7447,11 @@ class $$PlansTableFilterComposer
 
   ColumnFilters<int> get intervalDays => $composableBuilder(
     column: $table.intervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalMonths => $composableBuilder(
+    column: $table.intervalMonths,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7526,6 +7589,11 @@ class $$PlansTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get intervalMonths => $composableBuilder(
+    column: $table.intervalMonths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get weekdays => $composableBuilder(
     column: $table.weekdays,
     builder: (column) => ColumnOrderings(column),
@@ -7621,6 +7689,11 @@ class $$PlansTableAnnotationComposer
 
   GeneratedColumn<int> get intervalDays => $composableBuilder(
     column: $table.intervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intervalMonths => $composableBuilder(
+    column: $table.intervalMonths,
     builder: (column) => column,
   );
 
@@ -7741,6 +7814,7 @@ class $$PlansTableTableManager
                 Value<String?> title = const Value.absent(),
                 Value<PlanScheduleKind> schedule = const Value.absent(),
                 Value<int?> intervalDays = const Value.absent(),
+                Value<int?> intervalMonths = const Value.absent(),
                 Value<int?> weekdays = const Value.absent(),
                 Value<DateTime?> dueAt = const Value.absent(),
                 Value<int?> notifyMinute = const Value.absent(),
@@ -7759,6 +7833,7 @@ class $$PlansTableTableManager
                 title: title,
                 schedule: schedule,
                 intervalDays: intervalDays,
+                intervalMonths: intervalMonths,
                 weekdays: weekdays,
                 dueAt: dueAt,
                 notifyMinute: notifyMinute,
@@ -7779,6 +7854,7 @@ class $$PlansTableTableManager
                 Value<String?> title = const Value.absent(),
                 required PlanScheduleKind schedule,
                 Value<int?> intervalDays = const Value.absent(),
+                Value<int?> intervalMonths = const Value.absent(),
                 Value<int?> weekdays = const Value.absent(),
                 Value<DateTime?> dueAt = const Value.absent(),
                 Value<int?> notifyMinute = const Value.absent(),
@@ -7797,6 +7873,7 @@ class $$PlansTableTableManager
                 title: title,
                 schedule: schedule,
                 intervalDays: intervalDays,
+                intervalMonths: intervalMonths,
                 weekdays: weekdays,
                 dueAt: dueAt,
                 notifyMinute: notifyMinute,

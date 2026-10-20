@@ -86,14 +86,14 @@
 | `walk` | 时长、距离 | — | 开始计时 / 结束计时 |
 | `bath` | — | `where`: `home` / `groomer` / `vet` | `home` |
 | `grooming` | — | `where`: `groomer` / `home` | `groomer` |
-| `dewormer` | — | `coverage`: [`internal`, `external`] 可多选 | 上一次的覆盖范围 |
-| `heartworm` | — | — | |
+| `parasite_prevention` | — | `coverage`: [`intestinal`, `fleas_ticks`, `heartworm`] 可多选；药名写在 `label` | 上一次的覆盖范围 |
 | `weight` | kg | — | |
 | `ear_check` | — | `ears`: `clean` / `waxy` / `red_or_smelly` | `clean` |
 | `other_care` | — | `kind`: `teeth` / `nails` / `eyes` / `paws` / `environment` / `other` | |
 | `symptom` | — | `kind`: `vomiting` / `diarrhea` / `coughing` / `itching` / `limping` / `low_energy` / `other`；`status`: `better` / `same` / `worse` | |
 | `medication` | 剂量 + `unit` | — | |
 | `vaccine` | — | — | |
+| `vet_test` | — | `kind`: `fecal` / `heartworm` / `other`；`result`: `negative` / `positive` / `pending` | |
 
 症状只记录能看到的表现，不出现任何病名。
 
@@ -104,10 +104,11 @@
 | `id` | text PK | |
 | `petId` | text FK | |
 | `entryType` | enum | 完成这个计划需要记哪种记录；一次性事项填 `custom` |
-| `entryKind` | text? | 细分到具体项，比如 `other_care` 下的 `nails` |
+| `entryKind` | text? | 细分项：`other_care` 的 `kind`（如 `nails`）、`vet_test` 的 `kind`（如 `fecal`）、驱虫的覆盖范围（如 `heartworm`） |
 | `title` | text? | 只有 `custom` 才填；内置类型的名称由翻译文件提供 |
-| `schedule` | enum | `every_n_days` / `weekdays` / `once` |
+| `schedule` | enum | `every_n_days` / `every_n_months` / `weekdays` / `once` |
 | `intervalDays` | int? | |
+| `intervalMonths` | int? | 1–24 |
 | `weekdays` | int? | 选中的星期几，位掩码：周一 = 1，周二 = 2，周三 = 4 … 周日 = 64 |
 | `dueAt` | datetime? | `once` 专用，比如看医生的预约 |
 | `notifyTime` | time? | 当天几点提醒；不填就不发通知 |
@@ -119,6 +120,8 @@
 
 **到期时间的算法**：
 - `every_n_days`：最近一条匹配记录的时间加上间隔天数，按自然日计算。还没有任何记录时状态为"未开始"，不催促；记下第一次之后才开始推算。
+- `every_n_months`：同上，但按自然月推算，日期不变；下个月没有这一天时取月底（1 月 31 日的一个月后是 2 月 28 日）。用于每月同一天给药、半年一次粪检、每年一次心丝虫检测。
+- **匹配记录**：计划有 `entryKind` 时只算对应的记录。驱虫计划按覆盖范围匹配，一次复方驱虫同时算作它覆盖的每一类；没有 `entryKind` 时同类型的记录都算。
 - `weekdays`：只在选中的日子到期。每个选中日负责一段时间，从上一个选中日的第二天开始，到这个选中日当天为止；这段时间里已经有匹配记录，就不再提醒。错过的选中日不累积，也不显示"逾期"。
   例子：选了周一、三、五，周三负责周二到周三。周二已经梳过毛，周三就不再提醒；周三没梳，周四也不补，下一次是周五。
 - `once`：到 `dueAt` 时到期；记了一条匹配的记录后，这个计划就算完成，不再提醒。
@@ -163,6 +166,19 @@
 
 `pet_photos`、`memory_entries`、`memory_media_refs` 的结构不变，搬到新数据库里。知识库是独立的数据库，不动。
 
+## 驱虫
+
+不同家庭的做法不同：有的按固定周期用药，有的定期做检查、按医生的意见用药。参考了美国 CAPC、AHS 和欧洲 ESCCAP 的指南，设计如下。
+
+- **按覆盖范围组织，而不是按药名。** 一次驱虫记录勾选覆盖了哪几类：体内寄生虫、跳蚤蜱虫、心丝虫预防。复方药只记一条。
+- **每一类单独选管理方式**，在引导页和设置里选：
+  - 按时用药：建一个该类别的计划（每月 / 每 12 周 / 每 6 个月 / 每年），间隔由用户按说明或医生建议填写；
+  - 检查 + 医生意见：只建检查计划（如每 6 个月粪检、每年心丝虫检测），驱虫在医生让用时才记，不催；
+  - 不设置：只能手动记录。
+- **不说"保护期"。** 心丝虫预防药杀的是过去约 30 天内进入体内的幼虫，没有往后的保护作用，对成虫无效；按时给药最重要。文案只说"距离上次心丝虫预防已经 34 天了"，不说"保护期到某天"，也不说"晚了"。点开卡片后才显示原理说明和"有疑问可以问问医生"。
+- **不推荐药物、不计算剂量、不建议频率。** 驱虫计划不随犬种自动生成；勾选项叫"心丝虫预防"，避免让人以为是治疗用药。
+- **检查只记录、不解读。** 记了阳性结果后，App 不再提任何预防相关的内容，只提示"按医生的方案来"，并可以把医生约的复查加成计划。
+
 ## 设置（`app_settings` 键值表）
 
 | 键 | 取值 | 默认值 |
@@ -186,7 +202,7 @@
 **卡片频率**：
 - `less` 表示这一类卡片每隔几天才出一张；`off` 表示完全不出。
 - 卡片上有"少看这类"按钮，点一次就把这一类降一档（`normal` → `less` → `off`），之后可以在设置里改回来。
-- **例外**：便便带血、症状加重这类重要观察，不受频率设置限制。
+- **例外**：便便带血、症状加重这类重要观察，以及心丝虫预防的"该做了"卡片，不受频率设置限制。
 
 ## 现算的数据
 

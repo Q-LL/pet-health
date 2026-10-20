@@ -4,6 +4,7 @@ import '../../../core/codes/coded_enum.dart';
 
 enum PlanScheduleKind implements CodedEnum {
   everyNDays('every_n_days'),
+  everyNMonths('every_n_months'),
   weekdays('weekdays'),
   once('once');
 
@@ -35,6 +36,24 @@ final class EveryNDays extends PlanSchedule {
 
   @override
   int get hashCode => days.hashCode;
+}
+
+/// 从上一次实际完成往后推 [months] 个自然月，日期不变；
+/// 下个月没有这一天时取月底（1 月 31 日的一个月后是 2 月 28 日）。
+final class EveryNMonths extends PlanSchedule {
+  const EveryNMonths(this.months);
+
+  final int months;
+
+  @override
+  PlanScheduleKind get kind => PlanScheduleKind.everyNMonths;
+
+  @override
+  bool operator ==(Object other) =>
+      other is EveryNMonths && months == other.months;
+
+  @override
+  int get hashCode => months.hashCode;
 }
 
 /// 每周固定的几天，[mask] 见 [Weekdays]。
@@ -188,6 +207,10 @@ PlanDue evaluatePlan(
       if (lastDay == null) return const PlanDue(PlanState.notStarted);
       return dueOn(_addDays(lastDay, days));
 
+    case EveryNMonths(:final months):
+      if (lastDay == null) return const PlanDue(PlanState.notStarted);
+      return dueOn(_addMonths(lastDay, months));
+
     case OnWeekdays(:final mask):
       if (mask & Weekdays.all == 0) {
         return PlanDue(PlanState.upcoming, daysSinceLast: since);
@@ -214,6 +237,17 @@ PlanDue evaluatePlan(
 DateTime _day(DateTime time) => DateTime(time.year, time.month, time.day);
 
 /// 按日历加天数，不受夏令时影响。
+/// 按日历加月份，超出月底时取月底。
+DateTime _addMonths(DateTime day, int months) {
+  final firstOfTarget = DateTime(day.year, day.month + months);
+  final lastDay = DateTime(firstOfTarget.year, firstOfTarget.month + 1, 0).day;
+  return DateTime(
+    firstOfTarget.year,
+    firstOfTarget.month,
+    day.day > lastDay ? lastDay : day.day,
+  );
+}
+
 DateTime _addDays(DateTime day, int days) =>
     DateTime(day.year, day.month, day.day + days);
 

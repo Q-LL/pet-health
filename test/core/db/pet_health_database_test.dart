@@ -231,6 +231,15 @@ void main() {
         insert(plan('p4', 'lucky').copyWith(notifyMinute: const Value(1440))),
         throwsA(isA<Exception>()),
       );
+      await expectLater(
+        insert(
+          plan('p5', 'lucky').copyWith(
+            schedule: const Value(PlanScheduleKind.everyNMonths),
+            intervalDays: const Value(null),
+          ),
+        ),
+        throwsA(isA<Exception>()),
+      );
 
       await insert(
         plan('ok', 'lucky').copyWith(
