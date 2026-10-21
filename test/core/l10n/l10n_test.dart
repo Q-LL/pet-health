@@ -195,7 +195,9 @@ void main() {
 
       expect(both(const EveryNDays(1)), 'Every day | 每天');
       expect(both(const EveryNDays(7)), 'Every week | 每周');
-      expect(both(const EveryNDays(35)), 'Every 35 days | 每 35 天');
+      expect(both(const EveryNDays(10)), 'Every 10 days | 每 10 天');
+      expect(both(const EveryNDays(42)), 'Every 6 weeks | 每 6 周');
+      expect(both(const EveryNDays(84)), 'Every 12 weeks | 每 12 周');
       expect(both(const EveryNMonths(1)), 'Every month | 每月');
       expect(both(const EveryNMonths(6)), 'Every 6 months | 每 6 个月');
       expect(both(const EveryNMonths(12)), 'Every year | 每年');

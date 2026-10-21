@@ -15,11 +15,17 @@ void main() {
   Future<void> setLanguage(WidgetTester tester, AppLanguage language) => app
       .seed(tester, () => PreferencesRepository(app.db).setLanguage(language));
 
+  Future<void> addPet(WidgetTester tester, String name) => app.seed(
+    tester,
+    () => PetsRepository(app.db).create(PetDraft(name: name)),
+  );
+
   testWidgets('中文界面：底栏四个页面加中间的记录按钮，可以切换', (tester) async {
+    await addPet(tester, '团子');
     await setLanguage(tester, AppLanguage.zh);
     await app.pump(tester);
 
-    for (final label in ['今天', '时间线', '计划', '狗狗']) {
+    for (final label in ['今天', '时间线', '计划', '团子']) {
       expect(find.text(label), findsWidgets, reason: label);
     }
     expect(find.bySemanticsLabel('记录'), findsOneWidget);
@@ -33,10 +39,7 @@ void main() {
   });
 
   testWidgets('英文界面，底栏显示狗狗的名字', (tester) async {
-    await app.seed(
-      tester,
-      () => PetsRepository(app.db).create(const PetDraft(name: 'Lucky')),
-    );
+    await addPet(tester, 'Lucky');
     await setLanguage(tester, AppLanguage.en);
     await app.pump(tester);
 
@@ -50,6 +53,7 @@ void main() {
   });
 
   testWidgets('切换语言后界面立即更新', (tester) async {
+    await addPet(tester, 'Lucky');
     await setLanguage(tester, AppLanguage.en);
     await app.pump(tester);
     expect(find.text('Today'), findsWidgets);

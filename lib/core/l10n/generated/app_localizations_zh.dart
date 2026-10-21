@@ -661,4 +661,157 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pageComingSoon => '正在搭建中';
+
+  @override
+  String scheduleEveryNWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '每 $count 周',
+      one: '每周',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String onboardingStep(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get onboardingNext => '下一步';
+
+  @override
+  String get onboardingBack => '上一步';
+
+  @override
+  String get onboardingSkip => '跳过';
+
+  @override
+  String get onboardingDone => '完成';
+
+  @override
+  String get onboardingWelcomeTitle => '先认识一下你的狗狗';
+
+  @override
+  String get onboardingWelcomeBody => '几个小问题，都可以跳过，以后随时能改。';
+
+  @override
+  String get onboardingNameLabel => '名字';
+
+  @override
+  String get onboardingNameHint => '比如：Lucky';
+
+  @override
+  String get onboardingNameRequired => '先填一个名字吧。';
+
+  @override
+  String get onboardingSexLabel => '性别（可选）';
+
+  @override
+  String onboardingBreedTitle(String name) {
+    return '$name 是什么品种？';
+  }
+
+  @override
+  String get onboardingBreedSearch => '搜索品种';
+
+  @override
+  String get onboardingBreedOther => '列表里没有 / 混种';
+
+  @override
+  String get onboardingBreedOtherName => '品种（可选）';
+
+  @override
+  String get onboardingBreedGroupLabel => '体型和毛发';
+
+  @override
+  String get onboardingBreedGroupHint => '用来推荐护理习惯。';
+
+  @override
+  String get onboardingDatesTitle => '两个日子';
+
+  @override
+  String get onboardingBirthday => '生日';
+
+  @override
+  String get onboardingBirthdayMonthOnly => '只知道大概的月份';
+
+  @override
+  String get onboardingHomeDate => '到家的日子';
+
+  @override
+  String get onboardingHomeDateHint => '用来记录你们在一起的天数。';
+
+  @override
+  String get onboardingNotSet => '未填写';
+
+  @override
+  String get onboardingClear => '清除';
+
+  @override
+  String get onboardingHabitsTitle => '日常习惯';
+
+  @override
+  String get onboardingHabitsBody => '这样点一下就能按份量记好。';
+
+  @override
+  String get onboardingMealAmount => '每餐';
+
+  @override
+  String get onboardingMealsPerDay => '一天几餐';
+
+  @override
+  String get onboardingBowl => '水碗容量';
+
+  @override
+  String get onboardingParasiteTitle => '驱虫怎么安排？';
+
+  @override
+  String get onboardingParasiteBody => '按医生的建议选就好，以后可以随时改。';
+
+  @override
+  String get parasiteModeScheduled => '按时用药';
+
+  @override
+  String get parasiteModeTests => '定期检查';
+
+  @override
+  String get parasiteModeNone => '先不设置';
+
+  @override
+  String get parasiteHeartwormTestFirst => '开始预防前，医生通常会先做一次心丝虫检测。';
+
+  @override
+  String get parasiteIntestinalTestsHint => '会提醒你做粪检；需要用药时，按医生的意思记一次。';
+
+  @override
+  String get parasiteHeartwormTestsHint => '会提醒你做心丝虫检测。';
+
+  @override
+  String get unitScoop => '勺';
+
+  @override
+  String get unitCup => '杯';
+
+  @override
+  String get unitGram => '克';
+
+  @override
+  String get unitCan => '罐';
+
+  @override
+  String get unitPouch => '袋';
+
+  @override
+  String get unitPiece => '个';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitOz => 'oz';
+
+  @override
+  String get unitCups => '杯';
 }

@@ -822,5 +822,211 @@
   "pageComingSoon": "Coming soon",
   "@pageComingSoon": {
     "description": "Temporary placeholder on pages not built yet."
+  },
+  "scheduleEveryNWeeks": "{count, plural, =1{Every week} other{Every {count} weeks}}",
+  "@scheduleEveryNWeeks": {
+    "description": "A plan repeating every N weeks.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStep": "{current} of {total}",
+  "@onboardingStep": {
+    "description": "Progress through the onboarding steps.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingNext": "Next",
+  "@onboardingNext": {
+    "description": "Button: go to the next onboarding step."
+  },
+  "onboardingBack": "Back",
+  "@onboardingBack": {
+    "description": "Button: go to the previous onboarding step."
+  },
+  "onboardingSkip": "Skip",
+  "@onboardingSkip": {
+    "description": "Button: skip an optional onboarding step."
+  },
+  "onboardingDone": "All set",
+  "@onboardingDone": {
+    "description": "Button: finish onboarding and create the profile."
+  },
+  "onboardingWelcomeTitle": "Let's meet your dog",
+  "@onboardingWelcomeTitle": {
+    "description": "Title of the first onboarding step."
+  },
+  "onboardingWelcomeBody": "A few quick questions. Skip anything you like — you can change it all later.",
+  "@onboardingWelcomeBody": {
+    "description": "Intro text on the first onboarding step."
+  },
+  "onboardingNameLabel": "Name",
+  "@onboardingNameLabel": {
+    "description": "Label of the dog's name field."
+  },
+  "onboardingNameHint": "e.g. Lucky",
+  "@onboardingNameHint": {
+    "description": "Hint in the dog's name field."
+  },
+  "onboardingNameRequired": "Give your dog a name first.",
+  "@onboardingNameRequired": {
+    "description": "Error when the name is empty."
+  },
+  "onboardingSexLabel": "Sex (optional)",
+  "@onboardingSexLabel": {
+    "description": "Label of the optional sex choice."
+  },
+  "onboardingBreedTitle": "What breed is {name}?",
+  "@onboardingBreedTitle": {
+    "description": "Title of the breed step.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingBreedSearch": "Search breeds",
+  "@onboardingBreedSearch": {
+    "description": "Hint in the breed search field."
+  },
+  "onboardingBreedOther": "Not listed / mixed",
+  "@onboardingBreedOther": {
+    "description": "Option for a breed not in the list."
+  },
+  "onboardingBreedOtherName": "Breed (optional)",
+  "@onboardingBreedOtherName": {
+    "description": "Field for a breed typed by the user."
+  },
+  "onboardingBreedGroupLabel": "Size and coat",
+  "@onboardingBreedGroupLabel": {
+    "description": "Label of the breed group choice."
+  },
+  "onboardingBreedGroupHint": "We use this to suggest a care routine.",
+  "@onboardingBreedGroupHint": {
+    "description": "Why the breed group is asked."
+  },
+  "onboardingDatesTitle": "Two days to remember",
+  "@onboardingDatesTitle": {
+    "description": "Title of the dates step."
+  },
+  "onboardingBirthday": "Birthday",
+  "@onboardingBirthday": {
+    "description": "Label of the birthday field."
+  },
+  "onboardingBirthdayMonthOnly": "I only know the month",
+  "@onboardingBirthdayMonthOnly": {
+    "description": "Switch: the birthday is only known to the month."
+  },
+  "onboardingHomeDate": "Came home on",
+  "@onboardingHomeDate": {
+    "description": "Label of the homecoming date field."
+  },
+  "onboardingHomeDateHint": "For counting your days together.",
+  "@onboardingHomeDateHint": {
+    "description": "Why the homecoming date is asked."
+  },
+  "onboardingNotSet": "Not set",
+  "@onboardingNotSet": {
+    "description": "Shown for an empty optional date."
+  },
+  "onboardingClear": "Clear",
+  "@onboardingClear": {
+    "description": "Button: clear a filled-in value."
+  },
+  "onboardingHabitsTitle": "Daily routine",
+  "@onboardingHabitsTitle": {
+    "description": "Title of the habits step."
+  },
+  "onboardingHabitsBody": "So one tap logs the right amount.",
+  "@onboardingHabitsBody": {
+    "description": "Why daily habits are asked."
+  },
+  "onboardingMealAmount": "Each meal",
+  "@onboardingMealAmount": {
+    "description": "Label of the per-meal portion."
+  },
+  "onboardingMealsPerDay": "Meals a day",
+  "@onboardingMealsPerDay": {
+    "description": "Label of the meals-per-day choice."
+  },
+  "onboardingBowl": "Water bowl holds",
+  "@onboardingBowl": {
+    "description": "Label of the water bowl size."
+  },
+  "onboardingParasiteTitle": "Parasite prevention",
+  "@onboardingParasiteTitle": {
+    "description": "Title of the parasite step."
+  },
+  "onboardingParasiteBody": "Go with what your vet recommends. You can change it anytime.",
+  "@onboardingParasiteBody": {
+    "description": "Intro on the parasite step."
+  },
+  "parasiteModeScheduled": "Scheduled",
+  "@parasiteModeScheduled": {
+    "description": "Parasite approach: regular doses."
+  },
+  "parasiteModeTests": "Vet tests",
+  "@parasiteModeTests": {
+    "description": "Parasite approach: tests, treat when the vet says so."
+  },
+  "parasiteModeNone": "Not now",
+  "@parasiteModeNone": {
+    "description": "Parasite approach: no plan for now."
+  },
+  "parasiteHeartwormTestFirst": "Vets usually test for heartworm before starting prevention.",
+  "@parasiteHeartwormTestFirst": {
+    "description": "Neutral note under heartworm prevention. Not medical advice."
+  },
+  "parasiteIntestinalTestsHint": "We'll remind you about fecal tests. Log a dose whenever your vet says so.",
+  "@parasiteIntestinalTestsHint": {
+    "description": "Explains the test-based approach for intestinal worms."
+  },
+  "parasiteHeartwormTestsHint": "We'll remind you about heartworm tests.",
+  "@parasiteHeartwormTestsHint": {
+    "description": "Explains the test-based approach for heartworm."
+  },
+  "unitScoop": "Scoop",
+  "@unitScoop": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitCup": "Cup",
+  "@unitCup": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitGram": "Gram",
+  "@unitGram": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitCan": "Can",
+  "@unitCan": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitPouch": "Pouch",
+  "@unitPouch": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitPiece": "Piece",
+  "@unitPiece": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitMl": "ml",
+  "@unitMl": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitOz": "oz",
+  "@unitOz": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitCups": "cups",
+  "@unitCups": {
+    "description": "Unit name shown next to an amount field."
   }
 }

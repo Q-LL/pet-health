@@ -5,6 +5,7 @@ import '../../features/settings/domain/app_preferences.dart';
 import '../codes/coded_enum.dart';
 import '../format/date_display.dart';
 import '../units/unit_preferences.dart';
+import '../units/units.dart';
 import 'generated/app_localizations.dart';
 
 /// 存储 code 到显示文字的映射。
@@ -206,6 +207,26 @@ extension CodeLabels on AppLocalizations {
     CardFrequency.normal => cardFrequencyNormal,
     CardFrequency.less => cardFrequencyLess,
     CardFrequency.off => cardFrequencyOff,
+  };
+
+  /// 食物份量单位的名称，用在输入框旁边。
+  String foodUnit(PortionUnit value) => switch (value) {
+    PortionUnit.scoop => unitScoop,
+    PortionUnit.cup => unitCup,
+    PortionUnit.g => unitGram,
+    PortionUnit.can => unitCan,
+    PortionUnit.pouch => unitPouch,
+    PortionUnit.piece => unitPiece,
+    // 用药单位不出现在食物输入里；兜底显示 code。
+    PortionUnit.tablet || PortionUnit.ml || PortionUnit.mg || PortionUnit.drop =>
+      value.code,
+  };
+
+  /// 水量单位的名称，用在输入框旁边。
+  String volumeUnit(VolumeUnit value) => switch (value) {
+    VolumeUnit.ml => unitMl,
+    VolumeUnit.oz => unitOz,
+    VolumeUnit.cup => unitCups,
   };
 
   /// 记录细节里任意一个选项的名称，用于按 details 通用地显示选项。

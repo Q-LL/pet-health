@@ -1099,6 +1099,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coming soon'**
   String get pageComingSoon;
+
+  /// A plan repeating every N weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every week} other{Every {count} weeks}}'**
+  String scheduleEveryNWeeks(int count);
+
+  /// Progress through the onboarding steps.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String onboardingStep(int current, int total);
+
+  /// Button: go to the next onboarding step.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// Button: go to the previous onboarding step.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onboardingBack;
+
+  /// Button: skip an optional onboarding step.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
+
+  /// Button: finish onboarding and create the profile.
+  ///
+  /// In en, this message translates to:
+  /// **'All set'**
+  String get onboardingDone;
+
+  /// Title of the first onboarding step.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s meet your dog'**
+  String get onboardingWelcomeTitle;
+
+  /// Intro text on the first onboarding step.
+  ///
+  /// In en, this message translates to:
+  /// **'A few quick questions. Skip anything you like — you can change it all later.'**
+  String get onboardingWelcomeBody;
+
+  /// Label of the dog's name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get onboardingNameLabel;
+
+  /// Hint in the dog's name field.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Lucky'**
+  String get onboardingNameHint;
+
+  /// Error when the name is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your dog a name first.'**
+  String get onboardingNameRequired;
+
+  /// Label of the optional sex choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex (optional)'**
+  String get onboardingSexLabel;
+
+  /// Title of the breed step.
+  ///
+  /// In en, this message translates to:
+  /// **'What breed is {name}?'**
+  String onboardingBreedTitle(String name);
+
+  /// Hint in the breed search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search breeds'**
+  String get onboardingBreedSearch;
+
+  /// Option for a breed not in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Not listed / mixed'**
+  String get onboardingBreedOther;
+
+  /// Field for a breed typed by the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Breed (optional)'**
+  String get onboardingBreedOtherName;
+
+  /// Label of the breed group choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Size and coat'**
+  String get onboardingBreedGroupLabel;
+
+  /// Why the breed group is asked.
+  ///
+  /// In en, this message translates to:
+  /// **'We use this to suggest a care routine.'**
+  String get onboardingBreedGroupHint;
+
+  /// Title of the dates step.
+  ///
+  /// In en, this message translates to:
+  /// **'Two days to remember'**
+  String get onboardingDatesTitle;
+
+  /// Label of the birthday field.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get onboardingBirthday;
+
+  /// Switch: the birthday is only known to the month.
+  ///
+  /// In en, this message translates to:
+  /// **'I only know the month'**
+  String get onboardingBirthdayMonthOnly;
+
+  /// Label of the homecoming date field.
+  ///
+  /// In en, this message translates to:
+  /// **'Came home on'**
+  String get onboardingHomeDate;
+
+  /// Why the homecoming date is asked.
+  ///
+  /// In en, this message translates to:
+  /// **'For counting your days together.'**
+  String get onboardingHomeDateHint;
+
+  /// Shown for an empty optional date.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get onboardingNotSet;
+
+  /// Button: clear a filled-in value.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get onboardingClear;
+
+  /// Title of the habits step.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily routine'**
+  String get onboardingHabitsTitle;
+
+  /// Why daily habits are asked.
+  ///
+  /// In en, this message translates to:
+  /// **'So one tap logs the right amount.'**
+  String get onboardingHabitsBody;
+
+  /// Label of the per-meal portion.
+  ///
+  /// In en, this message translates to:
+  /// **'Each meal'**
+  String get onboardingMealAmount;
+
+  /// Label of the meals-per-day choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals a day'**
+  String get onboardingMealsPerDay;
+
+  /// Label of the water bowl size.
+  ///
+  /// In en, this message translates to:
+  /// **'Water bowl holds'**
+  String get onboardingBowl;
+
+  /// Title of the parasite step.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite prevention'**
+  String get onboardingParasiteTitle;
+
+  /// Intro on the parasite step.
+  ///
+  /// In en, this message translates to:
+  /// **'Go with what your vet recommends. You can change it anytime.'**
+  String get onboardingParasiteBody;
+
+  /// Parasite approach: regular doses.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get parasiteModeScheduled;
+
+  /// Parasite approach: tests, treat when the vet says so.
+  ///
+  /// In en, this message translates to:
+  /// **'Vet tests'**
+  String get parasiteModeTests;
+
+  /// Parasite approach: no plan for now.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get parasiteModeNone;
+
+  /// Neutral note under heartworm prevention. Not medical advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Vets usually test for heartworm before starting prevention.'**
+  String get parasiteHeartwormTestFirst;
+
+  /// Explains the test-based approach for intestinal worms.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll remind you about fecal tests. Log a dose whenever your vet says so.'**
+  String get parasiteIntestinalTestsHint;
+
+  /// Explains the test-based approach for heartworm.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll remind you about heartworm tests.'**
+  String get parasiteHeartwormTestsHint;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoop'**
+  String get unitScoop;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Cup'**
+  String get unitCup;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Gram'**
+  String get unitGram;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Can'**
+  String get unitCan;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Pouch'**
+  String get unitPouch;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Piece'**
+  String get unitPiece;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'ml'**
+  String get unitMl;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'oz'**
+  String get unitOz;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'cups'**
+  String get unitCups;
 }
 
 class _AppLocalizationsDelegate

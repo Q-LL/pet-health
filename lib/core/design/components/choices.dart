@@ -156,13 +156,18 @@ class PillSegmented<T> extends StatelessWidget {
                       color: option == selected ? PawColors.ink : null,
                       borderRadius: BorderRadius.circular(PawRadii.chip),
                     ),
-                    child: Text(
-                      labelOf(option),
-                      style: text.titleMedium?.copyWith(
-                        color: option == selected ? Colors.white : null,
-                        fontWeight: option == selected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        labelOf(option),
+                        maxLines: 1,
+                        style: text.titleMedium?.copyWith(
+                          color: option == selected ? Colors.white : null,
+                          fontWeight: option == selected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -170,6 +175,59 @@ class PillSegmented<T> extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// 可选中的胶囊标签：选中时深色底。用于性别、一天几餐、间隔等短选项。
+class PawChoiceChip extends StatelessWidget {
+  const PawChoiceChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.background = PawColors.surface,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  /// 未选中时的底色；放在白色卡片里时用 [PawColors.subtle]。
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      selected: selected,
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: selected ? PawColors.ink : background,
+        borderRadius: BorderRadius.circular(PawRadii.chip),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(PawRadii.chip),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: PawSpace.touch),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  label,
+                  style: text.labelLarge?.copyWith(
+                    color: selected ? Colors.white : PawColors.ink,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

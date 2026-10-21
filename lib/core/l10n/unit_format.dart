@@ -67,8 +67,10 @@ extension UnitFormat on AppLocalizations {
     PlanSchedule value, {
     required DateDisplayFormat dateFormat,
   }) => switch (value) {
-    EveryNDays(:final days) =>
-      days == 7 ? scheduleEveryWeek : scheduleEveryNDays(days),
+    // 整周的间隔按周说："每 6 周"比"每 42 天"好懂。
+    EveryNDays(:final days) when days % 7 == 0 =>
+      days == 7 ? scheduleEveryWeek : scheduleEveryNWeeks(days ~/ 7),
+    EveryNDays(:final days) => scheduleEveryNDays(days),
     EveryNMonths(:final months) =>
       months == 12 ? scheduleEveryYear : scheduleEveryNMonths(months),
     OnWeekdays(:final mask) =>

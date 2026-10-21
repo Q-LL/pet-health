@@ -715,4 +715,163 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pageComingSoon => 'Coming soon';
+
+  @override
+  String scheduleEveryNWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count weeks',
+      one: 'Every week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String onboardingStep(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingBack => 'Back';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingDone => 'All set';
+
+  @override
+  String get onboardingWelcomeTitle => 'Let\'s meet your dog';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'A few quick questions. Skip anything you like — you can change it all later.';
+
+  @override
+  String get onboardingNameLabel => 'Name';
+
+  @override
+  String get onboardingNameHint => 'e.g. Lucky';
+
+  @override
+  String get onboardingNameRequired => 'Give your dog a name first.';
+
+  @override
+  String get onboardingSexLabel => 'Sex (optional)';
+
+  @override
+  String onboardingBreedTitle(String name) {
+    return 'What breed is $name?';
+  }
+
+  @override
+  String get onboardingBreedSearch => 'Search breeds';
+
+  @override
+  String get onboardingBreedOther => 'Not listed / mixed';
+
+  @override
+  String get onboardingBreedOtherName => 'Breed (optional)';
+
+  @override
+  String get onboardingBreedGroupLabel => 'Size and coat';
+
+  @override
+  String get onboardingBreedGroupHint =>
+      'We use this to suggest a care routine.';
+
+  @override
+  String get onboardingDatesTitle => 'Two days to remember';
+
+  @override
+  String get onboardingBirthday => 'Birthday';
+
+  @override
+  String get onboardingBirthdayMonthOnly => 'I only know the month';
+
+  @override
+  String get onboardingHomeDate => 'Came home on';
+
+  @override
+  String get onboardingHomeDateHint => 'For counting your days together.';
+
+  @override
+  String get onboardingNotSet => 'Not set';
+
+  @override
+  String get onboardingClear => 'Clear';
+
+  @override
+  String get onboardingHabitsTitle => 'Daily routine';
+
+  @override
+  String get onboardingHabitsBody => 'So one tap logs the right amount.';
+
+  @override
+  String get onboardingMealAmount => 'Each meal';
+
+  @override
+  String get onboardingMealsPerDay => 'Meals a day';
+
+  @override
+  String get onboardingBowl => 'Water bowl holds';
+
+  @override
+  String get onboardingParasiteTitle => 'Parasite prevention';
+
+  @override
+  String get onboardingParasiteBody =>
+      'Go with what your vet recommends. You can change it anytime.';
+
+  @override
+  String get parasiteModeScheduled => 'Scheduled';
+
+  @override
+  String get parasiteModeTests => 'Vet tests';
+
+  @override
+  String get parasiteModeNone => 'Not now';
+
+  @override
+  String get parasiteHeartwormTestFirst =>
+      'Vets usually test for heartworm before starting prevention.';
+
+  @override
+  String get parasiteIntestinalTestsHint =>
+      'We\'ll remind you about fecal tests. Log a dose whenever your vet says so.';
+
+  @override
+  String get parasiteHeartwormTestsHint =>
+      'We\'ll remind you about heartworm tests.';
+
+  @override
+  String get unitScoop => 'Scoop';
+
+  @override
+  String get unitCup => 'Cup';
+
+  @override
+  String get unitGram => 'Gram';
+
+  @override
+  String get unitCan => 'Can';
+
+  @override
+  String get unitPouch => 'Pouch';
+
+  @override
+  String get unitPiece => 'Piece';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitOz => 'oz';
+
+  @override
+  String get unitCups => 'cups';
 }
