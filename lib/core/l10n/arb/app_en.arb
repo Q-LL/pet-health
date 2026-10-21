@@ -1,0 +1,798 @@
+{
+  "@@locale": "en",
+  "entryTypeMeal": "Meal",
+  "@entryTypeMeal": {
+    "description": "Name of a record type."
+  },
+  "entryTypeWater": "Water",
+  "@entryTypeWater": {
+    "description": "Name of a record type."
+  },
+  "entryTypePotty": "Potty",
+  "@entryTypePotty": {
+    "description": "Name of a record type."
+  },
+  "entryTypeBrushing": "Brushing",
+  "@entryTypeBrushing": {
+    "description": "Name of a record type."
+  },
+  "entryTypeWalk": "Walk",
+  "@entryTypeWalk": {
+    "description": "Name of a record type."
+  },
+  "entryTypeBath": "Bath",
+  "@entryTypeBath": {
+    "description": "Name of a record type."
+  },
+  "entryTypeGrooming": "Grooming",
+  "@entryTypeGrooming": {
+    "description": "Name of a record type."
+  },
+  "entryTypeParasitePrevention": "Parasite prevention",
+  "@entryTypeParasitePrevention": {
+    "description": "Name of a record type."
+  },
+  "entryTypeWeight": "Weight",
+  "@entryTypeWeight": {
+    "description": "Name of a record type."
+  },
+  "entryTypeEarCheck": "Ear check",
+  "@entryTypeEarCheck": {
+    "description": "Name of a record type."
+  },
+  "entryTypeOtherCare": "Other care",
+  "@entryTypeOtherCare": {
+    "description": "Name of a record type."
+  },
+  "entryTypeSymptom": "Symptom",
+  "@entryTypeSymptom": {
+    "description": "Name of a record type."
+  },
+  "entryTypeMedication": "Medication",
+  "@entryTypeMedication": {
+    "description": "Name of a record type."
+  },
+  "entryTypeVaccine": "Vaccine",
+  "@entryTypeVaccine": {
+    "description": "Name of a record type."
+  },
+  "entryTypeVetTest": "Vet test",
+  "@entryTypeVetTest": {
+    "description": "Name of a record type."
+  },
+  "entryTypeCustom": "Custom",
+  "@entryTypeCustom": {
+    "description": "Name of a record type."
+  },
+  "appetiteFinished": "Finished",
+  "@appetiteFinished": {
+    "description": "How much of a meal the dog ate."
+  },
+  "appetiteLeftSome": "Left some",
+  "@appetiteLeftSome": {
+    "description": "How much of a meal the dog ate."
+  },
+  "appetiteBarelyAte": "Barely ate",
+  "@appetiteBarelyAte": {
+    "description": "How much of a meal the dog ate."
+  },
+  "waterIntakeMore": "More than usual",
+  "@waterIntakeMore": {
+    "description": "How much the dog drank compared with usual."
+  },
+  "waterIntakeNormal": "Normal",
+  "@waterIntakeNormal": {
+    "description": "How much the dog drank compared with usual."
+  },
+  "waterIntakeLess": "Less than usual",
+  "@waterIntakeLess": {
+    "description": "How much the dog drank compared with usual."
+  },
+  "pottyKindPoop": "Poop",
+  "@pottyKindPoop": {
+    "description": "Kind of potty break."
+  },
+  "pottyKindPee": "Pee",
+  "@pottyKindPee": {
+    "description": "Kind of potty break."
+  },
+  "stoolNormal": "Normal",
+  "@stoolNormal": {
+    "description": "What the poop looked like."
+  },
+  "stoolSoft": "Soft",
+  "@stoolSoft": {
+    "description": "What the poop looked like."
+  },
+  "stoolDiarrhea": "Diarrhea",
+  "@stoolDiarrhea": {
+    "description": "What the poop looked like."
+  },
+  "stoolHard": "Hard",
+  "@stoolHard": {
+    "description": "What the poop looked like."
+  },
+  "stoolBloodOrMucus": "Blood or mucus",
+  "@stoolBloodOrMucus": {
+    "description": "What the poop looked like."
+  },
+  "urineNormal": "Normal",
+  "@urineNormal": {
+    "description": "What peeing looked like."
+  },
+  "urineFrequent": "More often",
+  "@urineFrequent": {
+    "description": "What peeing looked like."
+  },
+  "urineLittle": "Very little",
+  "@urineLittle": {
+    "description": "What peeing looked like."
+  },
+  "urineUnusualColor": "Unusual color",
+  "@urineUnusualColor": {
+    "description": "What peeing looked like."
+  },
+  "coatSmooth": "Smooth",
+  "@coatSmooth": {
+    "description": "Coat condition noticed while brushing."
+  },
+  "coatTangles": "Some tangles",
+  "@coatTangles": {
+    "description": "Coat condition noticed while brushing."
+  },
+  "coatHeavyShedding": "Heavy shedding",
+  "@coatHeavyShedding": {
+    "description": "Coat condition noticed while brushing."
+  },
+  "coatSkinIssue": "Skin looks off",
+  "@coatSkinIssue": {
+    "description": "Coat condition noticed while brushing."
+  },
+  "bathPlaceHome": "At home",
+  "@bathPlaceHome": {
+    "description": "Where the bath happened."
+  },
+  "bathPlaceGroomer": "At the groomer",
+  "@bathPlaceGroomer": {
+    "description": "Where the bath happened."
+  },
+  "bathPlaceVet": "At the vet",
+  "@bathPlaceVet": {
+    "description": "Where the bath happened."
+  },
+  "groomingPlaceGroomer": "At the groomer",
+  "@groomingPlaceGroomer": {
+    "description": "Where grooming happened."
+  },
+  "groomingPlaceHome": "At home",
+  "@groomingPlaceHome": {
+    "description": "Where grooming happened."
+  },
+  "parasiteCoverageIntestinal": "Intestinal worms",
+  "@parasiteCoverageIntestinal": {
+    "description": "What a parasite prevention dose covers. Heartworm is prevention, never treatment."
+  },
+  "parasiteCoverageFleasTicks": "Fleas & ticks",
+  "@parasiteCoverageFleasTicks": {
+    "description": "What a parasite prevention dose covers. Heartworm is prevention, never treatment."
+  },
+  "parasiteCoverageHeartworm": "Heartworm prevention",
+  "@parasiteCoverageHeartworm": {
+    "description": "What a parasite prevention dose covers. Heartworm is prevention, never treatment."
+  },
+  "vetTestKindFecal": "Fecal test",
+  "@vetTestKindFecal": {
+    "description": "Kind of test done by the vet."
+  },
+  "vetTestKindHeartworm": "Heartworm test",
+  "@vetTestKindHeartworm": {
+    "description": "Kind of test done by the vet."
+  },
+  "vetTestKindOther": "Other test",
+  "@vetTestKindOther": {
+    "description": "Kind of test done by the vet."
+  },
+  "vetTestResultNegative": "Negative",
+  "@vetTestResultNegative": {
+    "description": "Result of a vet test, as reported by the vet."
+  },
+  "vetTestResultPositive": "Positive",
+  "@vetTestResultPositive": {
+    "description": "Result of a vet test, as reported by the vet."
+  },
+  "vetTestResultPending": "Waiting for results",
+  "@vetTestResultPending": {
+    "description": "Result of a vet test, as reported by the vet."
+  },
+  "earsClean": "Clean",
+  "@earsClean": {
+    "description": "What the ears looked like."
+  },
+  "earsWaxy": "Waxy",
+  "@earsWaxy": {
+    "description": "What the ears looked like."
+  },
+  "earsRedOrSmelly": "Red or smelly",
+  "@earsRedOrSmelly": {
+    "description": "What the ears looked like."
+  },
+  "otherCareTeeth": "Teeth",
+  "@otherCareTeeth": {
+    "description": "Kind of other care."
+  },
+  "otherCareNails": "Nails",
+  "@otherCareNails": {
+    "description": "Kind of other care."
+  },
+  "otherCareEyes": "Eyes",
+  "@otherCareEyes": {
+    "description": "Kind of other care."
+  },
+  "otherCarePaws": "Paws",
+  "@otherCarePaws": {
+    "description": "Kind of other care."
+  },
+  "otherCareEnvironment": "Bedding & home",
+  "@otherCareEnvironment": {
+    "description": "Kind of other care."
+  },
+  "otherCareOther": "Other",
+  "@otherCareOther": {
+    "description": "Kind of other care."
+  },
+  "symptomKindVomiting": "Vomiting",
+  "@symptomKindVomiting": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindDiarrhea": "Diarrhea",
+  "@symptomKindDiarrhea": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindCoughing": "Coughing",
+  "@symptomKindCoughing": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindItching": "Itching",
+  "@symptomKindItching": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindLimping": "Limping",
+  "@symptomKindLimping": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindLowEnergy": "Low energy",
+  "@symptomKindLowEnergy": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomKindOther": "Other",
+  "@symptomKindOther": {
+    "description": "Something the owner can see. Never a diagnosis."
+  },
+  "symptomStatusBetter": "Getting better",
+  "@symptomStatusBetter": {
+    "description": "How a symptom is changing."
+  },
+  "symptomStatusSame": "About the same",
+  "@symptomStatusSame": {
+    "description": "How a symptom is changing."
+  },
+  "symptomStatusWorse": "Getting worse",
+  "@symptomStatusWorse": {
+    "description": "How a symptom is changing."
+  },
+  "sexMale": "Male",
+  "@sexMale": {
+    "description": "Sex of the dog."
+  },
+  "sexFemale": "Female",
+  "@sexFemale": {
+    "description": "Sex of the dog."
+  },
+  "breedGroupLargeDouble": "Large, double coat",
+  "@breedGroupLargeDouble": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupMediumDouble": "Medium, double coat",
+  "@breedGroupMediumDouble": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupSmallSilky": "Small, long silky coat",
+  "@breedGroupSmallSilky": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupCurly": "Curly, low-shedding",
+  "@breedGroupCurly": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupSmallShort": "Small, short coat",
+  "@breedGroupSmallShort": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupLargeShort": "Medium to large, short coat",
+  "@breedGroupLargeShort": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGroupMixed": "Mixed / not sure",
+  "@breedGroupMixed": {
+    "description": "Breed group by size and coat type."
+  },
+  "breedGoldenRetriever": "Golden Retriever",
+  "@breedGoldenRetriever": {
+    "description": "Breed name."
+  },
+  "breedLabradorRetriever": "Labrador Retriever",
+  "@breedLabradorRetriever": {
+    "description": "Breed name."
+  },
+  "breedGermanShepherd": "German Shepherd",
+  "@breedGermanShepherd": {
+    "description": "Breed name."
+  },
+  "breedBerneseMountainDog": "Bernese Mountain Dog",
+  "@breedBerneseMountainDog": {
+    "description": "Breed name."
+  },
+  "breedSamoyed": "Samoyed",
+  "@breedSamoyed": {
+    "description": "Breed name."
+  },
+  "breedSiberianHusky": "Siberian Husky",
+  "@breedSiberianHusky": {
+    "description": "Breed name."
+  },
+  "breedCorgi": "Corgi",
+  "@breedCorgi": {
+    "description": "Breed name."
+  },
+  "breedShibaInu": "Shiba Inu",
+  "@breedShibaInu": {
+    "description": "Breed name."
+  },
+  "breedBorderCollie": "Border Collie",
+  "@breedBorderCollie": {
+    "description": "Breed name."
+  },
+  "breedAustralianShepherd": "Australian Shepherd",
+  "@breedAustralianShepherd": {
+    "description": "Breed name."
+  },
+  "breedCavalierKingCharlesSpaniel": "Cavalier King Charles Spaniel",
+  "@breedCavalierKingCharlesSpaniel": {
+    "description": "Breed name."
+  },
+  "breedMaltese": "Maltese",
+  "@breedMaltese": {
+    "description": "Breed name."
+  },
+  "breedYorkshireTerrier": "Yorkshire Terrier",
+  "@breedYorkshireTerrier": {
+    "description": "Breed name."
+  },
+  "breedShihTzu": "Shih Tzu",
+  "@breedShihTzu": {
+    "description": "Breed name."
+  },
+  "breedPapillon": "Papillon",
+  "@breedPapillon": {
+    "description": "Breed name."
+  },
+  "breedPoodle": "Poodle",
+  "@breedPoodle": {
+    "description": "Breed name."
+  },
+  "breedBichonFrise": "Bichon Frise",
+  "@breedBichonFrise": {
+    "description": "Breed name."
+  },
+  "breedDoodle": "Doodle",
+  "@breedDoodle": {
+    "description": "Breed name."
+  },
+  "breedFrenchBulldog": "French Bulldog",
+  "@breedFrenchBulldog": {
+    "description": "Breed name."
+  },
+  "breedPug": "Pug",
+  "@breedPug": {
+    "description": "Breed name."
+  },
+  "breedChihuahua": "Chihuahua",
+  "@breedChihuahua": {
+    "description": "Breed name."
+  },
+  "breedDachshund": "Dachshund",
+  "@breedDachshund": {
+    "description": "Breed name."
+  },
+  "breedBeagle": "Beagle",
+  "@breedBeagle": {
+    "description": "Breed name."
+  },
+  "breedBoxer": "Boxer",
+  "@breedBoxer": {
+    "description": "Breed name."
+  },
+  "breedDoberman": "Doberman",
+  "@breedDoberman": {
+    "description": "Breed name."
+  },
+  "breedPitBull": "Pit Bull",
+  "@breedPitBull": {
+    "description": "Breed name."
+  },
+  "weightKg": "{value} kg",
+  "@weightKg": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "weightLb": "{value} lb",
+  "@weightLb": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "weightJin": "{value} jin",
+  "@weightJin": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "volumeMl": "{value} ml",
+  "@volumeMl": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "volumeOz": "{value} oz",
+  "@volumeOz": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "volumeCup": "{value, plural, =1{1 cup} other{{value} cups}}",
+  "@volumeCup": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "distanceKm": "{value} km",
+  "@distanceKm": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "distanceMi": "{value} mi",
+  "@distanceMi": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "temperatureC": "{value}°C",
+  "@temperatureC": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "temperatureF": "{value}°F",
+  "@temperatureF": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionScoop": "{value, plural, =1{1 scoop} other{{value} scoops}}",
+  "@portionScoop": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionCup": "{value, plural, =1{1 cup} other{{value} cups}}",
+  "@portionCup": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionG": "{value} g",
+  "@portionG": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionCan": "{value, plural, =1{1 can} other{{value} cans}}",
+  "@portionCan": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionPouch": "{value, plural, =1{1 pouch} other{{value} pouches}}",
+  "@portionPouch": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionPiece": "{value, plural, =1{1 piece} other{{value} pieces}}",
+  "@portionPiece": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionTablet": "{value, plural, =1{1 tablet} other{{value} tablets}}",
+  "@portionTablet": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionMl": "{value} ml",
+  "@portionMl": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionMg": "{value} mg",
+  "@portionMg": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "portionDrop": "{value, plural, =1{1 drop} other{{value} drops}}",
+  "@portionDrop": {
+    "description": "An amount with its unit. The number is already rounded.",
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "dayCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@dayCount": {
+    "description": "A number of days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count, plural, =0{Today} =1{Yesterday} other{{count} days ago}}",
+  "@daysAgo": {
+    "description": "How long ago something happened.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dayTogether": "Day {day} together",
+  "@dayTogether": {
+    "description": "Counting days since the dog came home; the first day is day 1.",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleEveryNDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "@scheduleEveryNDays": {
+    "description": "A plan repeating every N days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleEveryWeek": "Every week",
+  "@scheduleEveryWeek": {
+    "description": "A plan repeating every 7 days."
+  },
+  "scheduleEveryNMonths": "{count, plural, =1{Every month} other{Every {count} months}}",
+  "@scheduleEveryNMonths": {
+    "description": "A plan repeating every N calendar months.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleEveryYear": "Every year",
+  "@scheduleEveryYear": {
+    "description": "A plan repeating every 12 months."
+  },
+  "scheduleWeekdays": "{days}",
+  "@scheduleWeekdays": {
+    "description": "A plan on chosen weekdays; days is the joined list of short weekday names.",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduleEveryDay": "Every day",
+  "@scheduleEveryDay": {
+    "description": "A weekday plan with all seven days chosen."
+  },
+  "scheduleOnce": "On {date}",
+  "@scheduleOnce": {
+    "description": "A one-time plan on a date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "weekdayListSeparator": ", ",
+  "@weekdayListSeparator": {
+    "description": "Separator between weekday names in a list."
+  },
+  "weekdayShort1": "Mon",
+  "@weekdayShort1": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort2": "Tue",
+  "@weekdayShort2": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort3": "Wed",
+  "@weekdayShort3": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort4": "Thu",
+  "@weekdayShort4": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort5": "Fri",
+  "@weekdayShort5": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort6": "Sat",
+  "@weekdayShort6": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "weekdayShort7": "Sun",
+  "@weekdayShort7": {
+    "description": "Short weekday name; 1 is Monday."
+  },
+  "languageSystem": "Same as system",
+  "@languageSystem": {
+    "description": "App language option. Language names stay in their own language."
+  },
+  "languageZh": "中文",
+  "@languageZh": {
+    "description": "App language option. Language names stay in their own language."
+  },
+  "languageEn": "English",
+  "@languageEn": {
+    "description": "App language option. Language names stay in their own language."
+  },
+  "unitSystemAuto": "Auto (by region)",
+  "@unitSystemAuto": {
+    "description": "Unit system option."
+  },
+  "unitSystemMetric": "Metric",
+  "@unitSystemMetric": {
+    "description": "Unit system option."
+  },
+  "unitSystemImperial": "Imperial (US)",
+  "@unitSystemImperial": {
+    "description": "Unit system option."
+  },
+  "dateFormatAuto": "Auto (by region)",
+  "@dateFormatAuto": {
+    "description": "Date order option."
+  },
+  "dateFormatYmd": "Year-month-day",
+  "@dateFormatYmd": {
+    "description": "Date order option."
+  },
+  "dateFormatMdy": "Month/day/year",
+  "@dateFormatMdy": {
+    "description": "Date order option."
+  },
+  "dateFormatDmy": "Day/month/year",
+  "@dateFormatDmy": {
+    "description": "Date order option."
+  },
+  "cardCategoryObservation": "Noticed",
+  "@cardCategoryObservation": {
+    "description": "Kind of daily card."
+  },
+  "cardCategoryComingUp": "Coming up",
+  "@cardCategoryComingUp": {
+    "description": "Kind of daily card."
+  },
+  "cardCategoryTip": "Tips",
+  "@cardCategoryTip": {
+    "description": "Kind of daily card."
+  },
+  "cardCategoryMoment": "Moments",
+  "@cardCategoryMoment": {
+    "description": "Kind of daily card."
+  },
+  "cardFrequencyNormal": "Normal",
+  "@cardFrequencyNormal": {
+    "description": "How often a kind of daily card appears."
+  },
+  "cardFrequencyLess": "Less often",
+  "@cardFrequencyLess": {
+    "description": "How often a kind of daily card appears."
+  },
+  "cardFrequencyOff": "Off",
+  "@cardFrequencyOff": {
+    "description": "How often a kind of daily card appears."
+  }
+}

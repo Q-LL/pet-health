@@ -35,6 +35,12 @@ dart run drift_dev make-migrations
 
 快照保存在 `drift_schemas/`，迁移测试位于 `test/drift/`。
 
+修改界面文字时，同时编辑 `lib/core/l10n/arb/` 下的中英文 ARB 文件，再重新生成：
+
+```bash
+flutter gen-l10n
+```
+
 Web 数据保存在当前浏览器中，与手机数据库独立。爱宠时光的系统相册引用仅在 iOS / Android 实现；Web 不调度系统通知，也不支持 Live Activity。
 
 当前 iOS Runner 与 Live Activity 扩展的部署目标为 **iOS 26.0**，构建前请在 Xcode 核对目标系统和签名。
@@ -50,6 +56,7 @@ lib/
 │   ├── database/       # 用户数据库与迁移
 │   ├── knowledge/      # 内置知识数据库（v1 中冻结）
 │   ├── files/          # 照片、相册引用与视频服务
+│   ├── l10n/           # 中英文翻译与格式化
 │   ├── notifications/  # 本地通知、iOS Live Activity
 │   └── ui/             # 共享组件、token 和动效
 └── features/           # 按业务划分的模块

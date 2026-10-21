@@ -21,6 +21,7 @@ flowchart TD
 - `lib/core/knowledge`：独立知识库 schema 与内置条目；v1 中冻结，只作为每日卡片的背景素材。
 - `lib/core/files`：照片存储、相册引用和视频播放，通过条件导入隔离平台实现。
 - `lib/core/notifications`：通知调度及 iOS Live Activity 桥接。
+- `lib/core/l10n`：中英文翻译（ARB）、code 到显示文字的映射、带单位数量与排期的格式化、界面语言的决定。
 - `lib/features`：按业务划分 `presentation`、`application`、`data`、`domain`；简单模块不强制包含全部层级。
 
 页面通过 Repository 或 Provider 使用数据，不直接写 Drift 表。引擎和 domain 层不产生面向用户的文案，只输出 code、key 和参数，由页面按当前语言与单位格式化。
@@ -47,6 +48,9 @@ Xcode 工程的 Runner 和 WalkActivityExtension 部署目标为 iOS 26.0；Podf
 
 ## 维护约定
 
+- 新增界面文字：在 `lib/core/l10n/arb/` 的 `app_en.arb`（模板，带 `description`）和 `app_zh.arb` 里同时添加，运行 `flutter gen-l10n`；生成的代码提交到仓库。
+- 新增存储 code 时，在 `lib/core/l10n/labels.dart` 的对应 switch 里补上翻译；switch 是穷尽的，漏掉会编译失败。
+- 显示数量一律经过 `unit_format.dart`，不在页面里自己拼单位。
 - 时间写入统一转换为 UTC，页面转换为本地时间；日期筛选采用本地自然日 `[from, to)`。
 - 页面按狗狗 ID 订阅数据，切换档案后更新订阅，避免上一只狗狗的数据残留。
 - 通知是数据库状态的执行通道，不作为提醒或遛狗的唯一数据源。
