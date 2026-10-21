@@ -19,7 +19,9 @@
 | **不诊断**：只描述"和平时不一样"，需要时建议问兽医，从不猜病名。 | **Never diagnose**: describe what's different from usual; suggest a vet when it matters; never name a condition. |
 | **不打分、不内疚**：只累加做过的事，不显示"完成率 40%"。漏记就漏记了。 | **No grades, no guilt**: count what you did, never "40% complete." A missed log is just a missed log. |
 | **先给理由，再给动作**：说清楚为什么提，再给一个现在就能做的小事。 | **Reason, then one action**: say why it's worth mentioning, then one small thing you can do now. |
-| **短**：一条卡片两句话以内。 | **Short**: two sentences per card, max. |
+| **短**：一条卡片两句话以内，能用短语就不用整句。 | **Short**: two sentences per card, max. Use a phrase when a phrase will do. |
+| **口语有分寸**：陪伴时刻和贴士可以轻松口语（"Nice!"、"pup"）；观察、驱虫、检查等健康内容用平实的短句，不用俚语和玩笑。不用 doggo、pupper 这类过时快的网络梗。 | **Casual, within reason**: moments and tips can be playful ("Nice!", "pup"); health cards (noticed, parasite prevention, vet tests) stay plain and precise — no slang or jokes. Skip fast-aging memes like "doggo" or "pupper." |
+| **各自自然，不逐字对译**：中文和英文各自读起来顺口就好。 | **Natural in each language**: Chinese and English don't need to match word for word. |
 | **平静的一天也值得说一句**：一切正常时，就说一切正常。 | **Quiet days count**: when everything's normal, say so. |
 
 ---
