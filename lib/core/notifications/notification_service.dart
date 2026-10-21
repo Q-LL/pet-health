@@ -6,7 +6,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../../features/reminders/domain/reminder_models.dart';
 import 'walk_live_activity_service.dart';
 
 export 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -105,36 +104,6 @@ class NotificationService {
     } catch (_) {
       return Future.value();
     }
-  }
-
-  Future<void> scheduleReminder(Reminder reminder) async {
-    if (kIsWeb || !_initialized || !reminder.enabled || reminder.paused) {
-      return;
-    }
-    final id =
-        reminder.notificationId ?? notificationIdForReminder(reminder.id);
-    final scheduledAt = reminder.scheduledAt.toLocal();
-    if (!scheduledAt.isAfter(DateTime.now())) return;
-    try {
-      await _plugin.zonedSchedule(
-        id: id,
-        title: reminder.title,
-        body: _reminderBody(reminder),
-        scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
-        notificationDetails: _reminderDetails(reminder),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: 'reminder:${reminder.id}',
-      );
-    } catch (_) {}
-  }
-
-  Future<void> cancelReminder(Reminder reminder) async {
-    if (kIsWeb || !_initialized) return;
-    try {
-      await _plugin.cancel(
-        id: reminder.notificationId ?? notificationIdForReminder(reminder.id),
-      );
-    } catch (_) {}
   }
 
   Future<void> showWalkTimer({
@@ -293,10 +262,6 @@ class NotificationService {
   }
 }
 
-int notificationIdForReminder(String id) {
-  return 10000 + (id.hashCode & 0x3fffffff);
-}
-
 int notificationIdForCarePlan(String planId) {
   return carePlanNotificationBaseId + (planId.hashCode & 0x3fffffff);
 }
@@ -317,30 +282,4 @@ NotificationDetails _carePlanDueDetails() {
       presentSound: true,
     ),
   );
-}
-
-NotificationDetails _reminderDetails(Reminder reminder) {
-  return const NotificationDetails(
-    android: AndroidNotificationDetails(
-      'care_reminders',
-      '提醒',
-      channelDescription: '狗狗健康与护理提醒',
-      importance: Importance.high,
-      priority: Priority.high,
-      category: AndroidNotificationCategory.reminder,
-    ),
-    iOS: DarwinNotificationDetails(
-      presentBanner: true,
-      presentList: true,
-      presentSound: true,
-    ),
-  );
-}
-
-String _reminderBody(Reminder reminder) {
-  return switch (reminder.completionMode) {
-    'auto_record' => '完成后会自动写入记录',
-    'ask_record' => '完成后会打开记录表单',
-    _ => '点击返回毛健康处理提醒',
-  };
 }

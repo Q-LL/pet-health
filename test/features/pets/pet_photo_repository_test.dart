@@ -2,24 +2,24 @@ import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet_health/core/database/app_database.dart';
+import 'package:pet_health/core/db/pet_health_database.dart';
 import 'package:pet_health/core/files/photo_storage.dart';
 import 'package:pet_health/features/pets/data/pet_photo_repository.dart';
-import 'package:pet_health/features/pets/data/pet_repository.dart';
-import 'package:pet_health/features/pets/domain/pet_profile.dart';
+import 'package:pet_health/features/pets/data/pets_repository.dart';
+import 'package:pet_health/features/pets/domain/pet.dart';
 
 void main() {
-  late AppDatabase database;
+  late PetHealthDatabase database;
   late _MemoryPhotoStorage storage;
   late PetPhotoRepository photos;
-  late PetRepository pets;
+  late PetsRepository pets;
   late String petId;
 
   setUp(() async {
-    database = AppDatabase(NativeDatabase.memory());
+    database = PetHealthDatabase(NativeDatabase.memory());
     storage = _MemoryPhotoStorage();
     photos = PetPhotoRepository(database, storage);
-    pets = PetRepository(database, photos);
+    pets = PetsRepository(database);
     petId = (await pets.create(const PetDraft(name: '团子'))).id;
   });
 
@@ -37,7 +37,6 @@ void main() {
 
     expect(photo.isAvatar, isTrue);
     expect(await photos.readBytes(photo.id), bytes);
-    expect((await pets.getById(petId))?.avatarPath, photo.filePath);
   });
 
   test('updates metadata, searches, pages and changes avatar', () async {
@@ -103,6 +102,7 @@ void main() {
       mediaType: 'image/webp',
     );
 
+    await photos.deleteAllForPet(petId);
     expect(await pets.delete(petId), isTrue);
     expect(storage.contains(photo.filePath!), isFalse);
     expect(await photos.findForPet(petId), isEmpty);

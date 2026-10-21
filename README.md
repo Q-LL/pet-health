@@ -49,16 +49,18 @@ Web 数据保存在当前浏览器中，与手机数据库独立。爱宠时光�
 
 Flutter / Material 3、Riverpod、go_router、Drift / SQLite。
 
+内置字体：中文标题 [ZCOOL KuaiLe](assets/fonts/zcool_kuaile/OFL.txt)、英文标题与数字 [Fredoka](assets/fonts/fredoka/OFL.txt)，均为 SIL Open Font License 1.1；正文使用系统字体。
+
 ```text
 lib/
 ├── app/                # 启动、路由、底栏与主题
 ├── core/
-│   ├── database/       # 用户数据库与迁移
+│   ├── db/             # 用户数据库与迁移
+│   ├── design/         # 设计语言：颜色、字体、图标、贴纸插画与组件
 │   ├── knowledge/      # 内置知识数据库（v1 中冻结）
 │   ├── files/          # 照片、相册引用与视频服务
 │   ├── l10n/           # 中英文翻译与格式化
 │   ├── notifications/  # 本地通知、iOS Live Activity
-│   └── ui/             # 共享组件、token 和动效
 └── features/           # 按业务划分的模块
 assets/                 # 应用图标与插画
 test/                   # 数据、规则、迁移和页面回归测试

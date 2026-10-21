@@ -12,11 +12,10 @@
 4. **能算出来的就不存。** 下次到期时间、日常节奏基线、年度回顾都从 `entries` 现算。
 5. **enum 只加不改。** 已经存进数据库的 enum 名不能重命名或删除；废弃的值保留，只是不在界面上显示。
 
-## 与旧代码并存
+## 数据库
 
-- 新数据库放在 `lib/core/db/`，类名 `PetHealthDatabase`，数据库名 `pet_health`，`schemaVersion` 从 1 开始。
-- 旧的 `lib/core/database/`（`AppDatabase`，库名 `user`）在 v1 开发期间保持不动，旧界面照常可用。新界面逐页接到新数据库，所有旧页面都替换完以后，再一并删除旧数据库、`drift_schemas/app/` 的 v8 快照和对应的迁移测试。
-- v1 使用新的 bundle ID，手机上不会读到旧数据。在 Web 上新旧数据库名不同，也不会冲突。
+- 数据库在 `lib/core/db/`，类名 `PetHealthDatabase`，数据库名 `pet_health`，`schemaVersion` 从 1 开始。
+- 旧版的 `AppDatabase`（库名 `user`）已随旧代码删除，不迁移旧数据；手机上旧数据库文件里的内容不会被读取。
 
 ## 表
 

@@ -1,6 +1,6 @@
 # 架构
 
-更新：2026-10-10。v1 正在按 [v1 开发计划](V1_PLAN.md) 重做。本文只保留 v1 中继续沿用的分层、媒体和平台约定；数据结构与页面结构会在对应阶段完成后补充。旧版的完整架构、数据接口和 UI 说明见 `legacy-v0` 标签。
+更新：2026-10-21。v1 已完全重构，旧版代码只保留在 `legacy-v0` 标签。产品决策见 [v1 开发计划](V1_PLAN.md)，数据结构见 [V1_SCHEMA](V1_SCHEMA.md)。
 
 ## 代码分层
 
@@ -16,8 +16,8 @@ flowchart TD
 ```
 
 - `lib/app`：启动、路由、底栏和主题。
-- `lib/core/ui`：颜色与间距 token、页面容器、卡片、选项组、状态视图和动效。
-- `lib/core/database`：用户数据库 schema 与迁移。
+- `lib/core/design`：「软糖贴纸」设计语言——颜色、字体、线条图标、贴纸插画和通用组件（一键记录按钮、每日卡片、胶囊底栏、提示条、选项格子）。
+- `lib/core/db`：用户数据库 `PetHealthDatabase` 的 schema、类型转换与迁移。
 - `lib/core/knowledge`：独立知识库 schema 与内置条目；v1 中冻结，只作为每日卡片的背景素材。
 - `lib/core/files`：照片存储、相册引用和视频播放，通过条件导入隔离平台实现。
 - `lib/core/notifications`：通知调度及 iOS Live Activity 桥接。

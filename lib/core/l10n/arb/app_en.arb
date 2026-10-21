@@ -794,5 +794,33 @@
   "cardFrequencyOff": "Off",
   "@cardFrequencyOff": {
     "description": "How often a kind of daily card appears."
+  },
+  "appName": "Pet Health",
+  "@appName": {
+    "description": "App name shown in the task switcher."
+  },
+  "navToday": "Today",
+  "@navToday": {
+    "description": "Bottom bar: today page."
+  },
+  "navTimeline": "Timeline",
+  "@navTimeline": {
+    "description": "Bottom bar: timeline page."
+  },
+  "navPlans": "Plans",
+  "@navPlans": {
+    "description": "Bottom bar: plans page."
+  },
+  "navPetFallback": "My dog",
+  "@navPetFallback": {
+    "description": "Bottom bar: dog profile, when the dog has no name yet."
+  },
+  "navLog": "Log something",
+  "@navLog": {
+    "description": "Screen reader name of the center + button."
+  },
+  "pageComingSoon": "Coming soon",
+  "@pageComingSoon": {
+    "description": "Temporary placeholder on pages not built yet."
   }
 }

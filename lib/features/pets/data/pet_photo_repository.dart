@@ -2,8 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/database/app_database.dart' as db;
-import '../../../core/database/database_provider.dart';
+import '../../../core/db/database_provider.dart';
+import '../../../core/db/pet_health_database.dart' as db;
 import '../../../core/files/photo_storage.dart';
 import '../domain/pet_photo.dart';
 import '../domain/pet_photo_filter.dart';
@@ -16,7 +16,7 @@ final localPhotoStorageProvider = Provider<LocalPhotoStorage>((ref) {
 
 final petPhotoRepositoryProvider = Provider<PetPhotoRepository>((ref) {
   return PetPhotoRepository(
-    ref.watch(appDatabaseProvider),
+    ref.watch(petHealthDatabaseProvider),
     ref.watch(localPhotoStorageProvider),
   );
 });
@@ -43,7 +43,7 @@ final filteredPetPhotosProvider = StreamProvider.autoDispose
 class PetPhotoRepository {
   PetPhotoRepository(this._database, this._storage) : _uuid = const Uuid();
 
-  final db.AppDatabase _database;
+  final db.PetHealthDatabase _database;
   final LocalPhotoStorage _storage;
   final Uuid _uuid;
 
@@ -153,7 +153,6 @@ class PetPhotoRepository {
               ),
             );
         if (makeAvatar) {
-          await _setLegacyAvatarPath(petId, payload.filePath, id, now);
         }
       });
     } on Object {
@@ -197,7 +196,6 @@ class PetPhotoRepository {
           updatedAt: Value(now),
         ),
       );
-      await _setLegacyAvatarPath(photo.petId, photo.filePath, id, now);
     });
     return (await getById(id))!;
   }
@@ -243,22 +241,10 @@ class PetPhotoRepository {
                 ..limit(1))
               .getSingleOrNull();
       if (next == null) {
-        await _setLegacyAvatarPath(
-          photo.petId,
-          null,
-          null,
-          DateTime.now().toUtc(),
-        );
       } else {
         await (_database.update(_database.petPhotos)
               ..where((row) => row.id.equals(next.id)))
             .write(const db.PetPhotosCompanion(isAvatar: Value(true)));
-        await _setLegacyAvatarPath(
-          photo.petId,
-          next.filePath,
-          next.id,
-          DateTime.now().toUtc(),
-        );
       }
     });
     return true;
@@ -272,24 +258,6 @@ class PetPhotoRepository {
     await (_database.delete(
       _database.petPhotos,
     )..where((photo) => photo.petId.equals(petId))).go();
-  }
-
-  Future<void> _setLegacyAvatarPath(
-    String petId,
-    String? filePath,
-    String? photoId,
-    DateTime now,
-  ) async {
-    await (_database.update(
-      _database.pets,
-    )..where((pet) => pet.id.equals(petId))).write(
-      db.PetsCompanion(
-        avatarPath: Value(
-          filePath ?? (photoId == null ? null : 'photo:$photoId'),
-        ),
-        updatedAt: Value(now),
-      ),
-    );
   }
 
   Future<void> _validateInput({
@@ -323,7 +291,7 @@ class PetPhotoRepository {
     }
   }
 
-  PetPhoto _photoFromRow(db.PetPhoto row) => PetPhoto(
+  PetPhoto _photoFromRow(db.PetPhotoRow row) => PetPhoto(
     id: row.id,
     petId: row.petId,
     filePath: row.filePath,

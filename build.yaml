@@ -4,7 +4,6 @@ targets:
       drift_dev:
         options:
           databases:
-            app: lib/core/database/app_database.dart
             pet_health: lib/core/db/pet_health_database.dart
           schema_dir: drift_schemas/
           test_dir: test/drift/

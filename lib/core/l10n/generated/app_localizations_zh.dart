@@ -640,4 +640,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cardFrequencyOff => '关闭';
+
+  @override
+  String get appName => '毛健康';
+
+  @override
+  String get navToday => '今天';
+
+  @override
+  String get navTimeline => '时间线';
+
+  @override
+  String get navPlans => '计划';
+
+  @override
+  String get navPetFallback => '狗狗';
+
+  @override
+  String get navLog => '记录';
+
+  @override
+  String get pageComingSoon => '正在搭建中';
 }

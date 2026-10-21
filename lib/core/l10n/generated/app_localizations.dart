@@ -1057,6 +1057,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off'**
   String get cardFrequencyOff;
+
+  /// App name shown in the task switcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Health'**
+  String get appName;
+
+  /// Bottom bar: today page.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get navToday;
+
+  /// Bottom bar: timeline page.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get navTimeline;
+
+  /// Bottom bar: plans page.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get navPlans;
+
+  /// Bottom bar: dog profile, when the dog has no name yet.
+  ///
+  /// In en, this message translates to:
+  /// **'My dog'**
+  String get navPetFallback;
+
+  /// Screen reader name of the center + button.
+  ///
+  /// In en, this message translates to:
+  /// **'Log something'**
+  String get navLog;
+
+  /// Temporary placeholder on pages not built yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get pageComingSoon;
 }
 
 class _AppLocalizationsDelegate

@@ -159,5 +159,12 @@
   "cardCategoryMoment": "陪伴时刻",
   "cardFrequencyNormal": "正常",
   "cardFrequencyLess": "少一些",
-  "cardFrequencyOff": "关闭"
+  "cardFrequencyOff": "关闭",
+  "appName": "毛健康",
+  "navToday": "今天",
+  "navTimeline": "时间线",
+  "navPlans": "计划",
+  "navPetFallback": "狗狗",
+  "navLog": "记录",
+  "pageComingSoon": "正在搭建中"
 }

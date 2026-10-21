@@ -27,6 +27,7 @@ dependencies:
   timezone: ^0.11.0
   uuid: ^4.5.3
   video_player: ^2.13.0
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -38,5 +39,12 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
-  assets:
-    - assets/illustrations/home-companion.png
+  fonts:
+    # 中文标题：ZCOOL KuaiLe（OFL），完整打包。
+    - family: ZCOOLKuaiLe
+      fonts:
+        - asset: assets/fonts/zcool_kuaile/ZCOOLKuaiLe-Regular.ttf
+    # 英文标题与数字：Fredoka 可变字重（OFL），用 FontVariation 指定字重。
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/fredoka/Fredoka-Variable.ttf

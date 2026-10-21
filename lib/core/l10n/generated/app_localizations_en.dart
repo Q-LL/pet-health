@@ -694,4 +694,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardFrequencyOff => 'Off';
+
+  @override
+  String get appName => 'Pet Health';
+
+  @override
+  String get navToday => 'Today';
+
+  @override
+  String get navTimeline => 'Timeline';
+
+  @override
+  String get navPlans => 'Plans';
+
+  @override
+  String get navPetFallback => 'My dog';
+
+  @override
+  String get navLog => 'Log something';
+
+  @override
+  String get pageComingSoon => 'Coming soon';
 }

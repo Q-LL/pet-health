@@ -7,5 +7,5 @@ import 'core/notifications/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await notificationService.initialize();
-  runApp(const ProviderScope(child: PetHealthApp()));
+  runApp(const ProviderScope(child: PawApp()));
 }
