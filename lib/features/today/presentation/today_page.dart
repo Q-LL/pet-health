@@ -22,6 +22,7 @@ import '../../entries/presentation/entry_summary.dart';
 import '../../pets/application/current_pet.dart';
 import '../../pets/data/pets_repository.dart';
 import '../../pets/domain/pet.dart';
+import '../../plans/application/plan_providers.dart';
 import '../../plans/data/plans_repository.dart';
 import '../../plans/domain/plan.dart';
 import '../../plans/domain/plan_schedule.dart';

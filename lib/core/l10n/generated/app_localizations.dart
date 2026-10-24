@@ -1657,6 +1657,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'jin'**
   String get unitJin;
+
+  /// Title of the plans page.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s plans'**
+  String plansTitle(String name);
+
+  /// Explains how plans work, on the plans page.
+  ///
+  /// In en, this message translates to:
+  /// **'Doing it once counts. The next time is counted from when you actually did it.'**
+  String get plansSubtitle;
+
+  /// Button: create a new plan.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get plansNew;
+
+  /// Shown when the dog has no plans.
+  ///
+  /// In en, this message translates to:
+  /// **'No plans yet.'**
+  String get plansEmpty;
+
+  /// Plans group: due today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get groupToday;
+
+  /// Plans group: not due yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get groupSoon;
+
+  /// Plans group: never logged, so no next date yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get groupNotStarted;
+
+  /// Plans group: paused plans.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get groupPaused;
+
+  /// Plans group: finished one-time plans.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get groupDone;
+
+  /// Chip on a plan due today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get chipToday;
+
+  /// Chip on a plan snoozed for now.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get chipLater;
+
+  /// A plan with no history yet. Never nags.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts after the first log'**
+  String get planStartsAfterFirstLog;
+
+  /// When a plan was last done.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {date}'**
+  String planLastDone(String date);
+
+  /// Title of the plan form when creating.
+  ///
+  /// In en, this message translates to:
+  /// **'New plan'**
+  String get planNew;
+
+  /// Label of the plan's entry type choice.
+  ///
+  /// In en, this message translates to:
+  /// **'What'**
+  String get planWhat;
+
+  /// Label of a custom plan's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get planTitleLabel;
+
+  /// Label of the schedule choice.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get planHowOften;
+
+  /// Schedule type: every N days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get scheduleKindEveryNDays;
+
+  /// Schedule type: every N calendar months.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get scheduleKindEveryNMonths;
+
+  /// Schedule type: on chosen weekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get scheduleKindWeekdays;
+
+  /// Schedule type: a one-time plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get scheduleKindOnce;
+
+  /// A number of months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month} other{{count} months}}'**
+  String monthCount(int count);
+
+  /// Label of a one-time plan's date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get planDate;
+
+  /// Switch: pause a plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause this plan'**
+  String get planPause;
+
+  /// Button: delete a plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan'**
+  String get planDelete;
+
+  /// Confirmation before deleting a plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”? Past logs are kept.'**
+  String planDeleteConfirm(String name);
+
+  /// Generic cancel button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// Generic delete button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// Screen reader name of the minus button.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get stepperLess;
+
+  /// Screen reader name of the plus button.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get stepperMore;
 }
 
 class _AppLocalizationsDelegate

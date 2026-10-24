@@ -32,8 +32,7 @@ void main() {
 
     await tester.tap(find.text('计划'));
     await tester.pumpAndSettle();
-    // 页面标题和底栏各一个。
-    expect(find.text('计划'), findsNWidgets(2));
+    expect(find.text('团子 的计划'), findsOneWidget);
 
     await app.unmount(tester);
   });

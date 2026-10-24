@@ -6,8 +6,6 @@ import '../../entries/domain/entry.dart';
 import '../../pets/application/current_pet.dart';
 import '../../pets/data/pets_repository.dart';
 import '../../pets/domain/pet.dart';
-import '../../plans/data/plans_repository.dart';
-import '../../plans/domain/plan.dart';
 
 /// 今天零点（本地时间）。
 // TODO: 跨过零点时还不会自动刷新，回到前台时由页面重新读取。
@@ -36,14 +34,6 @@ final todayEntriesProvider = StreamProvider.autoDispose<List<Entry>>((ref) {
         to: DateTime(today.year, today.month, today.day + 1),
       );
 });
-
-/// 当前狗狗全部计划此刻的状态。
-final currentPlanStatusesProvider =
-    StreamProvider.autoDispose<List<PlanStatus>>((ref) {
-      final pet = ref.watch(currentPetProvider);
-      if (pet == null) return Stream.value(const []);
-      return ref.watch(plansRepositoryProvider).watchStatuses(pet.id);
-    });
 
 /// 当前狗狗正在进行的遛狗。
 final activeWalkProvider = StreamProvider.autoDispose<Entry?>((ref) {

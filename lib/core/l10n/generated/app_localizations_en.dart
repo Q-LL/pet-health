@@ -1059,4 +1059,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitJin => 'jin';
+
+  @override
+  String plansTitle(String name) {
+    return '$name\'s plans';
+  }
+
+  @override
+  String get plansSubtitle =>
+      'Doing it once counts. The next time is counted from when you actually did it.';
+
+  @override
+  String get plansNew => 'New';
+
+  @override
+  String get plansEmpty => 'No plans yet.';
+
+  @override
+  String get groupToday => 'Today';
+
+  @override
+  String get groupSoon => 'Coming up';
+
+  @override
+  String get groupNotStarted => 'Not started';
+
+  @override
+  String get groupPaused => 'Paused';
+
+  @override
+  String get groupDone => 'Done';
+
+  @override
+  String get chipToday => 'Today';
+
+  @override
+  String get chipLater => 'Later';
+
+  @override
+  String get planStartsAfterFirstLog => 'Starts after the first log';
+
+  @override
+  String planLastDone(String date) {
+    return 'Last $date';
+  }
+
+  @override
+  String get planNew => 'New plan';
+
+  @override
+  String get planWhat => 'What';
+
+  @override
+  String get planTitleLabel => 'Name';
+
+  @override
+  String get planHowOften => 'How often';
+
+  @override
+  String get scheduleKindEveryNDays => 'Days';
+
+  @override
+  String get scheduleKindEveryNMonths => 'Months';
+
+  @override
+  String get scheduleKindWeekdays => 'Weekdays';
+
+  @override
+  String get scheduleKindOnce => 'Once';
+
+  @override
+  String monthCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planDate => 'Date';
+
+  @override
+  String get planPause => 'Pause this plan';
+
+  @override
+  String get planDelete => 'Delete plan';
+
+  @override
+  String planDeleteConfirm(String name) {
+    return 'Delete “$name”? Past logs are kept.';
+  }
+
+  @override
+  String get actionCancel => 'Cancel';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String get stepperLess => 'Less';
+
+  @override
+  String get stepperMore => 'More';
 }

@@ -990,4 +990,102 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get unitJin => '斤';
+
+  @override
+  String plansTitle(String name) {
+    return '$name 的计划';
+  }
+
+  @override
+  String get plansSubtitle => '做过一次就算完成，下一次从实际做的那天往后推。';
+
+  @override
+  String get plansNew => '新建';
+
+  @override
+  String get plansEmpty => '还没有计划。';
+
+  @override
+  String get groupToday => '今天';
+
+  @override
+  String get groupSoon => '快到了';
+
+  @override
+  String get groupNotStarted => '还没开始';
+
+  @override
+  String get groupPaused => '已暂停';
+
+  @override
+  String get groupDone => '已完成';
+
+  @override
+  String get chipToday => '今天';
+
+  @override
+  String get chipLater => '稍后';
+
+  @override
+  String get planStartsAfterFirstLog => '记一次就开始算';
+
+  @override
+  String planLastDone(String date) {
+    return '上次 $date';
+  }
+
+  @override
+  String get planNew => '新建计划';
+
+  @override
+  String get planWhat => '做什么';
+
+  @override
+  String get planTitleLabel => '名称';
+
+  @override
+  String get planHowOften => '多久一次';
+
+  @override
+  String get scheduleKindEveryNDays => '隔几天';
+
+  @override
+  String get scheduleKindEveryNMonths => '隔几个月';
+
+  @override
+  String get scheduleKindWeekdays => '每周几';
+
+  @override
+  String get scheduleKindOnce => '一次';
+
+  @override
+  String monthCount(int count) {
+    return '$count 个月';
+  }
+
+  @override
+  String get planDate => '日期';
+
+  @override
+  String get planPause => '暂停这个计划';
+
+  @override
+  String get planDelete => '删除计划';
+
+  @override
+  String planDeleteConfirm(String name) {
+    return '删除「$name」？之前的记录会保留。';
+  }
+
+  @override
+  String get actionCancel => '取消';
+
+  @override
+  String get actionDelete => '删除';
+
+  @override
+  String get stepperLess => '减少';
+
+  @override
+  String get stepperMore => '增加';
 }

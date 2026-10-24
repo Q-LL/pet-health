@@ -1265,5 +1265,145 @@
   "unitJin": "jin",
   "@unitJin": {
     "description": "Unit name shown next to an amount field."
+  },
+  "plansTitle": "{name}'s plans",
+  "@plansTitle": {
+    "description": "Title of the plans page.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plansSubtitle": "Doing it once counts. The next time is counted from when you actually did it.",
+  "@plansSubtitle": {
+    "description": "Explains how plans work, on the plans page."
+  },
+  "plansNew": "New",
+  "@plansNew": {
+    "description": "Button: create a new plan."
+  },
+  "plansEmpty": "No plans yet.",
+  "@plansEmpty": {
+    "description": "Shown when the dog has no plans."
+  },
+  "groupToday": "Today",
+  "@groupToday": {
+    "description": "Plans group: due today."
+  },
+  "groupSoon": "Coming up",
+  "@groupSoon": {
+    "description": "Plans group: not due yet."
+  },
+  "groupNotStarted": "Not started",
+  "@groupNotStarted": {
+    "description": "Plans group: never logged, so no next date yet."
+  },
+  "groupPaused": "Paused",
+  "@groupPaused": {
+    "description": "Plans group: paused plans."
+  },
+  "groupDone": "Done",
+  "@groupDone": {
+    "description": "Plans group: finished one-time plans."
+  },
+  "chipToday": "Today",
+  "@chipToday": {
+    "description": "Chip on a plan due today."
+  },
+  "chipLater": "Later",
+  "@chipLater": {
+    "description": "Chip on a plan snoozed for now."
+  },
+  "planStartsAfterFirstLog": "Starts after the first log",
+  "@planStartsAfterFirstLog": {
+    "description": "A plan with no history yet. Never nags."
+  },
+  "planLastDone": "Last {date}",
+  "@planLastDone": {
+    "description": "When a plan was last done.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planNew": "New plan",
+  "@planNew": {
+    "description": "Title of the plan form when creating."
+  },
+  "planWhat": "What",
+  "@planWhat": {
+    "description": "Label of the plan's entry type choice."
+  },
+  "planTitleLabel": "Name",
+  "@planTitleLabel": {
+    "description": "Label of a custom plan's name."
+  },
+  "planHowOften": "How often",
+  "@planHowOften": {
+    "description": "Label of the schedule choice."
+  },
+  "scheduleKindEveryNDays": "Days",
+  "@scheduleKindEveryNDays": {
+    "description": "Schedule type: every N days."
+  },
+  "scheduleKindEveryNMonths": "Months",
+  "@scheduleKindEveryNMonths": {
+    "description": "Schedule type: every N calendar months."
+  },
+  "scheduleKindWeekdays": "Weekdays",
+  "@scheduleKindWeekdays": {
+    "description": "Schedule type: on chosen weekdays."
+  },
+  "scheduleKindOnce": "Once",
+  "@scheduleKindOnce": {
+    "description": "Schedule type: a one-time plan."
+  },
+  "monthCount": "{count, plural, =1{1 month} other{{count} months}}",
+  "@monthCount": {
+    "description": "A number of months.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planDate": "Date",
+  "@planDate": {
+    "description": "Label of a one-time plan's date."
+  },
+  "planPause": "Pause this plan",
+  "@planPause": {
+    "description": "Switch: pause a plan."
+  },
+  "planDelete": "Delete plan",
+  "@planDelete": {
+    "description": "Button: delete a plan."
+  },
+  "planDeleteConfirm": "Delete “{name}”? Past logs are kept.",
+  "@planDeleteConfirm": {
+    "description": "Confirmation before deleting a plan.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "Generic cancel button."
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "Generic delete button."
+  },
+  "stepperLess": "Less",
+  "@stepperLess": {
+    "description": "Screen reader name of the minus button."
+  },
+  "stepperMore": "More",
+  "@stepperMore": {
+    "description": "Screen reader name of the plus button."
   }
 }
