@@ -31,6 +31,8 @@ class AppHarness {
     tester.view.devicePixelRatio = 3;
     tester.view.physicalSize = phoneSize * 3;
     addTearDown(tester.view.reset);
+    // 测试中途失败时也要先卸载界面，否则 tearDown 里关数据库会卡住。
+    addTearDown(() => unmount(tester));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
