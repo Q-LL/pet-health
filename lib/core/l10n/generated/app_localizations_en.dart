@@ -609,7 +609,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String scheduleWeekdays(String days) {
-    return '$days';
+    return 'Every $days';
   }
 
   @override
@@ -874,4 +874,189 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitCups => 'cups';
+
+  @override
+  String todayGreeting(String name) {
+    return 'Hi, $name!';
+  }
+
+  @override
+  String get todayQuickLog => 'Quick log';
+
+  @override
+  String get todayForYou => 'For you';
+
+  @override
+  String get todayNothingDue => 'Nothing on the list today.';
+
+  @override
+  String captionMeals(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String captionTimes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+      zero: 'Not yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String captionWater(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count refills',
+      one: '1 refill',
+      zero: 'Not yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String captionPoop(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count poops',
+      one: '1 poop',
+      zero: 'Not yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get captionDueToday => 'Due today';
+
+  @override
+  String captionWalking(int minutes) {
+    return 'Walking · $minutes min';
+  }
+
+  @override
+  String get captionTapToLog => 'Tap to log';
+
+  @override
+  String get toastLogged => 'Logged';
+
+  @override
+  String get toastWalkStarted => 'Walk started';
+
+  @override
+  String get toastWalkFinished => 'Walk done';
+
+  @override
+  String get toastUndo => 'Undo';
+
+  @override
+  String get toastMore => 'Add details';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String cardDaysSince(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days since last time.',
+      one: '1 day since last time.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardOnTodaysList(String name) {
+    return '$name is on today\'s list.';
+  }
+
+  @override
+  String get cardLogIt => 'Log it';
+
+  @override
+  String get cardLater => 'Later';
+
+  @override
+  String get sheetAddDetails => 'Add details';
+
+  @override
+  String sheetLoggedAt(String time) {
+    return 'Logged · $time';
+  }
+
+  @override
+  String get sheetTime => 'Time';
+
+  @override
+  String get sheetAddNote => 'Add a note';
+
+  @override
+  String get sheetNote => 'Note';
+
+  @override
+  String get sheetDone => 'Done';
+
+  @override
+  String get sheetSave => 'Save';
+
+  @override
+  String get sheetClose => 'Close';
+
+  @override
+  String get sheetAmount => 'Amount';
+
+  @override
+  String get sheetName => 'Name';
+
+  @override
+  String get sheetProduct => 'Product (optional)';
+
+  @override
+  String get fieldAppetite => 'How much was eaten';
+
+  @override
+  String get fieldIntake => 'Compared with usual';
+
+  @override
+  String get fieldLooks => 'How it looked';
+
+  @override
+  String get fieldCoat => 'Coat';
+
+  @override
+  String get fieldWhere => 'Where';
+
+  @override
+  String get fieldEars => 'Ears';
+
+  @override
+  String get fieldWhat => 'What';
+
+  @override
+  String get fieldNoticed => 'What you noticed';
+
+  @override
+  String get fieldTrend => 'Compared with before';
+
+  @override
+  String get fieldResult => 'Result';
+
+  @override
+  String get fieldCovers => 'Covers';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitLb => 'lb';
+
+  @override
+  String get unitJin => 'jin';
 }

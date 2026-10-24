@@ -673,7 +673,7 @@
   "@scheduleEveryYear": {
     "description": "A plan repeating every 12 months."
   },
-  "scheduleWeekdays": "{days}",
+  "scheduleWeekdays": "Every {days}",
   "@scheduleWeekdays": {
     "description": "A plan on chosen weekdays; days is the joined list of short weekday names.",
     "placeholders": {
@@ -1027,6 +1027,243 @@
   },
   "unitCups": "cups",
   "@unitCups": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "todayGreeting": "Hi, {name}!",
+  "@todayGreeting": {
+    "description": "Greeting at the top of Today.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "todayQuickLog": "Quick log",
+  "@todayQuickLog": {
+    "description": "Section title above the one-tap buttons."
+  },
+  "todayForYou": "For you",
+  "@todayForYou": {
+    "description": "Section title above today's cards."
+  },
+  "todayNothingDue": "Nothing on the list today.",
+  "@todayNothingDue": {
+    "description": "Shown when no plan is due today."
+  },
+  "captionMeals": "{done} of {total}",
+  "@captionMeals": {
+    "description": "Meals logged today out of the usual number.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "captionTimes": "{count, plural, =0{Not yet} =1{1 time} other{{count} times}}",
+  "@captionTimes": {
+    "description": "How many times something was logged today.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "captionWater": "{count, plural, =0{Not yet} =1{1 refill} other{{count} refills}}",
+  "@captionWater": {
+    "description": "Water bowl refills logged today.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "captionPoop": "{count, plural, =0{Not yet} =1{1 poop} other{{count} poops}}",
+  "@captionPoop": {
+    "description": "Poops logged today.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "captionDueToday": "Due today",
+  "@captionDueToday": {
+    "description": "A plan for this is due today."
+  },
+  "captionWalking": "Walking · {minutes} min",
+  "@captionWalking": {
+    "description": "A walk is in progress.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "captionTapToLog": "Tap to log",
+  "@captionTapToLog": {
+    "description": "This one needs a few details, so tapping opens a form."
+  },
+  "toastLogged": "Logged",
+  "@toastLogged": {
+    "description": "Toast title after a one-tap log."
+  },
+  "toastWalkStarted": "Walk started",
+  "@toastWalkStarted": {
+    "description": "Toast title after starting a walk."
+  },
+  "toastWalkFinished": "Walk done",
+  "@toastWalkFinished": {
+    "description": "Toast title after finishing a walk."
+  },
+  "toastUndo": "Undo",
+  "@toastUndo": {
+    "description": "Toast button: undo the log."
+  },
+  "toastMore": "Add details",
+  "@toastMore": {
+    "description": "Toast button: open the details form."
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "description": "A duration in minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "cardDaysSince": "{days, plural, =1{1 day since last time.} other{{days} days since last time.}}",
+  "@cardDaysSince": {
+    "description": "Coming-up card body: days since the plan was last done. Never says late.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "cardOnTodaysList": "{name} is on today's list.",
+  "@cardOnTodaysList": {
+    "description": "Coming-up card body for a weekday plan with no history yet.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cardLogIt": "Log it",
+  "@cardLogIt": {
+    "description": "Card button: log the plan as done."
+  },
+  "cardLater": "Later",
+  "@cardLater": {
+    "description": "Card button: snooze the plan for a few hours."
+  },
+  "sheetAddDetails": "Add details",
+  "@sheetAddDetails": {
+    "description": "Title of the details form for an entry already logged."
+  },
+  "sheetLoggedAt": "Logged · {time}",
+  "@sheetLoggedAt": {
+    "description": "Subtitle of the details form.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetTime": "Time",
+  "@sheetTime": {
+    "description": "Label of the time field."
+  },
+  "sheetAddNote": "Add a note",
+  "@sheetAddNote": {
+    "description": "Button that opens the note field."
+  },
+  "sheetNote": "Note",
+  "@sheetNote": {
+    "description": "Label of the note field."
+  },
+  "sheetDone": "Done",
+  "@sheetDone": {
+    "description": "Button: close the details form after saving."
+  },
+  "sheetSave": "Save",
+  "@sheetSave": {
+    "description": "Button: save a new entry from the form."
+  },
+  "sheetClose": "Close",
+  "@sheetClose": {
+    "description": "Screen reader name of the close button."
+  },
+  "sheetAmount": "Amount",
+  "@sheetAmount": {
+    "description": "Label of an amount field."
+  },
+  "sheetName": "Name",
+  "@sheetName": {
+    "description": "Label of a name field (medicine, vaccine, custom item)."
+  },
+  "sheetProduct": "Product (optional)",
+  "@sheetProduct": {
+    "description": "Label of the product name field for parasite prevention."
+  },
+  "fieldAppetite": "How much was eaten",
+  "@fieldAppetite": {
+    "description": "Label of the appetite options."
+  },
+  "fieldIntake": "Compared with usual",
+  "@fieldIntake": {
+    "description": "Label of the water intake options."
+  },
+  "fieldLooks": "How it looked",
+  "@fieldLooks": {
+    "description": "Label of the poop or pee options."
+  },
+  "fieldCoat": "Coat",
+  "@fieldCoat": {
+    "description": "Label of the coat options."
+  },
+  "fieldWhere": "Where",
+  "@fieldWhere": {
+    "description": "Label of the place options."
+  },
+  "fieldEars": "Ears",
+  "@fieldEars": {
+    "description": "Label of the ear options."
+  },
+  "fieldWhat": "What",
+  "@fieldWhat": {
+    "description": "Label of a kind choice."
+  },
+  "fieldNoticed": "What you noticed",
+  "@fieldNoticed": {
+    "description": "Label of the symptom options. Never a diagnosis."
+  },
+  "fieldTrend": "Compared with before",
+  "@fieldTrend": {
+    "description": "Label of the symptom trend options."
+  },
+  "fieldResult": "Result",
+  "@fieldResult": {
+    "description": "Label of the vet test result options."
+  },
+  "fieldCovers": "Covers",
+  "@fieldCovers": {
+    "description": "Label of the parasite coverage options."
+  },
+  "unitKg": "kg",
+  "@unitKg": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitLb": "lb",
+  "@unitLb": {
+    "description": "Unit name shown next to an amount field."
+  },
+  "unitJin": "jin",
+  "@unitJin": {
     "description": "Unit name shown next to an amount field."
   }
 }

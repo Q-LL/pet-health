@@ -218,8 +218,17 @@ extension CodeLabels on AppLocalizations {
     PortionUnit.pouch => unitPouch,
     PortionUnit.piece => unitPiece,
     // 用药单位不出现在食物输入里；兜底显示 code。
-    PortionUnit.tablet || PortionUnit.ml || PortionUnit.mg || PortionUnit.drop =>
-      value.code,
+    PortionUnit.tablet ||
+    PortionUnit.ml ||
+    PortionUnit.mg ||
+    PortionUnit.drop => value.code,
+  };
+
+  /// 体重单位的名称，用在输入框旁边。
+  String weightUnit(WeightUnit value) => switch (value) {
+    WeightUnit.kg => unitKg,
+    WeightUnit.lb => unitLb,
+    WeightUnit.jin => unitJin,
   };
 
   /// 水量单位的名称，用在输入框旁边。

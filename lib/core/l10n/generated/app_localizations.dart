@@ -893,7 +893,7 @@ abstract class AppLocalizations {
   /// A plan on chosen weekdays; days is the joined list of short weekday names.
   ///
   /// In en, this message translates to:
-  /// **'{days}'**
+  /// **'Every {days}'**
   String scheduleWeekdays(String days);
 
   /// A weekday plan with all seven days chosen.
@@ -1381,6 +1381,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'cups'**
   String get unitCups;
+
+  /// Greeting at the top of Today.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name}!'**
+  String todayGreeting(String name);
+
+  /// Section title above the one-tap buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick log'**
+  String get todayQuickLog;
+
+  /// Section title above today's cards.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get todayForYou;
+
+  /// Shown when no plan is due today.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on the list today.'**
+  String get todayNothingDue;
+
+  /// Meals logged today out of the usual number.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String captionMeals(int done, int total);
+
+  /// How many times something was logged today.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Not yet} =1{1 time} other{{count} times}}'**
+  String captionTimes(int count);
+
+  /// Water bowl refills logged today.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Not yet} =1{1 refill} other{{count} refills}}'**
+  String captionWater(int count);
+
+  /// Poops logged today.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Not yet} =1{1 poop} other{{count} poops}}'**
+  String captionPoop(int count);
+
+  /// A plan for this is due today.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get captionDueToday;
+
+  /// A walk is in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking · {minutes} min'**
+  String captionWalking(int minutes);
+
+  /// This one needs a few details, so tapping opens a form.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to log'**
+  String get captionTapToLog;
+
+  /// Toast title after a one-tap log.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged'**
+  String get toastLogged;
+
+  /// Toast title after starting a walk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk started'**
+  String get toastWalkStarted;
+
+  /// Toast title after finishing a walk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk done'**
+  String get toastWalkFinished;
+
+  /// Toast button: undo the log.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get toastUndo;
+
+  /// Toast button: open the details form.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get toastMore;
+
+  /// A duration in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// Coming-up card body: days since the plan was last done. Never says late.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day since last time.} other{{days} days since last time.}}'**
+  String cardDaysSince(int days);
+
+  /// Coming-up card body for a weekday plan with no history yet.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is on today\'s list.'**
+  String cardOnTodaysList(String name);
+
+  /// Card button: log the plan as done.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get cardLogIt;
+
+  /// Card button: snooze the plan for a few hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get cardLater;
+
+  /// Title of the details form for an entry already logged.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get sheetAddDetails;
+
+  /// Subtitle of the details form.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged · {time}'**
+  String sheetLoggedAt(String time);
+
+  /// Label of the time field.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get sheetTime;
+
+  /// Button that opens the note field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get sheetAddNote;
+
+  /// Label of the note field.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get sheetNote;
+
+  /// Button: close the details form after saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get sheetDone;
+
+  /// Button: save a new entry from the form.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get sheetSave;
+
+  /// Screen reader name of the close button.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get sheetClose;
+
+  /// Label of an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get sheetAmount;
+
+  /// Label of a name field (medicine, vaccine, custom item).
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sheetName;
+
+  /// Label of the product name field for parasite prevention.
+  ///
+  /// In en, this message translates to:
+  /// **'Product (optional)'**
+  String get sheetProduct;
+
+  /// Label of the appetite options.
+  ///
+  /// In en, this message translates to:
+  /// **'How much was eaten'**
+  String get fieldAppetite;
+
+  /// Label of the water intake options.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with usual'**
+  String get fieldIntake;
+
+  /// Label of the poop or pee options.
+  ///
+  /// In en, this message translates to:
+  /// **'How it looked'**
+  String get fieldLooks;
+
+  /// Label of the coat options.
+  ///
+  /// In en, this message translates to:
+  /// **'Coat'**
+  String get fieldCoat;
+
+  /// Label of the place options.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get fieldWhere;
+
+  /// Label of the ear options.
+  ///
+  /// In en, this message translates to:
+  /// **'Ears'**
+  String get fieldEars;
+
+  /// Label of a kind choice.
+  ///
+  /// In en, this message translates to:
+  /// **'What'**
+  String get fieldWhat;
+
+  /// Label of the symptom options. Never a diagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'What you noticed'**
+  String get fieldNoticed;
+
+  /// Label of the symptom trend options.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with before'**
+  String get fieldTrend;
+
+  /// Label of the vet test result options.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get fieldResult;
+
+  /// Label of the parasite coverage options.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers'**
+  String get fieldCovers;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'lb'**
+  String get unitLb;
+
+  /// Unit name shown next to an amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'jin'**
+  String get unitJin;
 }
 
 class _AppLocalizationsDelegate

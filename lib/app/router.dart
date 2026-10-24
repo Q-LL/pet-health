@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,6 +11,8 @@ import '../features/today/presentation/today_page.dart';
 import 'shell.dart';
 
 abstract final class Routes {
+  /// 启动时读狗狗列表的那一刻停在这里，读完再决定去引导页还是今天页。
+  static const start = '/';
   static const welcome = '/welcome';
   static const today = '/today';
   static const timeline = '/timeline';
@@ -24,18 +26,22 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen(allPetsProvider, (_, _) => petsChanged.value++);
 
   final router = GoRouter(
-    initialLocation: Routes.today,
+    initialLocation: Routes.start,
     refreshListenable: petsChanged,
     redirect: (context, state) {
       final pets = ref.read(allPetsProvider);
       if (!pets.hasValue) return null;
       final hasPet = pets.requireValue.isNotEmpty;
+      if (state.matchedLocation == Routes.start) {
+        return hasPet ? Routes.today : Routes.welcome;
+      }
       final atWelcome = state.matchedLocation == Routes.welcome;
       if (!hasPet && !atWelcome) return Routes.welcome;
       if (hasPet && atWelcome) return Routes.today;
       return null;
     },
     routes: [
+      GoRoute(path: Routes.start, builder: (context, state) => const _Launch()),
       GoRoute(
         path: Routes.welcome,
         builder: (context, state) => const OnboardingPage(),
@@ -85,3 +91,11 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
   return router;
 });
+
+/// 启动时的空白页：只有背景色，不显示底栏，避免先闪一下空的今天页。
+class _Launch extends StatelessWidget {
+  const _Launch();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold();
+}

@@ -12,7 +12,7 @@ class LoggedToast extends StatelessWidget {
     required this.title,
     required this.detail,
     required this.undoLabel,
-    required this.onUndo,
+    this.onUndo,
     required this.moreLabel,
     required this.onMore,
   });
@@ -20,7 +20,9 @@ class LoggedToast extends StatelessWidget {
   final String title;
   final String detail;
   final String undoLabel;
-  final VoidCallback onUndo;
+
+  /// 为空时不显示撤销按钮。
+  final VoidCallback? onUndo;
   final String moreLabel;
   final VoidCallback onMore;
 
@@ -74,20 +76,21 @@ class LoggedToast extends StatelessWidget {
                       Text(title, style: text.titleSmall),
                       Text(
                         detail,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: text.bodySmall?.copyWith(fontSize: 12),
                       ),
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: onUndo,
-                  style: TextButton.styleFrom(
-                    foregroundColor: PawColors.inkMuted,
+                if (onUndo != null)
+                  TextButton(
+                    onPressed: onUndo,
+                    style: TextButton.styleFrom(
+                      foregroundColor: PawColors.inkMuted,
+                    ),
+                    child: Text(undoLabel),
                   ),
-                  child: Text(undoLabel),
-                ),
                 FilledButton(onPressed: onMore, child: Text(moreLabel)),
               ],
             ),

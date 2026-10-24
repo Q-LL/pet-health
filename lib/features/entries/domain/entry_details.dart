@@ -13,6 +13,9 @@ sealed class EntryDetails {
 
   Map<String, Object?> toJson();
 
+  /// 填了的选项，按字段顺序；用于摘要显示。
+  List<CodedEnum> get options;
+
   /// 这份细节是否属于 [type]，比如 [MealDetails] 只属于饮食。
   bool isFor(EntryType type) =>
       runtimeType == EntryDetails.fromJson(type, const {}).runtimeType;
@@ -74,6 +77,9 @@ final class NoDetails extends EntryDetails {
   const NoDetails();
 
   @override
+  List<CodedEnum> get options => const [];
+
+  @override
   Map<String, Object?> toJson() => const {};
 
   @override
@@ -87,6 +93,9 @@ final class MealDetails extends EntryDetails {
   const MealDetails({this.appetite});
 
   final Appetite? appetite;
+
+  @override
+  List<CodedEnum> get options => [?appetite];
 
   @override
   Map<String, Object?> toJson() => _codes({'appetite': appetite});
@@ -103,6 +112,9 @@ final class WaterDetails extends EntryDetails {
   const WaterDetails({this.intake});
 
   final WaterIntake? intake;
+
+  @override
+  List<CodedEnum> get options => [?intake];
 
   @override
   Map<String, Object?> toJson() => _codes({'intake': intake});
@@ -127,6 +139,9 @@ final class PottyDetails extends EntryDetails {
   final UrineStatus? urine;
 
   @override
+  List<CodedEnum> get options => [?stool, ?urine];
+
+  @override
   Map<String, Object?> toJson() =>
       _codes({'kind': kind, 'stool': stool, 'urine': urine});
 
@@ -147,6 +162,9 @@ final class BrushingDetails extends EntryDetails {
   final CoatCondition? coat;
 
   @override
+  List<CodedEnum> get options => [?coat];
+
+  @override
   Map<String, Object?> toJson() => _codes({'coat': coat});
 
   @override
@@ -161,6 +179,9 @@ final class BathDetails extends EntryDetails {
   const BathDetails({this.where});
 
   final BathPlace? where;
+
+  @override
+  List<CodedEnum> get options => [?where];
 
   @override
   Map<String, Object?> toJson() => _codes({'where': where});
@@ -179,6 +200,9 @@ final class GroomingDetails extends EntryDetails {
   final GroomingPlace? where;
 
   @override
+  List<CodedEnum> get options => [?where];
+
+  @override
   Map<String, Object?> toJson() => _codes({'where': where});
 
   @override
@@ -193,6 +217,12 @@ final class ParasitePreventionDetails extends EntryDetails {
   const ParasitePreventionDetails({this.coverage = const {}});
 
   final Set<ParasiteCoverage> coverage;
+
+  @override
+  List<CodedEnum> get options => [
+    for (final value in ParasiteCoverage.values)
+      if (coverage.contains(value)) value,
+  ];
 
   @override
   Map<String, Object?> toJson() => {
@@ -218,6 +248,9 @@ final class EarCheckDetails extends EntryDetails {
   final EarCondition? ears;
 
   @override
+  List<CodedEnum> get options => [?ears];
+
+  @override
   Map<String, Object?> toJson() => _codes({'ears': ears});
 
   @override
@@ -232,6 +265,9 @@ final class OtherCareDetails extends EntryDetails {
   const OtherCareDetails({this.kind});
 
   final OtherCareKind? kind;
+
+  @override
+  List<CodedEnum> get options => [?kind];
 
   @override
   Map<String, Object?> toJson() => _codes({'kind': kind});
@@ -251,6 +287,9 @@ final class SymptomDetails extends EntryDetails {
   final SymptomStatus? status;
 
   @override
+  List<CodedEnum> get options => [?kind, ?status];
+
+  @override
   Map<String, Object?> toJson() => _codes({'kind': kind, 'status': status});
 
   @override
@@ -266,6 +305,9 @@ final class VetTestDetails extends EntryDetails {
 
   final VetTestKind? kind;
   final VetTestResult? result;
+
+  @override
+  List<CodedEnum> get options => [?kind, ?result];
 
   @override
   Map<String, Object?> toJson() => _codes({'kind': kind, 'result': result});

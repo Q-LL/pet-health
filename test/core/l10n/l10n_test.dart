@@ -203,7 +203,7 @@ void main() {
       expect(both(const EveryNMonths(12)), 'Every year | 每年');
       expect(
         both(OnWeekdays(Weekdays.maskOf(const [1, 3, 5]))),
-        'Mon, Wed, Fri | 每周一、三、五',
+        'Every Mon, Wed, Fri | 每周一、三、五',
       );
       expect(both(const OnWeekdays(Weekdays.all)), 'Every day | 每天');
       expect(

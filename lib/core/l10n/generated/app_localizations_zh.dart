@@ -814,4 +814,180 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get unitCups => '杯';
+
+  @override
+  String todayGreeting(String name) {
+    return '$name 今天好呀';
+  }
+
+  @override
+  String get todayQuickLog => '一键记录';
+
+  @override
+  String get todayForYou => '今天想说';
+
+  @override
+  String get todayNothingDue => '今天没有要做的事。';
+
+  @override
+  String captionMeals(int done, int total) {
+    return '$done / $total 餐';
+  }
+
+  @override
+  String captionTimes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次',
+      zero: '还没记',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String captionWater(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '加水 $count 次',
+      zero: '还没记',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String captionPoop(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '便便 $count 次',
+      zero: '还没记',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get captionDueToday => '今天要做';
+
+  @override
+  String captionWalking(int minutes) {
+    return '遛了 $minutes 分钟';
+  }
+
+  @override
+  String get captionTapToLog => '点一下记录';
+
+  @override
+  String get toastLogged => '已记下';
+
+  @override
+  String get toastWalkStarted => '开始遛狗了';
+
+  @override
+  String get toastWalkFinished => '遛完了';
+
+  @override
+  String get toastUndo => '撤销';
+
+  @override
+  String get toastMore => '补充';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String cardDaysSince(int days) {
+    return '距离上次已经 $days 天了。';
+  }
+
+  @override
+  String cardOnTodaysList(String name) {
+    return '今天安排了$name。';
+  }
+
+  @override
+  String get cardLogIt => '记一次';
+
+  @override
+  String get cardLater => '晚点提醒';
+
+  @override
+  String get sheetAddDetails => '补充细节';
+
+  @override
+  String sheetLoggedAt(String time) {
+    return '已记下 · $time';
+  }
+
+  @override
+  String get sheetTime => '时间';
+
+  @override
+  String get sheetAddNote => '加一句备注';
+
+  @override
+  String get sheetNote => '备注';
+
+  @override
+  String get sheetDone => '完成';
+
+  @override
+  String get sheetSave => '保存';
+
+  @override
+  String get sheetClose => '关闭';
+
+  @override
+  String get sheetAmount => '数量';
+
+  @override
+  String get sheetName => '名称';
+
+  @override
+  String get sheetProduct => '药品名（可选）';
+
+  @override
+  String get fieldAppetite => '吃得怎么样';
+
+  @override
+  String get fieldIntake => '和平时比';
+
+  @override
+  String get fieldLooks => '看起来';
+
+  @override
+  String get fieldCoat => '毛发';
+
+  @override
+  String get fieldWhere => '在哪里';
+
+  @override
+  String get fieldEars => '耳朵';
+
+  @override
+  String get fieldWhat => '项目';
+
+  @override
+  String get fieldNoticed => '看到的表现';
+
+  @override
+  String get fieldTrend => '和之前比';
+
+  @override
+  String get fieldResult => '结果';
+
+  @override
+  String get fieldCovers => '覆盖范围';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitLb => 'lb';
+
+  @override
+  String get unitJin => '斤';
 }
