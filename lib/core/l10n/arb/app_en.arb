@@ -1405,5 +1405,183 @@
   "stepperMore": "More",
   "@stepperMore": {
     "description": "Screen reader name of the plus button."
+  },
+  "petSwitch": "Switch dog",
+  "@petSwitch": {
+    "description": "Button: choose another dog."
+  },
+  "petAdd": "Add a dog",
+  "@petAdd": {
+    "description": "Button: start onboarding for another dog."
+  },
+  "petEdit": "Edit profile",
+  "@petEdit": {
+    "description": "Button and title: edit the dog's profile."
+  },
+  "petNeutered": "Neutered",
+  "@petNeutered": {
+    "description": "Neutered or spayed."
+  },
+  "petAgeYearsMonths": "{years, plural, =1{1 yr} other{{years} yrs}} {months} mo",
+  "@petAgeYearsMonths": {
+    "description": "The dog's age in years and months.",
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "petAgeMonths": "{months} mo",
+  "@petAgeMonths": {
+    "description": "The dog's age when under one year.",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "petHomeSince": "Home since {date}",
+  "@petHomeSince": {
+    "description": "When the dog came home.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "petWeight": "Weight",
+  "@petWeight": {
+    "description": "Title of the weight card."
+  },
+  "petWeightNone": "No weigh-ins yet",
+  "@petWeightNone": {
+    "description": "Shown when there is no weight entry."
+  },
+  "petWeightRecent": "{count, plural, =1{Last 90 days · 1 weigh-in} other{Last 90 days · {count} weigh-ins}}",
+  "@petWeightRecent": {
+    "description": "How many weigh-ins in the last 90 days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetsTitle": "Routine · used by quick log",
+  "@presetsTitle": {
+    "description": "Title of the routine card."
+  },
+  "presetMeal": "Each meal",
+  "@presetMeal": {
+    "description": "Routine row: portion per meal."
+  },
+  "presetMealsPerDay": "Meals a day",
+  "@presetMealsPerDay": {
+    "description": "Routine row: meals per day."
+  },
+  "presetBowl": "Water bowl",
+  "@presetBowl": {
+    "description": "Routine row: water bowl size."
+  },
+  "presetQuick": "On Today",
+  "@presetQuick": {
+    "description": "Routine row: which quick log buttons Today shows."
+  },
+  "presetQuickHint": "Tap in the order you want them, up to 8.",
+  "@presetQuickHint": {
+    "description": "Hint for choosing quick log buttons."
+  },
+  "presetNotSet": "Not set",
+  "@presetNotSet": {
+    "description": "A routine value that is empty."
+  },
+  "parasiteCardTitle": "Parasite prevention",
+  "@parasiteCardTitle": {
+    "description": "Title of the parasite card on the profile."
+  },
+  "parasiteCardHint": "Set as your vet recommends",
+  "@parasiteCardHint": {
+    "description": "Subtitle of the parasite card."
+  },
+  "parasiteSummaryScheduled": "Scheduled · {schedule}",
+  "@parasiteSummaryScheduled": {
+    "description": "Parasite approach: doses on a schedule.",
+    "placeholders": {
+      "schedule": {
+        "type": "String"
+      }
+    }
+  },
+  "parasiteSummaryTests": "Vet tests · {schedule}",
+  "@parasiteSummaryTests": {
+    "description": "Parasite approach: regular tests.",
+    "placeholders": {
+      "schedule": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title of the settings page; screen reader name of the gear button."
+  },
+  "profileDelete": "Delete this profile",
+  "@profileDelete": {
+    "description": "Button: delete the dog's profile."
+  },
+  "profileDeleteConfirm": "Delete {name}'s profile? All logs, plans and photos will be deleted. This can't be undone.",
+  "@profileDeleteConfirm": {
+    "description": "Confirmation before deleting a profile.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "breedChangedApply": "The breed changed. Regenerate the default care plans for the new breed? Plans you made or edited stay as they are.",
+  "@breedChangedApply": {
+    "description": "Asked after the breed group changes."
+  },
+  "actionRegenerate": "Regenerate",
+  "@actionRegenerate": {
+    "description": "Button: regenerate default plans."
+  },
+  "actionKeep": "Keep as is",
+  "@actionKeep": {
+    "description": "Button: keep plans unchanged."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings section: app language."
+  },
+  "settingsUnits": "Units",
+  "@settingsUnits": {
+    "description": "Settings section: units."
+  },
+  "settingsUnitSystem": "Unit system",
+  "@settingsUnitSystem": {
+    "description": "Settings row: metric or imperial."
+  },
+  "settingsWeightUnit": "Weight",
+  "@settingsWeightUnit": {
+    "description": "Settings row: weight unit."
+  },
+  "settingsWaterUnit": "Water",
+  "@settingsWaterUnit": {
+    "description": "Settings row: water unit."
+  },
+  "settingsFoodUnit": "Food portions",
+  "@settingsFoodUnit": {
+    "description": "Settings row: default food unit."
+  },
+  "settingsDateFormat": "Date format",
+  "@settingsDateFormat": {
+    "description": "Settings section: date order."
+  },
+  "settingsFollowUnitSystem": "Match unit system",
+  "@settingsFollowUnitSystem": {
+    "description": "Option: use the unit system's default unit."
   }
 }

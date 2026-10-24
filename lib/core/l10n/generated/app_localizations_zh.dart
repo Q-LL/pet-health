@@ -1088,4 +1088,123 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get stepperMore => '增加';
+
+  @override
+  String get petSwitch => '切换狗狗';
+
+  @override
+  String get petAdd => '添加一只狗狗';
+
+  @override
+  String get petEdit => '编辑资料';
+
+  @override
+  String get petNeutered => '已绝育';
+
+  @override
+  String petAgeYearsMonths(int years, int months) {
+    return '$years 岁 $months 个月';
+  }
+
+  @override
+  String petAgeMonths(int months) {
+    return '$months 个月';
+  }
+
+  @override
+  String petHomeSince(String date) {
+    return '$date 到家';
+  }
+
+  @override
+  String get petWeight => '体重';
+
+  @override
+  String get petWeightNone => '还没称过';
+
+  @override
+  String petWeightRecent(int count) {
+    return '近 90 天 · 记了 $count 次';
+  }
+
+  @override
+  String get presetsTitle => '习惯预设 · 一键记录用';
+
+  @override
+  String get presetMeal => '每餐';
+
+  @override
+  String get presetMealsPerDay => '一天几餐';
+
+  @override
+  String get presetBowl => '水碗';
+
+  @override
+  String get presetQuick => '首页显示';
+
+  @override
+  String get presetQuickHint => '按想要的顺序点选，最多 8 个。';
+
+  @override
+  String get presetNotSet => '未设置';
+
+  @override
+  String get parasiteCardTitle => '驱虫方式';
+
+  @override
+  String get parasiteCardHint => '按医生的建议设置';
+
+  @override
+  String parasiteSummaryScheduled(String schedule) {
+    return '按时用药 · $schedule';
+  }
+
+  @override
+  String parasiteSummaryTests(String schedule) {
+    return '定期检查 · $schedule';
+  }
+
+  @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get profileDelete => '删除档案';
+
+  @override
+  String profileDeleteConfirm(String name) {
+    return '删除 $name 的档案？所有记录、计划和照片都会删除，无法恢复。';
+  }
+
+  @override
+  String get breedChangedApply => '品种变了，要按新品种重新生成默认的护理计划吗？你自己建的或改过的计划不受影响。';
+
+  @override
+  String get actionRegenerate => '重新生成';
+
+  @override
+  String get actionKeep => '保持不变';
+
+  @override
+  String get settingsLanguage => '语言';
+
+  @override
+  String get settingsUnits => '单位';
+
+  @override
+  String get settingsUnitSystem => '单位制';
+
+  @override
+  String get settingsWeightUnit => '体重';
+
+  @override
+  String get settingsWaterUnit => '水量';
+
+  @override
+  String get settingsFoodUnit => '食物份量';
+
+  @override
+  String get settingsDateFormat => '日期格式';
+
+  @override
+  String get settingsFollowUnitSystem => '跟随单位制';
 }

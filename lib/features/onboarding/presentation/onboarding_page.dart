@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/router.dart';
 
 import '../../../core/design/design.dart';
-import '../../../core/format/date_display.dart';
 import '../../../core/l10n/app_locale.dart';
 import '../../../core/l10n/labels.dart';
-import '../../../core/l10n/unit_format.dart';
 import '../../../core/units/units.dart';
 import '../../entries/domain/entry_codes.dart';
-import '../../pets/domain/breed_catalog.dart';
 import '../../pets/domain/pet_codes.dart';
+import '../../pets/presentation/pet_fields.dart';
+import '../../plans/presentation/parasite_choice_card.dart';
 import '../../settings/application/display_settings.dart';
+import '../../settings/data/preferences_repository.dart';
 import '../application/onboarding_service.dart';
 import '../domain/onboarding_draft.dart';
 
@@ -54,12 +56,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     }
     setState(() => _saving = true);
     try {
-      // 建好后路由会自动从引导页转到今天页。
-      await ref.read(onboardingServiceProvider).finish(_draft);
+      // 第一只狗狗建好后，路由会自动从引导页转到今天页。
+      final pet = await ref.read(onboardingServiceProvider).finish(_draft);
+      if (_adding) {
+        // 添加的狗狗直接选中，回到今天页看它。
+        await ref.read(preferencesRepositoryProvider).setSelectedPet(pet.id);
+        if (mounted) context.go(Routes.today);
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
+
+  bool get _adding =>
+      GoRouterState.of(context).uri.queryParameters['add'] == '1';
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +145,14 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               ),
               child: Row(
                 children: [
+                  if (_step == 0 && _adding)
+                    TextButton(
+                      onPressed: () => context.go(Routes.pet),
+                      style: TextButton.styleFrom(
+                        foregroundColor: PawColors.inkMuted,
+                      ),
+                      child: Text(l.actionCancel),
+                    ),
                   if (_step > 0)
                     TextButton(
                       onPressed: _saving ? null : () => setState(() => _step--),
@@ -273,241 +291,64 @@ class _NameStep extends StatelessWidget {
   }
 }
 
-class _BreedStep extends StatefulWidget {
+class _BreedStep extends StatelessWidget {
   const _BreedStep({required this.draft, required this.onChanged});
 
   final OnboardingDraft draft;
   final DraftUpdate onChanged;
 
   @override
-  State<_BreedStep> createState() => _BreedStepState();
+  Widget build(BuildContext context) => _StepScaffold(
+    title: AppLocalizations.of(context).onboardingBreedTitle(draft.name.trim()),
+    children: [
+      BreedSelector(
+        breedCode: draft.breedCode,
+        breedName: draft.breedName,
+        breedGroup: draft.breedGroup,
+        onBreed: (code) => onChanged(
+          (d) => d.copyWith(
+            breedCode: () => code,
+            breedName: () => null,
+            breedGroup: () => null,
+          ),
+        ),
+        onOther: () => onChanged(
+          (d) => d.copyWith(
+            breedCode: () => null,
+            breedGroup: () => d.breedGroup ?? BreedGroup.mixed,
+          ),
+        ),
+        onName: (name) => onChanged((d) => d.copyWith(breedName: () => name)),
+        onGroup: (group) =>
+            onChanged((d) => d.copyWith(breedGroup: () => group)),
+      ),
+    ],
+  );
 }
 
-class _BreedStepState extends State<_BreedStep> {
-  var _query = '';
-  late var _other =
-      widget.draft.breedCode == null && widget.draft.breedGroup != null;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
-    final draft = widget.draft;
-    final query = _query.trim().toLowerCase();
-    final breeds = [
-      for (final code in breedCatalog.keys)
-        if (query.isEmpty || l.breed(code)!.toLowerCase().contains(query)) code,
-    ];
-
-    return _StepScaffold(
-      title: l.onboardingBreedTitle(draft.name.trim()),
-      children: [
-        TextField(
-          decoration: InputDecoration(
-            hintText: l.onboardingBreedSearch,
-            prefixIcon: const Icon(Icons.search_rounded),
-          ),
-          onChanged: (value) => setState(() => _query = value),
-        ),
-        const SizedBox(height: PawSpace.md),
-        for (final code in breeds) ...[
-          OptionTile(
-            label: l.breed(code)!,
-            selected: !_other && draft.breedCode == code,
-            onTap: () {
-              setState(() => _other = false);
-              widget.onChanged(
-                (d) => d.copyWith(
-                  breedCode: () => code,
-                  breedName: () => null,
-                  breedGroup: () => null,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: PawSpace.sm),
-        ],
-        OptionTile(
-          label: l.onboardingBreedOther,
-          selected: _other,
-          onTap: () {
-            setState(() => _other = true);
-            widget.onChanged(
-              (d) => d.copyWith(
-                breedCode: () => null,
-                breedGroup: () => d.breedGroup ?? BreedGroup.mixed,
-              ),
-            );
-          },
-        ),
-        if (_other) ...[
-          const SizedBox(height: PawSpace.lg),
-          _Label(l.onboardingBreedOtherName),
-          TextFormField(
-            initialValue: draft.breedName,
-            maxLength: 40,
-            decoration: const InputDecoration(counterText: ''),
-            onChanged: (value) =>
-                widget.onChanged((d) => d.copyWith(breedName: () => value)),
-          ),
-          const SizedBox(height: PawSpace.lg),
-          _Label(l.onboardingBreedGroupLabel),
-          Text(l.onboardingBreedGroupHint, style: text.bodySmall),
-          const SizedBox(height: 10),
-          for (final group in BreedGroup.values) ...[
-            OptionTile(
-              label: l.breedGroup(group),
-              selected: draft.breedGroup == group,
-              onTap: () =>
-                  widget.onChanged((d) => d.copyWith(breedGroup: () => group)),
-            ),
-            const SizedBox(height: PawSpace.sm),
-          ],
-        ] else if (draft.breedCode case final code?) ...[
-          const SizedBox(height: PawSpace.md),
-          Text(
-            '${l.breedGroup(breedGroupFor(code))} · ${l.onboardingBreedGroupHint}',
-            style: text.bodySmall,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _DatesStep extends ConsumerWidget {
+class _DatesStep extends StatelessWidget {
   const _DatesStep({required this.draft, required this.onChanged});
 
   final OnboardingDraft draft;
   final DraftUpdate onChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final dateFormat = ref.watch(displayDateFormatProvider);
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final monthOnly = draft.birthPrecision == BirthPrecision.month;
-
-    String? show(DateTime? date, {bool month = false}) => date == null
-        ? null
-        : month
-        ? DateFormat.yMMM(locale).format(date)
-        : formatDisplayDate(date, dateFormat);
-
-    Future<DateTime?> pick(DateTime? initial) {
-      final today = DateUtils.dateOnly(DateTime.now());
-      return showDatePicker(
-        context: context,
-        initialDate: initial ?? today,
-        firstDate: DateTime(1990),
-        lastDate: today,
-      );
-    }
-
-    return _StepScaffold(
-      title: l.onboardingDatesTitle,
-      children: [
-        _DateField(
-          label: l.onboardingBirthday,
-          value: show(draft.birthDate, month: monthOnly),
-          onPick: () async {
-            final date = await pick(draft.birthDate);
-            if (date != null) {
-              onChanged((d) => d.copyWith(birthDate: () => date));
-            }
-          },
-          onClear: () => onChanged((d) => d.copyWith(birthDate: () => null)),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(l.onboardingBirthdayMonthOnly),
-          value: monthOnly,
-          onChanged: (value) => onChanged(
-            (d) => d.copyWith(
-              birthPrecision: value ? BirthPrecision.month : BirthPrecision.day,
-            ),
-          ),
-        ),
-        const SizedBox(height: PawSpace.lg),
-        _DateField(
-          label: l.onboardingHomeDate,
-          hint: l.onboardingHomeDateHint,
-          value: show(draft.homeDate),
-          onPick: () async {
-            final date = await pick(draft.homeDate);
-            if (date != null) {
-              onChanged((d) => d.copyWith(homeDate: () => date));
-            }
-          },
-          onClear: () => onChanged((d) => d.copyWith(homeDate: () => null)),
-        ),
-      ],
-    );
-  }
-}
-
-class _DateField extends StatelessWidget {
-  const _DateField({
-    required this.label,
-    required this.value,
-    required this.onPick,
-    required this.onClear,
-    this.hint,
-  });
-
-  final String label;
-  final String? hint;
-  final String? value;
-  final VoidCallback onPick;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
-    final value = this.value;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _Label(label),
-        if (hint case final hint?) ...[
-          Text(hint, style: text.bodySmall),
-          const SizedBox(height: 10),
-        ],
-        Material(
-          color: PawColors.surface,
-          borderRadius: BorderRadius.circular(PawRadii.tile),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(PawRadii.tile),
-            onTap: onPick,
-            child: SizedBox(
-              height: 58,
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      value ?? l.onboardingNotSet,
-                      style: text.bodyLarge?.copyWith(
-                        color: value == null ? PawColors.inkMuted : null,
-                        fontWeight: value == null ? null : FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  if (value != null)
-                    TextButton(
-                      onPressed: onClear,
-                      child: Text(l.onboardingClear),
-                    ),
-                  const SizedBox(width: 6),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => _StepScaffold(
+    title: AppLocalizations.of(context).onboardingDatesTitle,
+    children: [
+      PetDateFields(
+        birthDate: draft.birthDate,
+        birthPrecision: draft.birthPrecision,
+        homeDate: draft.homeDate,
+        onBirthDate: (date) =>
+            onChanged((d) => d.copyWith(birthDate: () => date)),
+        onBirthPrecision: (precision) =>
+            onChanged((d) => d.copyWith(birthPrecision: precision)),
+        onHomeDate: (date) =>
+            onChanged((d) => d.copyWith(homeDate: () => date)),
+      ),
+    ],
+  );
 }
 
 class _HabitsStep extends ConsumerWidget {
@@ -666,7 +507,7 @@ class _ParasiteStep extends StatelessWidget {
       body: l.onboardingParasiteBody,
       children: [
         for (final coverage in _order) ...[
-          _ParasiteCard(
+          ParasiteChoiceCard(
             coverage: coverage,
             choice: draft.parasite(coverage),
             onChanged: (choice) => onChanged(
@@ -676,101 +517,6 @@ class _ParasiteStep extends StatelessWidget {
           const SizedBox(height: PawSpace.md),
         ],
       ],
-    );
-  }
-}
-
-class _ParasiteCard extends ConsumerWidget {
-  const _ParasiteCard({
-    required this.coverage,
-    required this.choice,
-    required this.onChanged,
-  });
-
-  final ParasiteCoverage coverage;
-  final ParasiteChoice choice;
-  final ValueChanged<ParasiteChoice> onChanged;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
-    final dateFormat = ref.watch(displayDateFormatProvider);
-    final hint = switch ((coverage, choice.mode)) {
-      (ParasiteCoverage.heartworm, ParasiteMode.scheduled) =>
-        l.parasiteHeartwormTestFirst,
-      (ParasiteCoverage.heartworm, ParasiteMode.tests) =>
-        l.parasiteHeartwormTestsHint,
-      (ParasiteCoverage.intestinal, ParasiteMode.tests) =>
-        l.parasiteIntestinalTestsHint,
-      _ => null,
-    };
-
-    String modeLabel(ParasiteMode mode) => switch (mode) {
-      ParasiteMode.scheduled => l.parasiteModeScheduled,
-      ParasiteMode.tests => l.parasiteModeTests,
-      ParasiteMode.none => l.parasiteModeNone,
-    };
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: PawColors.surface,
-        borderRadius: BorderRadius.circular(PawRadii.row),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: PawTones.peach.fill,
-                  shape: BoxShape.circle,
-                ),
-                child: PawIcon(PawGlyph.parasite, color: PawTones.peach.onFill),
-              ),
-              const SizedBox(width: PawSpace.md),
-              Text(l.parasiteCoverage(coverage), style: text.titleMedium),
-            ],
-          ),
-          const SizedBox(height: PawSpace.md),
-          PillSegmented<ParasiteMode>(
-            options: ParasiteOptions.modesFor(coverage),
-            selected: choice.mode,
-            labelOf: modeLabel,
-            onChanged: (mode) =>
-                onChanged(ParasiteOptions.defaultFor(coverage, mode)),
-          ),
-          if (choice.mode != ParasiteMode.none) ...[
-            const SizedBox(height: PawSpace.md),
-            Wrap(
-              spacing: PawSpace.sm,
-              runSpacing: PawSpace.sm,
-              children: [
-                for (final schedule in ParasiteOptions.schedulesFor(
-                  coverage,
-                  choice.mode,
-                ))
-                  PawChoiceChip(
-                    label: l.schedule(schedule, dateFormat: dateFormat),
-                    selected: schedule == choice.schedule,
-                    background: PawColors.subtle,
-                    onTap: () =>
-                        onChanged(ParasiteChoice(choice.mode, schedule)),
-                  ),
-              ],
-            ),
-          ],
-          if (hint != null) ...[
-            const SizedBox(height: PawSpace.md),
-            Text(hint, style: text.bodySmall),
-          ],
-        ],
-      ),
     );
   }
 }

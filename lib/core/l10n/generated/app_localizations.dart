@@ -1837,6 +1837,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More'**
   String get stepperMore;
+
+  /// Button: choose another dog.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch dog'**
+  String get petSwitch;
+
+  /// Button: start onboarding for another dog.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a dog'**
+  String get petAdd;
+
+  /// Button and title: edit the dog's profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get petEdit;
+
+  /// Neutered or spayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Neutered'**
+  String get petNeutered;
+
+  /// The dog's age in years and months.
+  ///
+  /// In en, this message translates to:
+  /// **'{years, plural, =1{1 yr} other{{years} yrs}} {months} mo'**
+  String petAgeYearsMonths(int years, int months);
+
+  /// The dog's age when under one year.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} mo'**
+  String petAgeMonths(int months);
+
+  /// When the dog came home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home since {date}'**
+  String petHomeSince(String date);
+
+  /// Title of the weight card.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get petWeight;
+
+  /// Shown when there is no weight entry.
+  ///
+  /// In en, this message translates to:
+  /// **'No weigh-ins yet'**
+  String get petWeightNone;
+
+  /// How many weigh-ins in the last 90 days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Last 90 days · 1 weigh-in} other{Last 90 days · {count} weigh-ins}}'**
+  String petWeightRecent(int count);
+
+  /// Title of the routine card.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine · used by quick log'**
+  String get presetsTitle;
+
+  /// Routine row: portion per meal.
+  ///
+  /// In en, this message translates to:
+  /// **'Each meal'**
+  String get presetMeal;
+
+  /// Routine row: meals per day.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals a day'**
+  String get presetMealsPerDay;
+
+  /// Routine row: water bowl size.
+  ///
+  /// In en, this message translates to:
+  /// **'Water bowl'**
+  String get presetBowl;
+
+  /// Routine row: which quick log buttons Today shows.
+  ///
+  /// In en, this message translates to:
+  /// **'On Today'**
+  String get presetQuick;
+
+  /// Hint for choosing quick log buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap in the order you want them, up to 8.'**
+  String get presetQuickHint;
+
+  /// A routine value that is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get presetNotSet;
+
+  /// Title of the parasite card on the profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite prevention'**
+  String get parasiteCardTitle;
+
+  /// Subtitle of the parasite card.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as your vet recommends'**
+  String get parasiteCardHint;
+
+  /// Parasite approach: doses on a schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled · {schedule}'**
+  String parasiteSummaryScheduled(String schedule);
+
+  /// Parasite approach: regular tests.
+  ///
+  /// In en, this message translates to:
+  /// **'Vet tests · {schedule}'**
+  String parasiteSummaryTests(String schedule);
+
+  /// Title of the settings page; screen reader name of the gear button.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Button: delete the dog's profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this profile'**
+  String get profileDelete;
+
+  /// Confirmation before deleting a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}\'s profile? All logs, plans and photos will be deleted. This can\'t be undone.'**
+  String profileDeleteConfirm(String name);
+
+  /// Asked after the breed group changes.
+  ///
+  /// In en, this message translates to:
+  /// **'The breed changed. Regenerate the default care plans for the new breed? Plans you made or edited stay as they are.'**
+  String get breedChangedApply;
+
+  /// Button: regenerate default plans.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get actionRegenerate;
+
+  /// Button: keep plans unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as is'**
+  String get actionKeep;
+
+  /// Settings section: app language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// Settings section: units.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get settingsUnits;
+
+  /// Settings row: metric or imperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit system'**
+  String get settingsUnitSystem;
+
+  /// Settings row: weight unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get settingsWeightUnit;
+
+  /// Settings row: water unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get settingsWaterUnit;
+
+  /// Settings row: default food unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Food portions'**
+  String get settingsFoodUnit;
+
+  /// Settings section: date order.
+  ///
+  /// In en, this message translates to:
+  /// **'Date format'**
+  String get settingsDateFormat;
+
+  /// Option: use the unit system's default unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Match unit system'**
+  String get settingsFollowUnitSystem;
 }
 
 class _AppLocalizationsDelegate

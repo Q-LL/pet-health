@@ -1164,4 +1164,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stepperMore => 'More';
+
+  @override
+  String get petSwitch => 'Switch dog';
+
+  @override
+  String get petAdd => 'Add a dog';
+
+  @override
+  String get petEdit => 'Edit profile';
+
+  @override
+  String get petNeutered => 'Neutered';
+
+  @override
+  String petAgeYearsMonths(int years, int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years yrs',
+      one: '1 yr',
+    );
+    return '$_temp0 $months mo';
+  }
+
+  @override
+  String petAgeMonths(int months) {
+    return '$months mo';
+  }
+
+  @override
+  String petHomeSince(String date) {
+    return 'Home since $date';
+  }
+
+  @override
+  String get petWeight => 'Weight';
+
+  @override
+  String get petWeightNone => 'No weigh-ins yet';
+
+  @override
+  String petWeightRecent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last 90 days · $count weigh-ins',
+      one: 'Last 90 days · 1 weigh-in',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get presetsTitle => 'Routine · used by quick log';
+
+  @override
+  String get presetMeal => 'Each meal';
+
+  @override
+  String get presetMealsPerDay => 'Meals a day';
+
+  @override
+  String get presetBowl => 'Water bowl';
+
+  @override
+  String get presetQuick => 'On Today';
+
+  @override
+  String get presetQuickHint => 'Tap in the order you want them, up to 8.';
+
+  @override
+  String get presetNotSet => 'Not set';
+
+  @override
+  String get parasiteCardTitle => 'Parasite prevention';
+
+  @override
+  String get parasiteCardHint => 'Set as your vet recommends';
+
+  @override
+  String parasiteSummaryScheduled(String schedule) {
+    return 'Scheduled · $schedule';
+  }
+
+  @override
+  String parasiteSummaryTests(String schedule) {
+    return 'Vet tests · $schedule';
+  }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get profileDelete => 'Delete this profile';
+
+  @override
+  String profileDeleteConfirm(String name) {
+    return 'Delete $name\'s profile? All logs, plans and photos will be deleted. This can\'t be undone.';
+  }
+
+  @override
+  String get breedChangedApply =>
+      'The breed changed. Regenerate the default care plans for the new breed? Plans you made or edited stay as they are.';
+
+  @override
+  String get actionRegenerate => 'Regenerate';
+
+  @override
+  String get actionKeep => 'Keep as is';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsUnits => 'Units';
+
+  @override
+  String get settingsUnitSystem => 'Unit system';
+
+  @override
+  String get settingsWeightUnit => 'Weight';
+
+  @override
+  String get settingsWaterUnit => 'Water';
+
+  @override
+  String get settingsFoodUnit => 'Food portions';
+
+  @override
+  String get settingsDateFormat => 'Date format';
+
+  @override
+  String get settingsFollowUnitSystem => 'Match unit system';
 }

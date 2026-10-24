@@ -19,6 +19,7 @@ class AppHarness {
   final PetHealthDatabase db;
   final DateTime? now;
   final List<Locale> locales;
+  var _mounted = false;
 
   /// 在真实时间里操作数据库；测试的假时间里等不到数据库的结果。
   Future<T?> seed<T>(WidgetTester tester, Future<T> Function() action) =>
@@ -28,6 +29,7 @@ class AppHarness {
   static const phoneSize = Size(390, 844);
 
   Future<void> pump(WidgetTester tester) async {
+    _mounted = true;
     tester.view.devicePixelRatio = 3;
     tester.view.physicalSize = phoneSize * 3;
     addTearDown(tester.view.reset);
@@ -61,7 +63,31 @@ class AppHarness {
     await tester.pumpAndSettle();
   }
 
+  /// 滚动到 [finder] 并再往上推一段，让它离开悬浮底栏的位置。
+  ///
+  /// 长列表只渲染屏幕附近的内容，所以要边滚边找；页面底部的内容会被
+  /// 悬浮底栏盖住，真实用户也会先往上滑一点再点。
+  ///
+  /// 有面板打开时，用 [within] 指定面板，滚动面板里的列表。
+  Future<void> scrollTo(
+    WidgetTester tester,
+    Finder finder, {
+    Finder? within,
+  }) async {
+    final scrollable = within == null
+        ? find.byType(Scrollable).first
+        : find.descendant(of: within, matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(finder, 200, scrollable: scrollable);
+    await tester.drag(scrollable, const Offset(0, -160));
+    await tester.pumpAndSettle();
+  }
+
+  /// 只卸载一次：已经卸载后再推进一帧，会让残留的刷新落到已卸载的界面上。
   Future<void> unmount(WidgetTester tester) async {
+    if (!_mounted) return;
+    _mounted = false;
+    // 先等还没送到的数据库更新，免得在卸载那一帧里触发刷新。
+    await settle(tester, rounds: 2);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   }

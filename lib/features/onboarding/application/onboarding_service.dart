@@ -57,37 +57,10 @@ class OnboardingService {
     return pet;
   });
 
-  /// 一类驱虫的选择对应的计划："按时用药"记驱虫，"定期检查"记检查。
+  /// 一类驱虫的选择对应的计划，见 [parasitePlanDraft]。
   static PlanDraft? parasitePlanFor(
     String petId,
     ParasiteCoverage coverage,
     ParasiteChoice choice,
-  ) {
-    final schedule = choice.schedule;
-    if (schedule == null) return null;
-    return switch (choice.mode) {
-      ParasiteMode.none => null,
-      ParasiteMode.scheduled => PlanDraft(
-        petId: petId,
-        entryType: EntryType.parasitePrevention,
-        entryKind: coverage.code,
-        schedule: schedule,
-      ),
-      ParasiteMode.tests => switch (coverage) {
-        ParasiteCoverage.intestinal => PlanDraft(
-          petId: petId,
-          entryType: EntryType.vetTest,
-          entryKind: VetTestKind.fecal.code,
-          schedule: schedule,
-        ),
-        ParasiteCoverage.heartworm => PlanDraft(
-          petId: petId,
-          entryType: EntryType.vetTest,
-          entryKind: VetTestKind.heartworm.code,
-          schedule: schedule,
-        ),
-        ParasiteCoverage.fleasTicks => null,
-      },
-    };
-  }
+  ) => parasitePlanDraft(petId, coverage, choice);
 }

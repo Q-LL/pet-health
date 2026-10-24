@@ -37,7 +37,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       final atWelcome = state.matchedLocation == Routes.welcome;
       if (!hasPet && !atWelcome) return Routes.welcome;
-      if (hasPet && atWelcome) return Routes.today;
+      // 已经有狗狗时，只有"添加一只狗狗"才进引导页。
+      final adding = state.uri.queryParameters['add'] == '1';
+      if (hasPet && atWelcome && !adding) return Routes.today;
       return null;
     },
     routes: [

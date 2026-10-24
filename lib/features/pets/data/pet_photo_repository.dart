@@ -152,8 +152,7 @@ class PetPhotoRepository {
                 updatedAt: now,
               ),
             );
-        if (makeAvatar) {
-        }
+        if (makeAvatar) {}
       });
     } on Object {
       await _storage.delete(payload.filePath);
