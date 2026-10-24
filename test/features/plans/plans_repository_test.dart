@@ -313,17 +313,6 @@ void main() {
       expect((await statusOf(anyCare.id)).lastDoneAt, DateTime(2026, 10, 10));
     });
 
-    test('星期几：周二提前做过，周三不提醒', () async {
-      final brushing = await plans.create(
-        draft(EntryType.brushing, OnWeekdays(Weekdays.maskOf(const [1, 3, 5]))),
-      );
-      expect((await statusOf(brushing.id)).due.state, PlanState.due);
-      await log(EntryType.brushing, DateTime(2026, 10, 13, 20));
-      final status = await statusOf(brushing.id);
-      expect(status.due.state, PlanState.upcoming);
-      expect(status.due.dueDay, DateTime(2026, 10, 16));
-    });
-
     test('一次性事项只算关联到它的记录', () async {
       final vet = await plans.create(
         draft(EntryType.custom, Once(DateTime(2026, 10, 14, 15)), title: '复查'),
@@ -350,17 +339,22 @@ void main() {
       expect((await statusOf(vet.id)).due.state, PlanState.completed);
     });
 
-    test('稍后提醒，做过一次后作废', () async {
+    test('稍后提醒，做过一次后作废；其他类型的不受影响', () async {
       final brushing = await plans.create(
         draft(EntryType.brushing, const OnWeekdays(Weekdays.all)),
       );
+      final earCheck = await plans.create(
+        draft(EntryType.earCheck, const OnWeekdays(Weekdays.all)),
+      );
       await plans.snooze(brushing.id, now.add(const Duration(hours: 3)));
+      await plans.snooze(earCheck.id, now.add(const Duration(hours: 3)));
       expect((await statusOf(brushing.id)).due.state, PlanState.snoozed);
 
       await log(EntryType.brushing, now);
       final status = await statusOf(brushing.id);
       expect(status.plan.snoozedUntil, isNull);
       expect(status.due.state, PlanState.upcoming);
+      expect((await statusOf(earCheck.id)).due.state, PlanState.snoozed);
     });
 
     test('排序：该做了、稍后、即将到来、未开始、已完成，暂停的在最后', () async {

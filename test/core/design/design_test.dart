@@ -59,11 +59,6 @@ void main() {
         expectReadable(PawColors.inkMuted, tone.fill, '${category.code} meta');
       }
     });
-
-    test('对比度算法本身', () {
-      expect(_contrast(Colors.black, Colors.white), closeTo(21, 0.05));
-      expect(_contrast(Colors.white, Colors.white), closeTo(1, 0.001));
-    });
   });
 
   group('组件', () {

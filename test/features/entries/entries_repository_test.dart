@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet_health/core/db/pet_health_database.dart';
@@ -7,7 +6,6 @@ import 'package:pet_health/features/entries/data/entries_repository.dart';
 import 'package:pet_health/features/entries/domain/entry.dart';
 import 'package:pet_health/features/entries/domain/entry_codes.dart';
 import 'package:pet_health/features/entries/domain/entry_details.dart';
-import 'package:pet_health/features/plans/domain/plan_schedule.dart';
 
 void main() {
   late PetHealthDatabase db;
@@ -334,34 +332,5 @@ void main() {
         throwsArgumentError,
       );
     });
-  });
-
-  test('做过一次后，同类型计划的稍后提醒作废', () async {
-    Future<void> addPlan(String id, EntryType type) => db
-        .into(db.plans)
-        .insert(
-          PlansCompanion.insert(
-            id: id,
-            petId: 'lucky',
-            entryType: type,
-            schedule: PlanScheduleKind.everyNDays,
-            intervalDays: const Value(1),
-            snoozedUntil: Value(now.add(const Duration(hours: 3)).toUtc()),
-            createdAt: now.toUtc(),
-            updatedAt: now.toUtc(),
-          ),
-        );
-    await addPlan('brush', EntryType.brushing);
-    await addPlan('bath', EntryType.bath);
-
-    await entries.create(
-      EntryDraft(petId: 'lucky', type: EntryType.brushing, occurredAt: now),
-    );
-
-    final plans = {
-      for (final row in await db.select(db.plans).get()) row.id: row,
-    };
-    expect(plans['brush']!.snoozedUntil, isNull);
-    expect(plans['bath']!.snoozedUntil, isNotNull);
   });
 }
