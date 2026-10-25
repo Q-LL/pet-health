@@ -76,7 +76,8 @@ void main() {
     final bath = row('洗澡');
     await tester.tap(find.descendant(of: bath, matching: find.text('记一次')));
     await app.settle(tester);
-    expect(find.textContaining('已记下 · 洗澡'), findsOneWidget);
+    expect(find.text('已记下'), findsOneWidget);
+    expect(find.textContaining('洗澡 · '), findsOneWidget);
     // 金毛每 6 周洗一次澡。
     expect(find.text('12月7日'), findsOneWidget);
     expect(find.textContaining('上次 10月26日'), findsOneWidget);

@@ -7,37 +7,40 @@ import '../tokens.dart';
 ///
 /// 点一下直接记录；长按打开补充面板。[due] 显示提醒小圆点，
 /// [justLogged] 在刚记完时显示绿色外圈和对勾。
+///
+/// 记录中心里用小一号、不带进度的版本：名称可以折成两行。
 class QuickLogButton extends StatelessWidget {
   const QuickLogButton({
     super.key,
     required this.glyph,
     required this.tone,
     required this.label,
-    required this.caption,
+    this.caption,
     required this.onTap,
     this.onLongPress,
     this.due = false,
     this.justLogged = false,
+    this.size = 70,
   });
 
   final PawGlyph glyph;
   final PawTone tone;
   final String label;
-  final String caption;
+  final String? caption;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final bool due;
   final bool justLogged;
-
-  static const _size = 70.0;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final highlight = due || justLogged;
+    final caption = this.caption;
     return Semantics(
       button: true,
-      label: '$label, $caption',
+      label: caption == null ? label : '$label, $caption',
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
@@ -51,8 +54,8 @@ class QuickLogButton extends StatelessWidget {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutBack,
-                width: _size,
-                height: _size,
+                width: size,
+                height: size,
                 decoration: BoxDecoration(
                   color: tone.fill,
                   shape: BoxShape.circle,
@@ -67,7 +70,7 @@ class QuickLogButton extends StatelessWidget {
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
                   children: [
-                    PawIcon(glyph, size: 32, color: tone.onFill),
+                    PawIcon(glyph, size: size * 0.46, color: tone.onFill),
                     if (justLogged)
                       const Positioned(top: -6, right: -6, child: _CheckBadge())
                     else if (due)
@@ -76,17 +79,27 @@ class QuickLogButton extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 7),
-              Text(label, style: text.titleSmall, maxLines: 1),
-              const SizedBox(height: 2),
               Text(
-                caption,
-                maxLines: 1,
+                label,
+                style: text.titleSmall,
+                maxLines: caption == null ? 2 : 1,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: text.labelSmall?.copyWith(
-                  color: highlight ? PawTones.mint.onFill : PawColors.inkMuted,
-                  fontWeight: highlight ? FontWeight.w600 : null,
-                ),
               ),
+              if (caption != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.labelSmall?.copyWith(
+                    color: highlight
+                        ? PawTones.mint.onFill
+                        : PawColors.inkMuted,
+                    fontWeight: highlight ? FontWeight.w600 : null,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -129,5 +142,32 @@ class _CheckBadge extends StatelessWidget {
       color: Colors.white,
       strokeWidth: 3.4,
     ),
+  );
+}
+
+/// 一键记录按钮的网格，每行四个；最后一行不满时空位留白，按钮大小不变。
+class QuickLogGrid extends StatelessWidget {
+  const QuickLogGrid({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (var start = 0; start < children.length; start += 4) ...[
+        if (start > 0) const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = start; i < start + 4; i++)
+              Expanded(
+                child: i < children.length
+                    ? children[i]
+                    : const SizedBox.shrink(),
+              ),
+          ],
+        ),
+      ],
+    ],
   );
 }

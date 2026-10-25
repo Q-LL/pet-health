@@ -9,6 +9,7 @@ import '../../../core/l10n/app_locale.dart';
 import '../../../core/l10n/labels.dart';
 import '../../../core/units/units.dart';
 import '../../settings/application/display_settings.dart';
+import '../application/quick_log.dart';
 import '../data/entries_repository.dart';
 import '../domain/entry.dart';
 import '../domain/entry_codes.dart';
@@ -17,12 +18,13 @@ import '../domain/entry_details.dart';
 /// 打开补充面板。
 ///
 /// 传 [entryId] 时是给已经记好的记录补充细节，关闭时保存；
-/// 不传时是新建一条，点"保存"才写入。
-Future<void> showEntrySheet(
+/// 不传时是新建一条，点"保存"才写入，返回 [Logged]；新建遛狗时也可以
+/// 现在出发，返回 [WalkStarted]。修改已有记录和直接关闭都返回 `null`。
+Future<QuickLogResult?> showEntrySheet(
   BuildContext context, {
   required EntryDraft draft,
   String? entryId,
-}) => showModalBottomSheet<void>(
+}) => showModalBottomSheet<QuickLogResult>(
   context: context,
   // 从最上层弹出，盖住悬浮底栏；否则底栏会挡住面板底部的按钮。
   useRootNavigator: true,
@@ -51,7 +53,17 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
   late double? _amount = widget.draft.amount;
   late PortionUnit? _unit = widget.draft.unit;
   late String _label = widget.draft.label ?? '';
+  late final double _initialMinutes = _walkMinutes(widget.draft);
+  late double? _minutes = _initialMinutes;
   var _saving = false;
+
+  /// 遛狗时长：已有的按实际时长，新补记的默认半小时。
+  static double _walkMinutes(EntryDraft draft) {
+    final start = draft.startedAt;
+    final end = draft.endedAt;
+    if (start == null || end == null) return 30;
+    return end.difference(start).inMinutes.clamp(1, 24 * 60).toDouble();
+  }
 
   EntryType get _type => widget.draft.type;
   bool get _editing => widget.entryId != null;
@@ -59,11 +71,24 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
   bool get _valid => switch (_type) {
     EntryType.weight => (_amount ?? 0) > 0,
     EntryType.custom => _label.trim().isNotEmpty,
+    EntryType.walk => (_minutes ?? 0) > 0,
     _ => true,
   };
 
+  /// 结束时间。开始时间和时长都没改时保留原来精确到秒的时长。
+  DateTime get _walkEnd {
+    final original = widget.draft.endedAt;
+    if (original != null &&
+        _occurredAt == widget.draft.occurredAt &&
+        _minutes == _initialMinutes) {
+      return original;
+    }
+    return _occurredAt.add(Duration(seconds: ((_minutes ?? 0) * 60).round()));
+  }
+
   EntryDraft get _result {
     final portion = _type == EntryType.meal || _type == EntryType.medication;
+    final walk = _type == EntryType.walk;
     final amount = _amount;
     return EntryDraft(
       petId: widget.draft.petId,
@@ -76,6 +101,9 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
       details: _details,
       label: _label,
       note: _note,
+      startedAt: walk ? _occurredAt : null,
+      endedAt: walk ? _walkEnd : null,
+      distanceM: walk ? widget.draft.distanceM : null,
     );
   }
 
@@ -86,10 +114,28 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
     try {
       final id = widget.entryId;
       if (id == null) {
-        await entries.create(_result);
+        final entry = await entries.create(_result);
+        if (mounted) Navigator.of(context).pop(Logged(entry));
       } else {
         await entries.update(id, _result);
+        if (mounted) Navigator.of(context).pop();
       }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// 不补记，现在出发开始计时。
+  Future<void> _startWalk() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      final entry = await ref
+          .read(entriesRepositoryProvider)
+          .startWalk(widget.draft.petId);
+      if (mounted) Navigator.of(context).pop(WalkStarted(entry));
+    } on ActiveWalkExists {
+      // 已经在遛了（比如在别处刚点了开始），不用再开始一次。
       if (mounted) Navigator.of(context).pop();
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -184,7 +230,9 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
               children: [
                 Expanded(
                   child: _FieldButton(
-                    label: l.sheetTime,
+                    label: _type == EntryType.walk
+                        ? l.sheetWalkStart
+                        : l.sheetTime,
                     value: time,
                     onTap: _pickTime,
                   ),
@@ -223,6 +271,13 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
               style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
               child: Text(_editing ? l.sheetDone : l.sheetSave),
             ),
+            if (_type == EntryType.walk && !_editing) ...[
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _saving ? null : _startWalk,
+                child: Text(l.walkStartNow),
+              ),
+            ],
           ],
         ),
       ),
@@ -445,6 +500,14 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
             ],
             unit: _unit ?? PortionUnit.tablet,
             onUnit: (unit) => setState(() => _unit = unit),
+          ),
+        ],
+        EntryType.walk => [
+          _AmountField(
+            label: l.fieldWalkDuration,
+            amount: _minutes,
+            onChanged: (value) => setState(() => _minutes = value),
+            suffix: l.unitMinutes,
           ),
         ],
         EntryType.vaccine || EntryType.custom => [

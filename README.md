@@ -86,3 +86,4 @@ flutter build web --no-pub --release
 | [数据结构](docs/V1_SCHEMA.md) | v1 表结构、选项 code、单位与设置、现算数据 |
 | [架构](docs/ARCHITECTURE.md) | 代码分层、媒体与平台边界、维护约定 |
 | [文案草稿](docs/COPY_DRAFT.md) | 中英文语气原则、记录项、每日卡片与年度回顾示例 |
+| [实机测试清单](docs/DEVICE_TESTING.md) | Web 上测不出来、要装到手机上确认的事项 |

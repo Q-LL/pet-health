@@ -1207,4 +1207,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsFollowUnitSystem => '跟随单位制';
+
+  @override
+  String get recordCenterTitle => '记一笔';
+
+  @override
+  String get recordGroupDaily => '日常';
+
+  @override
+  String get recordGroupCare => '护理';
+
+  @override
+  String get recordGroupHealth => '健康';
+
+  @override
+  String get recordGroupMore => '预防和其他';
+
+  @override
+  String get sheetWalkStart => '出发时间';
+
+  @override
+  String get fieldWalkDuration => '遛了多久';
+
+  @override
+  String get unitMinutes => '分钟';
+
+  @override
+  String get walkStartNow => '现在出发，开始计时';
 }

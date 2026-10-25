@@ -10,11 +10,10 @@ import '../../../core/format/date_display.dart';
 import '../../../core/l10n/app_locale.dart';
 import '../../../core/l10n/labels.dart';
 import '../../../core/l10n/unit_format.dart';
-import '../../entries/application/quick_log.dart';
 import '../../entries/data/entries_repository.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/domain/entry_codes.dart';
-import '../../entries/presentation/entry_sheet.dart';
+import '../../entries/presentation/log_flow.dart';
 import '../../plans/application/plan_providers.dart';
 import '../../plans/domain/parasite_choice.dart';
 import '../../plans/domain/plan.dart';
@@ -321,14 +320,8 @@ class _WeightCard extends ConsumerWidget {
     final latest = ref.watch(_latestWeightProvider).value;
     final recent = ref.watch(_recentWeightsProvider).value ?? const <Entry>[];
 
-    Future<void> log() => showEntrySheet(
-      context,
-      draft: QuickLog.draftFor(
-        petId: pet.id,
-        type: EntryType.weight,
-        at: ref.read(clockProvider)(),
-      ),
-    );
+    Future<void> log() =>
+        openNewEntry(context, ref, petId: pet.id, type: EntryType.weight);
 
     return _Card(
       title: l.petWeight,

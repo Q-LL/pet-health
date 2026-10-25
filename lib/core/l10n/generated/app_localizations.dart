@@ -2047,6 +2047,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match unit system'**
   String get settingsFollowUnitSystem;
+
+  /// Title of the record center opened from the center + button.
+  ///
+  /// In en, this message translates to:
+  /// **'Log something'**
+  String get recordCenterTitle;
+
+  /// Record center group: everyday things.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get recordGroupDaily;
+
+  /// Record center group: grooming and care.
+  ///
+  /// In en, this message translates to:
+  /// **'Care'**
+  String get recordGroupCare;
+
+  /// Record center group: weight, symptoms, medication, vet tests.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get recordGroupHealth;
+
+  /// Record center group: parasite prevention, vaccines, other care, custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevention & more'**
+  String get recordGroupMore;
+
+  /// Time field label for a walk: when it started.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get sheetWalkStart;
+
+  /// Walk duration field label.
+  ///
+  /// In en, this message translates to:
+  /// **'How long'**
+  String get fieldWalkDuration;
+
+  /// Suffix after a number of minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get unitMinutes;
+
+  /// Button in the walk sheet: start timing a walk now instead of logging a past one.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a walk now'**
+  String get walkStartNow;
 }
 
 class _AppLocalizationsDelegate

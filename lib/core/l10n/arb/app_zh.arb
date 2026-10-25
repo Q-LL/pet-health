@@ -324,5 +324,14 @@
   "settingsWaterUnit": "水量",
   "settingsFoodUnit": "食物份量",
   "settingsDateFormat": "日期格式",
-  "settingsFollowUnitSystem": "跟随单位制"
+  "settingsFollowUnitSystem": "跟随单位制",
+  "recordCenterTitle": "记一笔",
+  "recordGroupDaily": "日常",
+  "recordGroupCare": "护理",
+  "recordGroupHealth": "健康",
+  "recordGroupMore": "预防和其他",
+  "sheetWalkStart": "出发时间",
+  "fieldWalkDuration": "遛了多久",
+  "unitMinutes": "分钟",
+  "walkStartNow": "现在出发，开始计时"
 }

@@ -133,6 +133,13 @@ class PetsRepository {
           .watchSingleOrNull()
           .map((row) => row == null ? null : _toPresets(row));
 
+  Future<PetPresets?> getPresets(String petId) async {
+    final row = await (_db.select(
+      _db.petPresets,
+    )..where((t) => t.petId.equals(petId))).getSingleOrNull();
+    return row == null ? null : _toPresets(row);
+  }
+
   Future<PetPresets> savePresets(String petId, PetPresetsDraft draft) async {
     _validatePresets(draft);
     await _db

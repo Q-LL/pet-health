@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -13,12 +12,11 @@ import '../../../core/l10n/labels.dart';
 import '../../../core/l10n/unit_format.dart';
 import '../../cards/domain/card_codes.dart';
 import '../../entries/application/quick_log.dart';
-import '../../entries/data/entries_repository.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/domain/entry_codes.dart';
 import '../../entries/domain/entry_details.dart';
-import '../../entries/presentation/entry_sheet.dart';
-import '../../entries/presentation/entry_summary.dart';
+import '../../entries/application/log_toast.dart';
+import '../../entries/presentation/log_flow.dart';
 import '../../pets/application/current_pet.dart';
 import '../../pets/data/pets_repository.dart';
 import '../../pets/domain/pet.dart';
@@ -38,121 +36,9 @@ class TodayPage extends ConsumerStatefulWidget {
   ConsumerState<TodayPage> createState() => _TodayPageState();
 }
 
-/// 底部提示条的内容。
-class _Toast {
-  const _Toast({
-    required this.title,
-    required this.entry,
-    required this.undoable,
-  });
-
-  final String title;
-  final Entry entry;
-  final bool undoable;
-}
-
 class _TodayPageState extends ConsumerState<TodayPage> {
-  static const _toastDuration = Duration(seconds: 6);
   static const _snooze = Duration(hours: 3);
   static const _maxCards = 3;
-
-  _Toast? _toast;
-  Timer? _toastTimer;
-
-  @override
-  void dispose() {
-    _toastTimer?.cancel();
-    super.dispose();
-  }
-
-  void _showToast(_Toast toast) {
-    _toastTimer?.cancel();
-    setState(() => _toast = toast);
-    _toastTimer = Timer(_toastDuration, _hideToast);
-  }
-
-  void _hideToast() {
-    _toastTimer?.cancel();
-    if (mounted) setState(() => _toast = null);
-  }
-
-  Future<void> _quickLog(
-    Pet pet,
-    EntryType type, {
-    String? planId,
-    String? kind,
-  }) async {
-    final l = AppLocalizations.of(context);
-    final result = await ref
-        .read(quickLogProvider)
-        .log(
-          petId: pet.id,
-          type: type,
-          presets: ref.read(currentPresetsProvider).value,
-          planId: planId,
-          kind: kind,
-        );
-    if (!mounted) return;
-    switch (result) {
-      case Logged(:final entry):
-        _showToast(_Toast(title: l.toastLogged, entry: entry, undoable: true));
-      case WalkStarted(:final entry):
-        _showToast(
-          _Toast(title: l.toastWalkStarted, entry: entry, undoable: true),
-        );
-      case WalkFinished(:final entry):
-        // 结束遛狗不提供撤销：撤销会把整次遛狗删掉。
-        _showToast(
-          _Toast(title: l.toastWalkFinished, entry: entry, undoable: false),
-        );
-      case NeedsDetails(:final draft):
-        await showEntrySheet(context, draft: draft);
-    }
-  }
-
-  Future<void> _openNew(Pet pet, EntryType type) {
-    if (type == EntryType.walk) return _quickLog(pet, type);
-    return showEntrySheet(
-      context,
-      draft: QuickLog.draftFor(
-        petId: pet.id,
-        type: type,
-        at: ref.read(clockProvider)(),
-        presets: ref.read(currentPresetsProvider).value,
-      ),
-    );
-  }
-
-  Future<void> _undo(_Toast toast) async {
-    _hideToast();
-    await ref.read(entriesRepositoryProvider).delete(toast.entry.id);
-  }
-
-  Future<void> _addDetails(_Toast toast) async {
-    _hideToast();
-    final entry = await ref
-        .read(entriesRepositoryProvider)
-        .getById(toast.entry.id);
-    if (entry == null || !mounted || entry.isActiveWalk) return;
-    await showEntrySheet(
-      context,
-      entryId: entry.id,
-      draft: EntryDraft(
-        petId: entry.petId,
-        type: entry.type,
-        occurredAt: entry.occurredAt,
-        planId: entry.planId,
-        amount: entry.amount,
-        unit: entry.unit,
-        details: entry.details,
-        label: entry.label,
-        note: entry.note,
-        startedAt: entry.startedAt,
-        endedAt: entry.endedAt,
-        distanceM: entry.distanceM,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,101 +57,76 @@ class _TodayPageState extends ConsumerState<TodayPage> {
         if (!status.plan.paused && status.due.state == PlanState.due) status,
     ];
     final quickTypes = presets?.quickTypes ?? PetsRepository.defaultQuickTypes;
-    final toast = _toast;
-    final bottomInset = math.max(MediaQuery.viewPaddingOf(context).bottom, 16);
+    final toast = ref.watch(logToastProvider);
 
-    return Stack(
-      children: [
-        SafeArea(
-          bottom: false,
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              PawSpace.page,
-              20,
-              PawSpace.page,
-              navClearance + (toast == null ? 0 : 76),
-            ),
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          PawSpace.page,
+          20,
+          PawSpace.page,
+          // 提示条出现时多留一段，免得挡住最下面的卡片。
+          navClearance + (toast == null ? 0 : 76),
+        ),
+        children: [
+          _Hero(pet: pet),
+          const SizedBox(height: 22),
+          Text(l.todayQuickLog, style: text.titleLarge),
+          const SizedBox(height: 12),
+          QuickLogGrid(
             children: [
-              _Hero(pet: pet),
-              const SizedBox(height: 22),
-              Text(l.todayQuickLog, style: text.titleLarge),
-              const SizedBox(height: 12),
-              _QuickGrid(
-                children: [
-                  for (final type in quickTypes)
-                    QuickLogButton(
-                      glyph: PawGlyph.forEntry(type),
-                      tone: PawTones.forEntry(type),
-                      label: l.entryType(type),
-                      caption: _caption(l, type, entries, presets, walk, due),
-                      due:
-                          _hasDue(due, type) &&
-                          !entries.any((e) => e.type == type),
-                      justLogged: toast?.entry.type == type,
-                      onTap: () => _quickLog(pet, type),
-                      onLongPress: () => _openNew(pet, type),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 26),
-              Text(l.todayForYou, style: text.titleLarge),
-              const SizedBox(height: 12),
-              if (due.isEmpty)
-                DailyCard(
-                  tone: CardTone.of(CardCategory.moment),
-                  tag: l.cardCategoryMoment,
-                  body: l.todayNothingDue,
-                  sticker: StickerArt.star,
-                  stickerTurns: -0.022,
-                )
-              else
-                for (final status in due.take(_maxCards)) ...[
-                  _ComingUpCard(
-                    status: status,
-                    onLog: () => _quickLog(
-                      pet,
-                      status.plan.entryType,
-                      planId: status.plan.id,
-                      kind: status.plan.entryKind,
-                    ),
-                    onLater: () => ref
-                        .read(plansRepositoryProvider)
-                        .snooze(
-                          status.plan.id,
-                          ref.read(clockProvider)().add(_snooze),
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
+              for (final type in quickTypes)
+                QuickLogButton(
+                  glyph: PawGlyph.forEntry(type),
+                  tone: PawTones.forEntry(type),
+                  label: l.entryType(type),
+                  caption: _caption(l, type, entries, presets, walk, due),
+                  due:
+                      _hasDue(due, type) && !entries.any((e) => e.type == type),
+                  justLogged: toast?.entry.type == type,
+                  onTap: () =>
+                      quickLogEntry(context, ref, petId: pet.id, type: type),
+                  onLongPress: () =>
+                      openNewEntry(context, ref, petId: pet.id, type: type),
+                ),
             ],
           ),
-        ),
-        if (toast != null)
-          Positioned(
-            left: 14,
-            right: 14,
-            bottom: bottomInset + CapsuleNavBar.height + 12,
-            child: LoggedToast(
-              key: ValueKey(toast.entry.id),
-              title: toast.title,
-              detail: _toastDetail(context, toast.entry),
-              undoLabel: l.toastUndo,
-              onUndo: toast.undoable ? () => _undo(toast) : null,
-              moreLabel: l.toastMore,
-              onMore: () => _addDetails(toast),
-            ),
-          ),
-      ],
+          const SizedBox(height: 26),
+          Text(l.todayForYou, style: text.titleLarge),
+          const SizedBox(height: 12),
+          if (due.isEmpty)
+            DailyCard(
+              tone: CardTone.of(CardCategory.moment),
+              tag: l.cardCategoryMoment,
+              body: l.todayNothingDue,
+              sticker: StickerArt.star,
+              stickerTurns: -0.022,
+            )
+          else
+            for (final status in due.take(_maxCards)) ...[
+              _ComingUpCard(
+                status: status,
+                onLog: () => quickLogEntry(
+                  context,
+                  ref,
+                  petId: pet.id,
+                  type: status.plan.entryType,
+                  planId: status.plan.id,
+                  kind: status.plan.entryKind,
+                ),
+                onLater: () => ref
+                    .read(plansRepositoryProvider)
+                    .snooze(
+                      status.plan.id,
+                      ref.read(clockProvider)().add(_snooze),
+                    ),
+              ),
+              const SizedBox(height: 12),
+            ],
+        ],
+      ),
     );
-  }
-
-  String _toastDetail(BuildContext context, Entry entry) {
-    final l = AppLocalizations.of(context);
-    final time = MaterialLocalizations.of(
-      context,
-    ).formatTimeOfDay(TimeOfDay.fromDateTime(entry.occurredAt));
-    final summary = l.entrySummary(entry, ref.read(displayUnitsProvider));
-    return '$summary · $time';
   }
 
   static bool _hasDue(List<PlanStatus> due, EntryType type) =>
@@ -396,33 +257,6 @@ class _Hero extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// 一键记录按钮，每行四个。
-class _QuickGrid extends StatelessWidget {
-  const _QuickGrid({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      for (var start = 0; start < children.length; start += 4) ...[
-        if (start > 0) const SizedBox(height: 10),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var i = start; i < start + 4; i++)
-              Expanded(
-                child: i < children.length
-                    ? children[i]
-                    : const SizedBox.shrink(),
-              ),
-          ],
-        ),
-      ],
-    ],
-  );
 }
 
 /// 计划"该做了"的卡片：只说距离上次多少天，不说"逾期""晚了"。

@@ -1583,5 +1583,41 @@
   "settingsFollowUnitSystem": "Match unit system",
   "@settingsFollowUnitSystem": {
     "description": "Option: use the unit system's default unit."
+  },
+  "recordCenterTitle": "Log something",
+  "@recordCenterTitle": {
+    "description": "Title of the record center opened from the center + button."
+  },
+  "recordGroupDaily": "Daily",
+  "@recordGroupDaily": {
+    "description": "Record center group: everyday things."
+  },
+  "recordGroupCare": "Care",
+  "@recordGroupCare": {
+    "description": "Record center group: grooming and care."
+  },
+  "recordGroupHealth": "Health",
+  "@recordGroupHealth": {
+    "description": "Record center group: weight, symptoms, medication, vet tests."
+  },
+  "recordGroupMore": "Prevention & more",
+  "@recordGroupMore": {
+    "description": "Record center group: parasite prevention, vaccines, other care, custom."
+  },
+  "sheetWalkStart": "Started",
+  "@sheetWalkStart": {
+    "description": "Time field label for a walk: when it started."
+  },
+  "fieldWalkDuration": "How long",
+  "@fieldWalkDuration": {
+    "description": "Walk duration field label."
+  },
+  "unitMinutes": "min",
+  "@unitMinutes": {
+    "description": "Suffix after a number of minutes."
+  },
+  "walkStartNow": "Start a walk now",
+  "@walkStartNow": {
+    "description": "Button in the walk sheet: start timing a walk now instead of logging a past one."
   }
 }

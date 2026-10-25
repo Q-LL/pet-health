@@ -1296,4 +1296,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFollowUnitSystem => 'Match unit system';
+
+  @override
+  String get recordCenterTitle => 'Log something';
+
+  @override
+  String get recordGroupDaily => 'Daily';
+
+  @override
+  String get recordGroupCare => 'Care';
+
+  @override
+  String get recordGroupHealth => 'Health';
+
+  @override
+  String get recordGroupMore => 'Prevention & more';
+
+  @override
+  String get sheetWalkStart => 'Started';
+
+  @override
+  String get fieldWalkDuration => 'How long';
+
+  @override
+  String get unitMinutes => 'min';
+
+  @override
+  String get walkStartNow => 'Start a walk now';
 }

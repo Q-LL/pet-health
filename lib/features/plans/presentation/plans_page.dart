@@ -6,14 +6,10 @@ import '../../../app/shell.dart';
 import '../../../core/design/design.dart';
 import '../../../core/l10n/app_locale.dart';
 import '../../../core/l10n/unit_format.dart';
-import '../../entries/application/quick_log.dart';
-import '../../entries/data/entries_repository.dart';
-import '../../entries/presentation/entry_sheet.dart';
-import '../../entries/presentation/entry_summary.dart';
+import '../../entries/presentation/log_flow.dart';
 import '../../pets/application/current_pet.dart';
 import '../../pets/domain/pet.dart';
 import '../../settings/application/display_settings.dart';
-import '../../today/application/today_providers.dart';
 import '../application/plan_providers.dart';
 import '../domain/plan.dart';
 import '../domain/plan_schedule.dart';
@@ -154,41 +150,14 @@ class _PlanRow extends ConsumerWidget {
   final PlanStatus status;
   final bool tilt;
 
-  Future<void> _logFirst(BuildContext context, WidgetRef ref) async {
-    final l = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final plan = status.plan;
-    final result = await ref
-        .read(quickLogProvider)
-        .log(
-          petId: pet.id,
-          type: plan.entryType,
-          presets: ref.read(currentPresetsProvider).value,
-          planId: plan.id,
-          kind: plan.entryKind,
-        );
-    if (!context.mounted) return;
-    switch (result) {
-      case Logged(:final entry) || WalkStarted(:final entry):
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              '${l.toastLogged} · '
-              '${l.entrySummary(entry, ref.read(displayUnitsProvider))}',
-            ),
-            action: SnackBarAction(
-              label: l.toastUndo,
-              onPressed: () =>
-                  ref.read(entriesRepositoryProvider).delete(entry.id),
-            ),
-          ),
-        );
-      case WalkFinished():
-        break;
-      case NeedsDetails(:final draft):
-        await showEntrySheet(context, draft: draft);
-    }
-  }
+  Future<void> _logFirst(BuildContext context, WidgetRef ref) => quickLogEntry(
+    context,
+    ref,
+    petId: pet.id,
+    type: status.plan.entryType,
+    planId: status.plan.id,
+    kind: status.plan.entryKind,
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
