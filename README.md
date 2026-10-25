@@ -49,7 +49,7 @@ Web 数据保存在当前浏览器中，与手机数据库独立。爱宠时光�
 
 Flutter / Material 3、Riverpod、go_router、Drift / SQLite。
 
-内置字体：中文标题 [ZCOOL KuaiLe](assets/fonts/zcool_kuaile/OFL.txt)、英文标题与数字 [Fredoka](assets/fonts/fredoka/OFL.txt)，均为 SIL Open Font License 1.1；正文使用系统字体。
+内置字体，均为 SIL Open Font License 1.1：英文界面和所有数字用 [Fredoka](assets/fonts/fredoka/OFL.txt)；中文的标题、按钮和列表标题用 [ZCOOL KuaiLe](assets/fonts/zcool_kuaile/OFL.txt)，其余文字用悠哉字体的精简版 [Paw Hand](assets/fonts/paw_hand/README.md)。
 
 ```text
 lib/

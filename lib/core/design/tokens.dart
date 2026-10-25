@@ -116,11 +116,20 @@ abstract final class PawSpace {
   static const touch = 48.0;
 }
 
-/// 字体。标题在中文界面用 ZCOOL KuaiLe，英文界面用 Fredoka；
-/// 正文用 Fredoka 显示拉丁字母和数字，中文自动回退到系统字体。
+/// 字体。英文界面全用 Fredoka；中文界面按用途分工：
+///
+/// - 标题和小标签：ZCOOL KuaiLe，最醒目、最有贴纸感；
+/// - 英文用粗体 Fredoka 的地方（列表标题、按钮、记录名称）：也用 ZCOOL KuaiLe；
+/// - 其余文字，包括 App 对你说的话（卡片正文、页面引导语）：[zhText] 悠哉字体，
+///   有点手写感，像朋友写的便签。
+///
+/// 中文界面里的数字和拉丁字母仍然用 Fredoka，和英文界面一致。
 abstract final class PawFonts {
   static const zh = 'ZCOOLKuaiLe';
   static const latin = 'Fredoka';
+
+  /// 悠哉字体的精简版，见 assets/fonts/paw_hand/README.md。
+  static const zhText = 'PawHand';
 
   static String headingFor(Locale locale) =>
       locale.languageCode == 'zh' ? zh : latin;

@@ -217,7 +217,9 @@ class _StepScaffold extends StatelessWidget {
           const SizedBox(height: PawSpace.sm),
           Text(
             body,
-            style: text.bodyMedium?.copyWith(color: PawColors.inkMuted),
+            style: PawTextStyles.of(
+              context,
+            ).note.copyWith(color: PawColors.inkMuted),
           ),
         ],
         const SizedBox(height: PawSpace.xl),

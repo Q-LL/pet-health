@@ -48,3 +48,9 @@ flutter:
     - family: Fredoka
       fonts:
         - asset: assets/fonts/fredoka/Fredoka-Variable.ttf
+    # 中文正文：悠哉字体的精简版（OFL），见 assets/fonts/paw_hand/README.md。
+    - family: PawHand
+      fonts:
+        - asset: assets/fonts/paw_hand/PawHand-Regular.ttf
+        - asset: assets/fonts/paw_hand/PawHand-Medium.ttf
+          weight: 500

@@ -17,15 +17,22 @@ ThemeData buildPawTheme(Locale locale) {
     color: PawColors.ink,
   );
 
-  TextStyle bodyStyle(double size, FontWeight weight, {double height = 1.5}) =>
-      TextStyle(
-        fontFamily: PawFonts.latin,
-        fontSize: size,
-        height: height,
-        fontWeight: weight,
-        fontVariations: PawFonts.weight(weight),
-        color: PawColors.ink,
-      );
+  TextStyle bodyStyle(double size, FontWeight weight, {double height = 1.5}) {
+    // 英文用粗体 Fredoka 的地方（列表标题、按钮、记录名称），中文换成
+    // ZCOOL KuaiLe；它只有一个字重，不再加粗，免得发糊。
+    final bold = isZh && weight.value >= 600;
+    return TextStyle(
+      fontFamily: PawFonts.latin,
+      // 拉丁字母和数字用 Fredoka，Fredoka 没有的中文字回退到中文字体。
+      fontFamilyFallback: isZh ? [bold ? PawFonts.zh : PawFonts.zhText] : null,
+      fontSize: size,
+      height: height,
+      fontWeight: bold ? FontWeight.w400 : weight,
+      // 数字和字母的粗细由可变字重决定，不受上面的影响。
+      fontVariations: PawFonts.weight(weight),
+      color: PawColors.ink,
+    );
+  }
 
   final textTheme = TextTheme(
     displaySmall: headingStyle(32),
@@ -70,6 +77,16 @@ ThemeData buildPawTheme(Locale locale) {
     scaffoldBackgroundColor: PawColors.ground,
     textTheme: textTheme,
     fontFamily: PawFonts.latin,
+    fontFamilyFallback: isZh ? const [PawFonts.zhText] : null,
+    extensions: [
+      PawTextStyles(
+        note: bodyStyle(15, FontWeight.w400, height: 1.55),
+        // 中文小标签用标题字体；它只有一个字重，不加粗。
+        tag: isZh
+            ? headingStyle(12, height: 1.3)
+            : bodyStyle(12, FontWeight.w600, height: 1.2),
+      ),
+    ],
     splashFactory: InkSparkle.splashFactory,
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
@@ -118,4 +135,31 @@ ThemeData buildPawTheme(Locale locale) {
       ),
     ),
   );
+}
+
+/// TextTheme 之外的两种文字：App 对你说的话，和胶囊小标签。
+@immutable
+class PawTextStyles extends ThemeExtension<PawTextStyles> {
+  const PawTextStyles({required this.note, required this.tag});
+
+  /// 卡片正文、页面引导语：像朋友写的便签。
+  final TextStyle note;
+
+  /// 类别标签之类的小胶囊。
+  final TextStyle tag;
+
+  static PawTextStyles of(BuildContext context) =>
+      Theme.of(context).extension<PawTextStyles>()!;
+
+  @override
+  PawTextStyles copyWith({TextStyle? note, TextStyle? tag}) =>
+      PawTextStyles(note: note ?? this.note, tag: tag ?? this.tag);
+
+  @override
+  PawTextStyles lerp(PawTextStyles? other, double t) => other == null
+      ? this
+      : PawTextStyles(
+          note: TextStyle.lerp(note, other.note, t)!,
+          tag: TextStyle.lerp(tag, other.tag, t)!,
+        );
 }

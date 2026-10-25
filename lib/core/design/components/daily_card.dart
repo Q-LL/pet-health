@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../stickers.dart';
+import '../theme.dart';
 import '../tokens.dart';
 
 /// 每日卡片：类别标签、可选的补充说明、正文、可选的贴纸和按钮。
@@ -65,7 +66,7 @@ class DailyCard extends StatelessWidget {
               body,
               style: emphasis
                   ? text.titleLarge?.copyWith(fontSize: 19, height: 1.45)
-                  : text.bodyMedium?.copyWith(height: 1.55),
+                  : PawTextStyles.of(context).note,
             ),
           ),
           if (actions.isNotEmpty) ...[
@@ -120,7 +121,7 @@ class TagChip extends StatelessWidget {
     ),
     child: Text(
       label,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(color: onColor),
+      style: PawTextStyles.of(context).tag.copyWith(color: onColor),
     ),
   );
 }

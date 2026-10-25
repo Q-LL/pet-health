@@ -24,6 +24,9 @@ class PlansPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
+    final note = PawTextStyles.of(
+      context,
+    ).note.copyWith(fontSize: 14, color: PawColors.inkMuted);
     final pet = ref.watch(currentPetProvider);
     if (pet == null) return const SizedBox.shrink();
     final statuses =
@@ -90,7 +93,7 @@ class PlansPage extends ConsumerWidget {
                   children: [
                     Text(l.plansTitle(pet.name), style: text.headlineMedium),
                     const SizedBox(height: 6),
-                    Text(l.plansSubtitle, style: text.bodySmall),
+                    Text(l.plansSubtitle, style: note),
                   ],
                 ),
               ),
@@ -115,7 +118,7 @@ class PlansPage extends ConsumerWidget {
                 children: [
                   const Sticker(StickerArt.star, size: 96, turns: -0.02),
                   const SizedBox(height: 16),
-                  Text(l.plansEmpty, style: text.bodySmall),
+                  Text(l.plansEmpty, style: note),
                 ],
               ),
             ),
