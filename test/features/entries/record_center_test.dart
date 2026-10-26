@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pet_health/features/entries/data/entries_repository.dart';
 import 'package:pet_health/features/entries/domain/entry.dart';
 import 'package:pet_health/features/entries/domain/entry_codes.dart';
+import 'package:pet_health/features/entries/domain/entry_groups.dart';
 import 'package:pet_health/features/entries/presentation/entry_sheet.dart';
 import 'package:pet_health/features/entries/presentation/record_center.dart';
 import 'package:pet_health/features/onboarding/application/onboarding_service.dart';
@@ -63,8 +64,10 @@ void main() {
       find.descendant(of: find.byType(EntrySheet), matching: finder);
 
   testWidgets('记录中心列出所有类型；在计划页记一次体重，提示条也会出现', (tester) async {
-    expect(RecordCenter.types.toSet(), EntryType.values.toSet());
-    expect(RecordCenter.types, hasLength(EntryType.values.length));
+    // 每种记录类型恰好属于一组，记录中心和时间线筛选才不会漏掉。
+    final grouped = [for (final group in EntryGroup.values) ...group.types];
+    expect(grouped.toSet(), EntryType.values.toSet());
+    expect(grouped, hasLength(EntryType.values.length));
 
     await start(tester);
     await tester.tap(find.text('计划'));

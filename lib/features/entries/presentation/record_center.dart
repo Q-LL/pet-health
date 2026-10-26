@@ -9,6 +9,7 @@ import '../../../core/l10n/app_locale.dart';
 import '../../../core/l10n/labels.dart';
 import '../../today/application/today_providers.dart';
 import '../domain/entry_codes.dart';
+import '../domain/entry_groups.dart';
 
 /// 打开记录中心，返回选中的记录类型；直接关闭时返回 `null`。
 Future<EntryType?> showRecordCenter(BuildContext context) =>
@@ -20,50 +21,9 @@ Future<EntryType?> showRecordCenter(BuildContext context) =>
       builder: (context) => const RecordCenter(),
     );
 
-enum _Group { daily, care, health, more }
-
 /// 记录中心：按类别列出所有能记的事。今天页只放常用的几项，其余都在这里。
 class RecordCenter extends ConsumerWidget {
   const RecordCenter({super.key});
-
-  static const _groups = [
-    (
-      _Group.daily,
-      [EntryType.meal, EntryType.water, EntryType.potty, EntryType.walk],
-    ),
-    (
-      _Group.care,
-      [
-        EntryType.brushing,
-        EntryType.bath,
-        EntryType.grooming,
-        EntryType.earCheck,
-      ],
-    ),
-    (
-      _Group.health,
-      [
-        EntryType.weight,
-        EntryType.symptom,
-        EntryType.medication,
-        EntryType.vetTest,
-      ],
-    ),
-    (
-      _Group.more,
-      [
-        EntryType.parasitePrevention,
-        EntryType.vaccine,
-        EntryType.otherCare,
-        EntryType.custom,
-      ],
-    ),
-  ];
-
-  /// 所有记录类型都要出现在记录中心里。
-  static List<EntryType> get types => [
-    for (final (_, types) in _groups) ...types,
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -101,18 +61,16 @@ class RecordCenter extends ConsumerWidget {
               ),
             ],
           ),
-          for (final (group, types) in _groups) ...[
+          for (final group in EntryGroup.values) ...[
             const SizedBox(height: 18),
-            Text(switch (group) {
-              _Group.daily => l.recordGroupDaily,
-              _Group.care => l.recordGroupCare,
-              _Group.health => l.recordGroupHealth,
-              _Group.more => l.recordGroupMore,
-            }, style: text.titleSmall?.copyWith(color: PawColors.inkMuted)),
+            Text(
+              l.entryGroup(group),
+              style: text.titleSmall?.copyWith(color: PawColors.inkMuted),
+            ),
             const SizedBox(height: 10),
             QuickLogGrid(
               children: [
-                for (final type in types)
+                for (final type in group.types)
                   QuickLogButton(
                     size: 56,
                     glyph: PawGlyph.forEntry(type),

@@ -1323,4 +1323,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkStartNow => 'Start a walk now';
+
+  @override
+  String timelineTitle(String name) {
+    return '$name\'s timeline';
+  }
+
+  @override
+  String get timelineToday => 'Today';
+
+  @override
+  String get timelineYesterday => 'Yesterday';
+
+  @override
+  String get timelineAll => 'All';
+
+  @override
+  String get timelineEmpty => 'Nothing here yet. Tap + to log something.';
+
+  @override
+  String get timelineEmptyGroup => 'Nothing in this group yet.';
+
+  @override
+  String get timelineWalking => 'On a walk';
+
+  @override
+  String get entryDelete => 'Delete this entry';
+
+  @override
+  String get entryDeleteConfirm => 'Delete this entry? This can\'t be undone.';
 }

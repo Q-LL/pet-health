@@ -1234,4 +1234,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get walkStartNow => '现在出发，开始计时';
+
+  @override
+  String timelineTitle(String name) {
+    return '$name 的时间线';
+  }
+
+  @override
+  String get timelineToday => '今天';
+
+  @override
+  String get timelineYesterday => '昨天';
+
+  @override
+  String get timelineAll => '全部';
+
+  @override
+  String get timelineEmpty => '还没有记录。点下面的 + 记一笔吧。';
+
+  @override
+  String get timelineEmptyGroup => '这一类还没有记录。';
+
+  @override
+  String get timelineWalking => '遛狗中';
+
+  @override
+  String get entryDelete => '删除这条记录';
+
+  @override
+  String get entryDeleteConfirm => '删除这条记录？删除后不能恢复。';
 }

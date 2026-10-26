@@ -333,5 +333,14 @@
   "sheetWalkStart": "出发时间",
   "fieldWalkDuration": "遛了多久",
   "unitMinutes": "分钟",
-  "walkStartNow": "现在出发，开始计时"
+  "walkStartNow": "现在出发，开始计时",
+  "timelineTitle": "{name} 的时间线",
+  "timelineToday": "今天",
+  "timelineYesterday": "昨天",
+  "timelineAll": "全部",
+  "timelineEmpty": "还没有记录。点下面的 + 记一笔吧。",
+  "timelineEmptyGroup": "这一类还没有记录。",
+  "timelineWalking": "遛狗中",
+  "entryDelete": "删除这条记录",
+  "entryDeleteConfirm": "删除这条记录？删除后不能恢复。"
 }

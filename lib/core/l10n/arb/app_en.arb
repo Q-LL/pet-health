@@ -1619,5 +1619,46 @@
   "walkStartNow": "Start a walk now",
   "@walkStartNow": {
     "description": "Button in the walk sheet: start timing a walk now instead of logging a past one."
+  },
+  "timelineTitle": "{name}'s timeline",
+  "@timelineTitle": {
+    "description": "Timeline page title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineToday": "Today",
+  "@timelineToday": {
+    "description": "Timeline day header for today."
+  },
+  "timelineYesterday": "Yesterday",
+  "@timelineYesterday": {
+    "description": "Timeline day header for yesterday."
+  },
+  "timelineAll": "All",
+  "@timelineAll": {
+    "description": "Timeline filter: every record type."
+  },
+  "timelineEmpty": "Nothing here yet. Tap + to log something.",
+  "@timelineEmpty": {
+    "description": "Timeline when the dog has no entries."
+  },
+  "timelineEmptyGroup": "Nothing in this group yet.",
+  "@timelineEmptyGroup": {
+    "description": "Timeline when the selected filter has no entries."
+  },
+  "timelineWalking": "On a walk",
+  "@timelineWalking": {
+    "description": "Timeline row: a walk that is still going."
+  },
+  "entryDelete": "Delete this entry",
+  "@entryDelete": {
+    "description": "Button in the entry sheet when editing."
+  },
+  "entryDeleteConfirm": "Delete this entry? This can't be undone.",
+  "@entryDeleteConfirm": {
+    "description": "Confirm dialog before deleting an entry."
   }
 }

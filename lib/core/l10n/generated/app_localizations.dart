@@ -2101,6 +2101,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start a walk now'**
   String get walkStartNow;
+
+  /// Timeline page title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s timeline'**
+  String timelineTitle(String name);
+
+  /// Timeline day header for today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get timelineToday;
+
+  /// Timeline day header for yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get timelineYesterday;
+
+  /// Timeline filter: every record type.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get timelineAll;
+
+  /// Timeline when the dog has no entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet. Tap + to log something.'**
+  String get timelineEmpty;
+
+  /// Timeline when the selected filter has no entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this group yet.'**
+  String get timelineEmptyGroup;
+
+  /// Timeline row: a walk that is still going.
+  ///
+  /// In en, this message translates to:
+  /// **'On a walk'**
+  String get timelineWalking;
+
+  /// Button in the entry sheet when editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry'**
+  String get entryDelete;
+
+  /// Confirm dialog before deleting an entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry? This can\'t be undone.'**
+  String get entryDeleteConfirm;
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,6 @@
 import '../../features/cards/domain/card_codes.dart';
 import '../../features/entries/domain/entry_codes.dart';
+import '../../features/entries/domain/entry_groups.dart';
 import '../../features/pets/domain/pet_codes.dart';
 import '../../features/settings/domain/app_preferences.dart';
 import '../codes/coded_enum.dart';
@@ -30,6 +31,13 @@ extension CodeLabels on AppLocalizations {
     EntryType.vaccine => entryTypeVaccine,
     EntryType.vetTest => entryTypeVetTest,
     EntryType.custom => entryTypeCustom,
+  };
+
+  String entryGroup(EntryGroup value) => switch (value) {
+    EntryGroup.daily => recordGroupDaily,
+    EntryGroup.care => recordGroupCare,
+    EntryGroup.health => recordGroupHealth,
+    EntryGroup.more => recordGroupMore,
   };
 
   String appetite(Appetite value) => switch (value) {

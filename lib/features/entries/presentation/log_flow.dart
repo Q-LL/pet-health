@@ -92,6 +92,29 @@ Future<void> _showResult(
   }
 }
 
+/// 打开修改记录的面板，可以改内容，也可以删除。正在进行的遛狗要先结束才能修改。
+Future<void> editEntry(BuildContext context, Entry entry) async {
+  if (entry.isActiveWalk) return;
+  await showEntrySheet(
+    context,
+    entryId: entry.id,
+    draft: EntryDraft(
+      petId: entry.petId,
+      type: entry.type,
+      occurredAt: entry.occurredAt,
+      planId: entry.planId,
+      amount: entry.amount,
+      unit: entry.unit,
+      details: entry.details,
+      label: entry.label,
+      note: entry.note,
+      startedAt: entry.startedAt,
+      endedAt: entry.endedAt,
+      distanceM: entry.distanceM,
+    ),
+  );
+}
+
 /// 浮在底栏上方的提示条：可以撤销，也可以补充细节。放在外框里，切换页面时也还在。
 class LogToastHost extends ConsumerWidget {
   const LogToastHost({super.key});
@@ -105,25 +128,8 @@ class LogToastHost extends ConsumerWidget {
     final entry = await ref
         .read(entriesRepositoryProvider)
         .getById(toast.entry.id);
-    if (entry == null || !context.mounted || entry.isActiveWalk) return;
-    await showEntrySheet(
-      context,
-      entryId: entry.id,
-      draft: EntryDraft(
-        petId: entry.petId,
-        type: entry.type,
-        occurredAt: entry.occurredAt,
-        planId: entry.planId,
-        amount: entry.amount,
-        unit: entry.unit,
-        details: entry.details,
-        label: entry.label,
-        note: entry.note,
-        startedAt: entry.startedAt,
-        endedAt: entry.endedAt,
-        distanceM: entry.distanceM,
-      ),
-    );
+    if (entry == null || !context.mounted) return;
+    await editEntry(context, entry);
   }
 
   @override

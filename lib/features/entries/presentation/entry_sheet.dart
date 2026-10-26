@@ -125,6 +125,37 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
     }
   }
 
+  Future<void> _delete() async {
+    final id = widget.entryId;
+    if (id == null || _saving) return;
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l.entryDeleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(foregroundColor: PawColors.inkMuted),
+            child: Text(l.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l.actionDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      await ref.read(entriesRepositoryProvider).delete(id);
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   /// 不补记，现在出发开始计时。
   Future<void> _startWalk() async {
     if (_saving) return;
@@ -271,6 +302,16 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
               style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
               child: Text(_editing ? l.sheetDone : l.sheetSave),
             ),
+            if (_editing) ...[
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _saving ? null : _delete,
+                style: TextButton.styleFrom(
+                  foregroundColor: PawColors.inkMuted,
+                ),
+                child: Text(l.entryDelete),
+              ),
+            ],
             if (_type == EntryType.walk && !_editing) ...[
               const SizedBox(height: 8),
               TextButton(
